@@ -2,14 +2,14 @@ openapi: 3.1.0
 info:
   title: ViviGo API
   description: API de ViviGo una aplicación web para la gestión de alojamientos (casas, apartamentos, fincas), reservas y comentarios, con roles diferenciados para usuarios y anfitriones, utilizando Spring Boot (JPA) y Angular.
-  version: 1.0.0
+  version: 2.0.0
 servers:
   - url: http://localhost:8080
     description: Servidor de desarrollo
 
 components:
   schemas:
-    Usuarios:
+    Usuario:
       type: object
       properties:
         id:
@@ -17,13 +17,18 @@ components:
           format: int64
         nombre:
           type: string
+          minLength: 1
         email:
           type: string
           format: email
         contraseña:
           type: string
+          minLength: 8
+          pattern: '^(?=.*[A-Z])(?=.*[0-9]).{8,}$'
+          description: "Mínimo 8 caracteres, debe contener al menos una mayúscula y un número"
         telefono:
           type: string
+          minLength: 1
         rol:
           type: string
           enum: [USER, HOST]
@@ -33,11 +38,30 @@ components:
         foto:
           type: string
           format: uri
+        estado:
+          type: string
+          enum: [ACTIVO, ELIMINADO]
+          default: ACTIVO
       required:
         - nombre
         - email
         - contraseña
+        - telefono
         - rol
+        - fechaNacimiento
+
+    Anfitrion:
+      allOf:
+        - $ref: '#/components/schemas/Usuario'
+        - type: object
+          properties:
+            descripcion:
+              type: string
+            documentos:
+              type: array
+              items:
+                type: string
+                format: uri
 
     Alojamiento:
       type: object
@@ -47,15 +71,19 @@ components:
           format: int64
         titulo:
           type: string
+          minLength: 1
         descripcion:
           type: string
+          minLength: 1
         ubicacion:
           $ref: '#/components/schemas/Ubicacion'
         precioNoche:
           type: number
           format: float
+          minimum: 0
         capacidad:
           type: integer
+          minimum: 1
         servicios:
           type: array
           items:
@@ -65,30 +93,70 @@ components:
           items:
             type: string
             format: uri
+          minItems: 1
+          maxItems: 10
+        imagenPrincipal:
+          type: integer
+          description: "Índice de la imagen principal en el array de imágenes"
+          minimum: 0
+        anfitrionId:
+          type: integer
+          format: int64
+        promedioCalificaciones:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+        numeroReservas:
+          type: integer
+          minimum: 0
+        estado:
+          type: string
+          enum: [ACTIVO, ELIMINADO]
+          default: ACTIVO
+        fechaCreacion:
+          type: string
+          format: date-time
       required:
         - titulo
         - descripcion
         - ubicacion
         - precioNoche
         - capacidad
+        - imagenes
 
     Ubicacion:
       type: object
       properties:
         ciudad:
           type: string
+          minLength: 1
         direccion:
           type: string
+          minLength: 1
         coordenadas:
           $ref: '#/components/schemas/Coordenadas'
+      required:
+        - ciudad
+        - direccion
+        - coordenadas
 
     Coordenadas:
       type: object
       properties:
         latitud:
-          type: string
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
         longitud:
-          type: string
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+      required:
+        - latitud
+        - longitud
 
     Reserva:
       type: object
@@ -99,6 +167,9 @@ components:
         alojamientoId:
           type: integer
           format: int64
+        usuarioId:
+          type: integer
+          format: int64
         fechaEntrada:
           type: string
           format: date
@@ -107,9 +178,20 @@ components:
           format: date
         numeroHuespedes:
           type: integer
+          minimum: 1
         estado:
           type: string
           enum: [PENDIENTE, CONFIRMADA, CANCELADA, COMPLETADA]
+        precioTotal:
+          type: number
+          format: float
+          minimum: 0
+        fechaCreacion:
+          type: string
+          format: date-time
+        fechaCancelacion:
+          type: string
+          format: date-time
       required:
         - alojamientoId
         - fechaEntrada
@@ -128,15 +210,128 @@ components:
           maximum: 5
         comentario:
           type: string
+          maxLength: 500
+          minLength: 1
         reservaId:
+          type: integer
+          format: int64
+        usuarioId:
+          type: integer
+          format: int64
+        alojamientoId:
           type: integer
           format: int64
         respuesta:
           type: string
+        fechaComentario:
+          type: string
+          format: date-time
+        fechaRespuesta:
+          type: string
+          format: date-time
       required:
         - calificacion
         - comentario
         - reservaId
+
+    Mensaje:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        remitenteId:
+          type: integer
+          format: int64
+        destinatarioId:
+          type: integer
+          format: int64
+        reservaId:
+          type: integer
+          format: int64
+        contenido:
+          type: string
+          maxLength: 1000
+        fechaEnvio:
+          type: string
+          format: date-time
+        leido:
+          type: boolean
+          default: false
+      required:
+        - remitenteId
+        - destinatarioId
+        - reservaId
+        - contenido
+
+    Chat:
+      type: object
+      properties:
+        reservaId:
+          type: integer
+          format: int64
+        participantes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Usuario'
+        mensajes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Mensaje'
+        ultimoMensaje:
+          $ref: '#/components/schemas/Mensaje'
+
+    PaginatedResponse:
+      type: object
+      properties:
+        contenido:
+          type: array
+          items: {}
+        pagina:
+          type: integer
+          minimum: 0
+        tamano:
+          type: integer
+          minimum: 1
+        totalElementos:
+          type: integer
+          minimum: 0
+        totalPaginas:
+          type: integer
+          minimum: 0
+        esUltima:
+          type: boolean
+        esPrimera:
+          type: boolean
+
+    BusquedaCiudad:
+      type: object
+      properties:
+        sugerencias:
+          type: array
+          items:
+            type: string
+
+    Metricas:
+      type: object
+      properties:
+        numeroReservas:
+          type: integer
+          minimum: 0
+        promedioCalificaciones:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+        ingresosTotales:
+          type: number
+          format: float
+          minimum: 0
+        ocupacion:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
 
     Solicitud_Sesion:
       type: object
@@ -146,6 +341,7 @@ components:
           format: email
         password:
           type: string
+          minLength: 1
       required:
         - email
         - password
@@ -156,11 +352,16 @@ components:
         email:
           type: string
           format: email
-        password:
+        passwordActual:
           type: string
+        passwordNueva:
+          type: string
+          minLength: 8
+          pattern: '^(?=.*[A-Z])(?=.*[0-9]).{8,}$'
       required:
         - email
-        - password
+        - passwordActual
+        - passwordNueva
 
     Recuperacion_Contraseña:
       type: object
@@ -179,8 +380,11 @@ components:
           format: email
         codigo:
           type: string
+          minLength: 1
         newPassword:
           type: string
+          minLength: 8
+          pattern: '^(?=.*[A-Z])(?=.*[0-9]).{8,}$'
       required:
         - email
         - codigo
@@ -196,6 +400,7 @@ components:
           type: string
       required:
         - accion
+
     Error:
       type: object
       properties:
@@ -203,6 +408,21 @@ components:
           type: string
         mensaje:
           type: string
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        usuario:
+          $ref: '#/components/schemas/Usuario'
+        expiresIn:
+          type: integer
 
   securitySchemes:
     BearerAuth:
@@ -211,6 +431,7 @@ components:
       bearerFormat: JWT
 
 paths:
+  # AUTENTICACIÓN
   /auth/huespedes:
     post:
       summary: Registro de huésped
@@ -220,14 +441,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Usuarios'
+              $ref: '#/components/schemas/Usuario'
       responses:
-        '200':
-          description: Usuario creado correctamente
         '201':
           description: Usuario creado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
         '400':
-          description: Faltan datos que son requeridos
+          description: Faltan datos que son requeridos o datos inválidos
           content:
             application/json:
               schema:
@@ -245,195 +468,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /usuarios/{id}:
-    put:
-      summary: Editar perfil del usuario
-      tags: [ Usuarios ]
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                nombre:
-                  type: string
-                telefono:
-                  type: string
-                foto:
-                  type: string
-                  format: uri
-      responses:
-        '200':
-          description: Usuario actualizado correctamente
-        '400':
-          description: Faltan datos que son requeridos
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: No tiene permisos para actualizar estos datos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: El usuario no existe
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    delete:
-      summary: Eliminar cuenta del usuario
-      tags: [ Usuarios ]
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Usuario eliminado correctamente
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: No tiene permisos para eliminar el usuario
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: El usuario no existe
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    get:
-      summary: Obtener información del usuario
-      tags: [ Usuarios ]
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Datos del usuario
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Usuarios'
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: No tiene permisos para obtener el usuario
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: El usuario no existe
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /usuarios/{id}/password:
-    patch:
-      summary: Cambiar contraseña
-      tags: [ Usuarios ]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Cambio_Contrasena'
-      responses:
-        '200':
-          description: Contraseña cambiada correctamente
-        '400':
-          description: Faltan datos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: Credenciales inválidas
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Error interno del servidor
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /anfitriones:
+  /auth/anfitriones:
     post:
       summary: Registro de anfitrión
-      tags: [ Autenticación ]
+      tags: [Autenticación]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              allOf:
-                - $ref: '#/components/schemas/Usuarios'
-                - type: object
-                  properties:
-                    descripcion:
-                      type: string
-                    documentos:
-                      type: array
-                      items:
-                        type: string
-                        format: uri
+              $ref: '#/components/schemas/Anfitrion'
       responses:
-        '200':
-          description: Anfitrión creado correctamente
         '201':
           description: Anfitrión creado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Anfitrion'
         '400':
-          description: Faltan datos que son requeridos
+          description: Faltan datos que son requeridos o datos inválidos
           content:
             application/json:
               schema:
@@ -467,10 +520,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
+                $ref: '#/components/schemas/LoginResponse'
         '400':
           description: Faltan datos
           content:
@@ -490,550 +540,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /alojamientos:
-    post:
-      summary: Crear un nuevo alojamiento
-      tags: [Alojamientos]
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Alojamiento'
-      responses:
-        '201':
-          description: Alojamiento creado exitosamente
-        '400':
-          description: Faltan datos obligatorios
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Usuario no es anfitrión
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Error interno del servidor
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /alojamientos/{id_alojamiento}:
-    put:
-      summary: Editar un alojamiento existente
-      tags: [Alojamientos]
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id_alojamiento
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                titulo:
-                  type: string
-                descripcion:
-                  type: string
-                precioNoche:
-                  type: number
-                  format: float
-                capacidad:
-                  type: integer
-                servicios:
-                  type: array
-                  items:
-                    type: string
-                imagenes:
-                  type: array
-                  items:
-                    type: string
-                    format: uri
-      responses:
-        '200':
-          description: Alojamiento actualizado
-        '400':
-          description: Datos inválidos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: No tiene permisos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Alojamiento no existe
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    delete:
-      summary: Eliminar un alojamiento
-      tags: [Alojamientos]
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id_alojamiento
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Alojamiento marcado como eliminado
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: No tiene permisos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Alojamiento no existe
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: Reservas futuras existentes
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    get:
-      summary: Ver la información de un alojamiento
-      tags: [Alojamientos]
-      parameters:
-        - name: id_alojamiento
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Datos del alojamiento
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Alojamiento'
-        '404':
-          description: Alojamiento no existe
-
-  /alojamientos/{id_alojamiento}/comentarios:
-    post:
-      summary: Agregar un comentario en un alojamiento
-      tags: [Comentarios]
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id_alojamiento
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Comentario'
-      responses:
-        '201':
-          description: Comentario agregado
-        '400':
-          description: Datos inválidos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: No cumplió requisitos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Alojamiento no existe
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    get:
-      summary: Ver comentarios de un alojamiento
-      tags: [Comentarios]
-      parameters:
-        - name: id_alojamiento
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Lista de comentarios
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Comentario'
-        '404':
-          description: Alojamiento no existe
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /alojamientos/busqueda:
-    get:
-      summary: Buscar alojamientos
-      tags: [Alojamientos]
-      parameters:
-        - name: ciudad
-          in: query
-          schema:
-            type: string
-        - name: fecha_entrada
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: fecha_salida
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: precio_min
-          in: query
-          schema:
-            type: number
-            format: float
-        - name: precio_max
-          in: query
-          schema:
-            type: number
-            format: float
-        - name: servicios
-          in: query
-          schema:
-            type: array
-            items:
-              type: string
-      responses:
-        '200':
-          description: Lista paginada de alojamientos disponibles
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Alojamiento'
-        '400':
-          description: Fechas inválidas
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /reservas:
-    post:
-      summary: Crear reserva
-      tags: [Reservas]
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Reserva'
-      responses:
-        '201':
-          description: Reserva creada exitosamente
-        '400':
-          description: No disponible/Inválido
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Alojamiento no existe
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /reservas/{id_reserva}/{estado}:
-    patch:
-      summary: Cancelar reserva
-      tags: [Reservas]
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id_reserva
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - name: estado
-          in: path
-          required: true
-          schema:
-            type: string
-            enum: [CANCELADA]
-      responses:
-        '200':
-          description: Reserva cancelada
-        '400':
-          description: No cumple política de cancelación
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: No tiene permisos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Reserva no existe
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /anfitriones/alojamientos:
-    get:
-      summary: Listar alojamientos del anfitrión
-      tags: [ Anfitriones ]
-      security:
-        - BearerAuth: [ ]
-      responses:
-        '200':
-          description: Lista de alojamientos del anfitrión
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Alojamiento'
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: No es anfitrión
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /anfitriones/alojamientos/{id}/metricas:
-    get:
-      summary: Obtener métricas de alojamiento
-      tags: [ Anfitriones ]
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - name: fecha_inicio
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: fecha_fin
-          in: query
-          schema:
-            type: string
-            format: date
-      responses:
-        '200':
-          description: Métricas del alojamiento
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  numeroReservas:
-                    type: integer
-                  promedioCalificaciones:
-                    type: number
-                    format: float
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: No tiene permisos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Alojamiento no existe
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /anfitriones/reservas:
-    get:
-      summary: Obtener reservas de alojamientos del anfitrión
-      tags: [ Anfitriones ]
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - name: estado
-          in: query
-          schema:
-            type: string
-        - name: fecha_inicio
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: fecha_fin
-          in: query
-          schema:
-            type: string
-            format: date
-      responses:
-        '200':
-          description: Lista paginada de reservas
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Reserva'
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: No es anfitrión
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /anfitriones/reservas/{id}/accion:
-    patch:
-      summary: Aprobar/rechazar reservas
-      tags: [ Anfitriones ]
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Respuesta_Accion'
-      responses:
-        '200':
-          description: Reserva aprobada/rechazada
-        '400':
-          description: Acción inválida
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: No tiene permisos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Reserva no existe
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
   /auth/forgot-password:
     post:
       summary: Solicitar recuperación de contraseña
@@ -1046,9 +552,15 @@ paths:
               $ref: '#/components/schemas/Recuperacion_Contraseña'
       responses:
         '200':
-          description: Código enviado al correo
+          description: Código enviado al correo (válido por 15 minutos)
         '400':
           description: Email no válido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Email no encontrado
           content:
             application/json:
               schema:
@@ -1080,6 +592,1056 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  # GESTIÓN DE USUARIOS
+  /usuarios/{id}:
+    get:
+      summary: Obtener información del usuario
+      tags: [ Usuarios ]
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Datos del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos para obtener el usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: El usuario no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Editar perfil del usuario
+      tags: [ Usuarios ]
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre:
+                  type: string
+                  minLength: 1
+                telefono:
+                  type: string
+                  minLength: 1
+                foto:
+                  type: string
+                  format: uri
+                descripcion:
+                  type: string
+                  description: "Solo para anfitriones"
+                documentos:
+                  type: array
+                  items:
+                    type: string
+                    format: uri
+                  description: "Solo para anfitriones"
+      responses:
+        '200':
+          description: Usuario actualizado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos para actualizar estos datos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: El usuario no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Eliminar cuenta del usuario (soft delete)
+      tags: [ Usuarios ]
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Usuario marcado como eliminado
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos para eliminar el usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: El usuario no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /usuarios/{id}/password:
+    patch:
+      summary: Cambiar contraseña (usuario autenticado)
+      tags: [ Usuarios ]
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cambio_Contrasena'
+      responses:
+        '200':
+          description: Contraseña cambiada correctamente
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /usuarios/{id}/reservas:
+    get:
+      summary: Obtener historial de reservas del usuario
+      tags: [ Usuarios ]
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: estado
+          in: query
+          schema:
+            type: string
+            enum: [ PENDIENTE, CONFIRMADA, CANCELADA, COMPLETADA ]
+        - name: fecha_inicio
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: fecha_fin
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: pagina
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: tamano
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Lista paginada de reservas (ordenadas de más reciente a más antigua)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      contenido:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Reserva'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Usuario no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # GESTIÓN DE ALOJAMIENTOS
+  /alojamientos:
+    post:
+      summary: Crear un nuevo alojamiento
+      tags: [Alojamientos]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Alojamiento'
+      responses:
+        '201':
+          description: Alojamiento creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alojamiento'
+        '400':
+          description: Faltan datos obligatorios o datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Usuario no es anfitrión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /alojamientos/{id_alojamiento}:
+    get:
+      summary: Ver la información completa de un alojamiento
+      tags: [Alojamientos]
+      parameters:
+        - name: id_alojamiento
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Datos completos del alojamiento con galería, calendario de disponibilidad y comentarios
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Alojamiento'
+                  - type: object
+                    properties:
+                      comentarios:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Comentario'
+                      disponibilidad:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            fecha:
+                              type: string
+                              format: date
+                            disponible:
+                              type: boolean
+        '404':
+          description: Alojamiento no existe o está eliminado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Editar un alojamiento existente
+      tags: [Alojamientos]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id_alojamiento
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                titulo:
+                  type: string
+                  minLength: 1
+                descripcion:
+                  type: string
+                  minLength: 1
+                precioNoche:
+                  type: number
+                  format: float
+                  minimum: 0
+                capacidad:
+                  type: integer
+                  minimum: 1
+                servicios:
+                  type: array
+                  items:
+                    type: string
+                imagenes:
+                  type: array
+                  items:
+                    type: string
+                    format: uri
+                  minItems: 1
+                  maxItems: 10
+                imagenPrincipal:
+                  type: integer
+                  minimum: 0
+      responses:
+        '200':
+          description: Alojamiento actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alojamiento'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos (no es el anfitrión propietario)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Alojamiento no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Eliminar un alojamiento (soft delete)
+      tags: [Alojamientos]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id_alojamiento
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Alojamiento marcado como eliminado
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos (no es el anfitrión propietario)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Alojamiento no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: No se puede eliminar - tiene reservas futuras
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /alojamientos/busqueda:
+    get:
+      summary: Buscar alojamientos con filtros
+      tags: [Alojamientos]
+      parameters:
+        - name: ciudad
+          in: query
+          schema:
+            type: string
+        - name: fecha_entrada
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: fecha_salida
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: precio_min
+          in: query
+          schema:
+            type: number
+            format: float
+            minimum: 0
+        - name: precio_max
+          in: query
+          schema:
+            type: number
+            format: float
+            minimum: 0
+        - name: servicios
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: capacidad
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: pagina
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: tamano
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Lista paginada de alojamientos disponibles (excluye eliminados)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      contenido:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              format: int64
+                            titulo:
+                              type: string
+                            imagenPrincipal:
+                              type: string
+                              format: uri
+                            precioNoche:
+                              type: number
+                              format: float
+                            ubicacion:
+                              $ref: '#/components/schemas/Ubicacion'
+                            promedioCalificaciones:
+                              type: number
+                              format: float
+                            capacidad:
+                              type: integer
+        '400':
+          description: Parámetros de búsqueda inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /alojamientos/ciudades/sugerencias:
+    get:
+      summary: Búsqueda predictiva de ciudades
+      tags: [Alojamientos]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          description: Término de búsqueda para ciudades
+      responses:
+        '200':
+          description: Lista de sugerencias de ciudades
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusquedaCiudad'
+
+  # GESTIÓN DE RESERVAS
+  /reservas:
+    post:
+      summary: Crear reserva
+      tags: [Reservas]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reserva'
+      responses:
+        '201':
+          description: Reserva creada exitosamente - se envía correo de confirmación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reserva'
+        '400':
+          description: Datos inválidos (fechas pasadas, menos de 1 noche, excede capacidad, fechas no disponibles)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Alojamiento no existe o está eliminado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Fechas no disponibles (solapamiento con otras reservas)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /reservas/{id_reserva}/estado:
+    patch:
+      summary: Cancelar reserva (usuario)
+      tags: [Reservas]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id_reserva
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Reserva cancelada - se envía notificación al anfitrión
+        '400':
+          description: No cumple política de cancelación (menos de 48 horas antes del check-in)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos (no es el usuario de la reserva)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Reserva no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # GESTIÓN DE ANFITRIÓN
+  /anfitriones/alojamientos:
+    get:
+      summary: Listar alojamientos del anfitrión
+      tags: [ Anfitriones ]
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: pagina
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: tamano
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Lista paginada de alojamientos del anfitrión
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      contenido:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Alojamiento'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No es anfitrión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /anfitriones/alojamientos/{id}:
+    get:
+      summary: Obtener alojamiento específico del anfitrión
+      tags: [ Anfitriones ]
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Datos del alojamiento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alojamiento'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos (no es el anfitrión propietario)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Alojamiento no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /anfitriones/alojamientos/{id}/metricas:
+    get:
+      summary: Obtener métricas de alojamiento por rango de fechas
+      tags: [ Anfitriones ]
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: fecha_inicio
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: fecha_fin
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Métricas del alojamiento en el rango especificado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metricas'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos (no es el anfitrión propietario)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Alojamiento no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /anfitriones/reservas:
+    get:
+      summary: Obtener reservas de alojamientos del anfitrión
+      tags: [ Anfitriones ]
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: estado
+          in: query
+          schema:
+            type: string
+            enum: [ PENDIENTE, CONFIRMADA, CANCELADA, COMPLETADA ]
+        - name: fecha_inicio
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: fecha_fin
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: alojamiento_id
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: pagina
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: tamano
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Lista paginada de reservas (ordenadas de más reciente a más antigua)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      contenido:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Reserva'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No es anfitrión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /anfitriones/reservas/{id}/estado:
+    patch:
+      summary: Aprobar/rechazar reservas (funcionalidad opcional)
+      tags: [ Anfitriones ]
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Respuesta_Accion'
+      responses:
+        '200':
+          description: Reserva aprobada/rechazada - se envía notificación al usuario
+        '400':
+          description: Acción inválida o reserva ya procesada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos (no es el anfitrión del alojamiento)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Reserva no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # GESTIÓN DE COMENTARIOS
+  /alojamientos/{id_alojamiento}/comentarios:
+    get:
+      summary: Ver comentarios de un alojamiento
+      tags: [Comentarios]
+      parameters:
+        - name: id_alojamiento
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: pagina
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: tamano
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Lista paginada de comentarios (ordenados por fecha, más recientes primero)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      contenido:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Comentario'
+        '404':
+          description: Alojamiento no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Agregar comentario en un alojamiento
+      tags: [Comentarios]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id_alojamiento
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comentario'
+      responses:
+        '201':
+          description: Comentario agregado - se envía notificación al anfitrión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comentario'
+        '400':
+          description: Datos inválidos (comentario excede 500 caracteres)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No cumplió requisitos (no tuvo estadía completada o ya comentó esta reserva)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Alojamiento no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /alojamientos/{id_alojamiento}/promedio-calificaciones:
+    get:
+      summary: Obtener promedio de calificaciones del alojamiento
+      tags: [Comentarios]
+      parameters:
+        - name: id_alojamiento
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Promedio de calificaciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  promedioCalificaciones:
+                    type: number
+                    format: float
+                    minimum: 0
+                    maximum: 5
+                  totalComentarios:
+                    type: integer
+                    minimum: 0
+        '404':
+          description: Alojamiento no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /comentarios/{id}/respuesta:
     post:
       summary: Responder a comentarios
@@ -1102,9 +1664,23 @@ paths:
               properties:
                 respuesta:
                   type: string
+                  minLength: 1
+                  maxLength: 500
+              required:
+                - respuesta
       responses:
         '201':
           description: Respuesta agregada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comentario'
+        '400':
+          description: Respuesta inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: No autenticado
           content:
@@ -1123,3 +1699,219 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  # SISTEMA DE CHAT (FUNCIONALIDAD OPCIONAL)
+  /chat/reserva/{id_reserva}:
+    get:
+      summary: Obtener chat de una reserva
+      tags: [Chat]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id_reserva
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: pagina
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: tamano
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Chat con mensajes de la reserva
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chat'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos (no es participante de la reserva)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Reserva no existe o no está confirmada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /chat/reserva/{id_reserva}/mensajes:
+    post:
+      summary: Enviar mensaje en chat de reserva
+      tags: [Chat]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id_reserva
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                contenido:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+              required:
+                - contenido
+      responses:
+        '201':
+          description: Mensaje enviado - se envía notificación en tiempo real al destinatario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensaje'
+        '400':
+          description: Contenido inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos (no es participante de la reserva)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Reserva no existe o no está confirmada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /chat/usuario/{id_usuario}/conversaciones:
+    get:
+      summary: Obtener lista de chats del usuario
+      tags: [Chat]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id_usuario
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Lista de conversaciones activas del usuario
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    reservaId:
+                      type: integer
+                      format: int64
+                    alojamiento:
+                      type: object
+                      properties:
+                        titulo:
+                          type: string
+                        imagenPrincipal:
+                          type: string
+                          format: uri
+                    otroParticipante:
+                      $ref: '#/components/schemas/Usuario'
+                    ultimoMensaje:
+                      $ref: '#/components/schemas/Mensaje'
+                    mensajesNoLeidos:
+                      type: integer
+                      minimum: 0
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /chat/mensajes/{id_mensaje}/marcar-leido:
+    patch:
+      summary: Marcar mensaje como leído
+      tags: [Chat]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id_mensaje
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Mensaje marcado como leído
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos (no es el destinatario)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Mensaje no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+tags:
+  - name: Autenticación
+    description: Endpoints para registro, login y recuperación de contraseña
+  - name: Usuarios
+    description: Gestión de perfiles de usuario
+  - name: Alojamientos
+    description: CRUD de alojamientos y búsqueda
+  - name: Reservas
+    description: Gestión de reservas
+  - name: Anfitriones
+    description: Funcionalidades específicas para anfitriones
+  - name: Comentarios
+    description: Sistema de comentarios y calificaciones
+  - name: Chat
+    description: Sistema de mensajería en tiempo real (funcionalidad opcional)
