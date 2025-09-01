@@ -9,7 +9,7 @@ servers:
 
 components:
   schemas:
-    Usuario:
+    Usuarios:
       type: object
       properties:
         id:
@@ -211,7 +211,7 @@ components:
       bearerFormat: JWT
 
 paths:
-  /auth/huesped:
+  /auth/huespedes:
     post:
       summary: Registro de huésped
       tags: [Autenticación]
@@ -220,7 +220,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Usuario'
+              $ref: '#/components/schemas/Usuarios'
       responses:
         '200':
           description: Usuario creado correctamente
@@ -245,12 +245,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /usuario/{id}:
+  /usuarios/{id}:
     put:
       summary: Editar perfil del usuario
-      tags: [Usuarios]
+      tags: [ Usuarios ]
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       parameters:
         - name: id
           in: path
@@ -298,9 +298,9 @@ paths:
 
     delete:
       summary: Eliminar cuenta del usuario
-      tags: [Usuarios]
+      tags: [ Usuarios ]
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       parameters:
         - name: id
           in: path
@@ -332,9 +332,9 @@ paths:
 
     get:
       summary: Obtener información del usuario
-      tags: [Usuarios]
+      tags: [ Usuarios ]
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       parameters:
         - name: id
           in: path
@@ -348,7 +348,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Usuario'
+                $ref: '#/components/schemas/Usuarios'
         '401':
           description: No autenticado
           content:
@@ -368,10 +368,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /usuario/{id}/password:
+  /usuarios/{id}/password:
     patch:
       summary: Cambiar contraseña
-      tags: [Usuarios]
+      tags: [ Usuarios ]
       parameters:
         - name: id
           in: path
@@ -407,17 +407,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /anfitrion:
+  /anfitriones:
     post:
       summary: Registro de anfitrión
-      tags: [Autenticación]
+      tags: [ Autenticación ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/Usuario'
+                - $ref: '#/components/schemas/Usuarios'
                 - type: object
                   properties:
                     descripcion:
@@ -814,7 +814,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /reservas/{id_reserva}/cancelar/{estado}:
+  /reservas/{id_reserva}/{estado}:
     patch:
       summary: Cancelar reserva
       tags: [Reservas]
@@ -861,12 +861,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /anfitrion/alojamientos:
+  /anfitriones/alojamientos:
     get:
       summary: Listar alojamientos del anfitrión
-      tags: [Anfitrión]
+      tags: [ Anfitriones ]
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       responses:
         '200':
           description: Lista de alojamientos del anfitrión
@@ -889,12 +889,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /anfitrion/alojamientos/{id}/metricas:
+  /anfitriones/alojamientos/{id}/metricas:
     get:
       summary: Obtener métricas de alojamiento
-      tags: [Anfitrión]
+      tags: [ Anfitriones ]
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       parameters:
         - name: id
           in: path
@@ -944,12 +944,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /anfitrion/reservas:
+  /anfitriones/reservas:
     get:
       summary: Obtener reservas de alojamientos del anfitrión
-      tags: [Anfitrión]
+      tags: [ Anfitriones ]
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       parameters:
         - name: estado
           in: query
@@ -987,12 +987,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /anfitrion/reservas/{id}/accion:
+  /anfitriones/reservas/{id}/accion:
     patch:
       summary: Aprobar/rechazar reservas
-      tags: [Anfitrión]
+      tags: [ Anfitriones ]
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       parameters:
         - name: id
           in: path
