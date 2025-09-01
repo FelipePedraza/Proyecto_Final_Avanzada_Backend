@@ -196,6 +196,13 @@ components:
           type: string
       required:
         - accion
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        mensaje:
+          type: string
 
   securitySchemes:
     BearerAuth:
@@ -204,10 +211,10 @@ components:
       bearerFormat: JWT
 
 paths:
-  /huesped:
+  /auth/huesped:
     post:
       summary: Registro de huésped
-      tags: [Huésped]
+      tags: [Autenticación]
       requestBody:
         required: true
         content:
@@ -221,10 +228,22 @@ paths:
           description: Usuario creado correctamente
         '400':
           description: Faltan datos que son requeridos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '409':
           description: Correo repetido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /usuario/{id}:
     put:
@@ -260,10 +279,22 @@ paths:
           description: Faltan datos que son requeridos
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: No tiene permisos para actualizar estos datos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: El usuario no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
     delete:
       summary: Eliminar cuenta del usuario
@@ -282,10 +313,22 @@ paths:
           description: Usuario eliminado correctamente
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: No tiene permisos para eliminar el usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: El usuario no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
     get:
       summary: Obtener información del usuario
@@ -308,12 +351,24 @@ paths:
                 $ref: '#/components/schemas/Usuario'
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: No tiene permisos para obtener el usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: El usuario no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
-  /usuario/{id}/contrasena:
+  /usuario/{id}/password:
     patch:
       summary: Cambiar contraseña
       tags: [Usuarios]
@@ -335,15 +390,27 @@ paths:
           description: Contraseña cambiada correctamente
         '400':
           description: Faltan datos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /anfitrion:
     post:
       summary: Registro de anfitrión
-      tags: [anfitrión]
+      tags: [Autenticación]
       requestBody:
         required: true
         content:
@@ -367,10 +434,22 @@ paths:
           description: Anfitrión creado correctamente
         '400':
           description: Faltan datos que son requeridos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '409':
           description: Correo repetido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /auth/login:
     post:
@@ -394,10 +473,22 @@ paths:
                     type: string
         '400':
           description: Faltan datos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /alojamientos:
     post:
@@ -416,12 +507,28 @@ paths:
           description: Alojamiento creado exitosamente
         '400':
           description: Faltan datos obligatorios
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Usuario no es anfitrión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /alojamientos/{id_alojamiento}:
     put:
@@ -466,12 +573,28 @@ paths:
           description: Alojamiento actualizado
         '400':
           description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: No tiene permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Alojamiento no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
     delete:
       summary: Eliminar un alojamiento
@@ -490,12 +613,28 @@ paths:
           description: Alojamiento marcado como eliminado
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: No tiene permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Alojamiento no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '409':
           description: Reservas futuras existentes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
     get:
       summary: Ver la información de un alojamiento
@@ -541,12 +680,28 @@ paths:
           description: Comentario agregado
         '400':
           description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: No cumplió requisitos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Alojamiento no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
     get:
       summary: Ver comentarios de un alojamiento
@@ -569,6 +724,10 @@ paths:
                   $ref: '#/components/schemas/Comentario'
         '404':
           description: Alojamiento no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /alojamientos/busqueda:
     get:
@@ -616,6 +775,10 @@ paths:
                   $ref: '#/components/schemas/Alojamiento'
         '400':
           description: Fechas inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /reservas:
     post:
@@ -634,10 +797,22 @@ paths:
           description: Reserva creada exitosamente
         '400':
           description: No disponible/Inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Alojamiento no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /reservas/{id_reserva}/cancelar/{estado}:
     patch:
@@ -663,12 +838,28 @@ paths:
           description: Reserva cancelada
         '400':
           description: No cumple política de cancelación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: No tiene permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Reserva no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /anfitrion/alojamientos:
     get:
@@ -687,8 +878,16 @@ paths:
                   $ref: '#/components/schemas/Alojamiento'
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: No es anfitrión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /anfitrion/alojamientos/{id}/metricas:
     get:
@@ -728,10 +927,22 @@ paths:
                     format: float
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: No tiene permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Alojamiento no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /anfitrion/reservas:
     get:
@@ -765,8 +976,16 @@ paths:
                   $ref: '#/components/schemas/Reserva'
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: No es anfitrión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /anfitrion/reservas/{id}/accion:
     patch:
@@ -792,12 +1011,28 @@ paths:
           description: Reserva aprobada/rechazada
         '400':
           description: Acción inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: No tiene permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Reserva no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /auth/forgot-password:
     post:
@@ -814,6 +1049,10 @@ paths:
           description: Código enviado al correo
         '400':
           description: Email no válido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /auth/reset-password:
     post:
@@ -830,8 +1069,16 @@ paths:
           description: Contraseña restablecida
         '400':
           description: Código inválido/expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Email no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /comentarios/{id}/respuesta:
     post:
@@ -860,7 +1107,19 @@ paths:
           description: Respuesta agregada
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: No es anfitrión del alojamiento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Comentario no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
