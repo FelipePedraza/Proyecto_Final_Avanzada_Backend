@@ -12,9 +12,6 @@ components:
     Usuario:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
         nombre:
           type: string
           minLength: 1
@@ -38,10 +35,6 @@ components:
         foto:
           type: string
           format: uri
-        estado:
-          type: string
-          enum: [ACTIVO, ELIMINADO]
-          default: ACTIVO
       required:
         - nombre
         - email
@@ -66,9 +59,6 @@ components:
     Alojamiento:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
         titulo:
           type: string
           minLength: 1
@@ -161,9 +151,6 @@ components:
     Reserva:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
         alojamientoId:
           type: integer
           format: int64
@@ -201,9 +188,6 @@ components:
     Comentario:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
         calificacion:
           type: integer
           minimum: 1
@@ -237,9 +221,6 @@ components:
     Mensaje:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
         remitenteId:
           type: integer
           format: int64
@@ -900,6 +881,99 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+    get:
+      summary: Buscar alojamientos con filtros
+      tags: [ Alojamientos ]
+      parameters:
+        - name: ciudad
+          in: query
+          schema:
+            type: string
+        - name: fecha_entrada
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: fecha_salida
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: precio_min
+          in: query
+          schema:
+            type: number
+            format: float
+            minimum: 0
+        - name: precio_max
+          in: query
+          schema:
+            type: number
+            format: float
+            minimum: 0
+        - name: servicios
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: capacidad
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: pagina
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: tamano
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Lista paginada de alojamientos disponibles (excluye eliminados)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      contenido:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              format: int64
+                            titulo:
+                              type: string
+                            imagenPrincipal:
+                              type: string
+                              format: uri
+                            precioNoche:
+                              type: number
+                              format: float
+                            ubicacion:
+                              $ref: '#/components/schemas/Ubicacion'
+                            promedioCalificaciones:
+                              type: number
+                              format: float
+                            capacidad:
+                              type: integer
+        '400':
+          description: Parámetros de búsqueda inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /alojamientos/{id_alojamiento}:
     get:
@@ -1061,102 +1135,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /alojamientos/busqueda:
-    get:
-      summary: Buscar alojamientos con filtros
-      tags: [Alojamientos]
-      parameters:
-        - name: ciudad
-          in: query
-          schema:
-            type: string
-        - name: fecha_entrada
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: fecha_salida
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: precio_min
-          in: query
-          schema:
-            type: number
-            format: float
-            minimum: 0
-        - name: precio_max
-          in: query
-          schema:
-            type: number
-            format: float
-            minimum: 0
-        - name: servicios
-          in: query
-          schema:
-            type: array
-            items:
-              type: string
-        - name: capacidad
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-        - name: pagina
-          in: query
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-        - name: tamano
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 10
-      responses:
-        '200':
-          description: Lista paginada de alojamientos disponibles (excluye eliminados)
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      contenido:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: integer
-                              format: int64
-                            titulo:
-                              type: string
-                            imagenPrincipal:
-                              type: string
-                              format: uri
-                            precioNoche:
-                              type: number
-                              format: float
-                            ubicacion:
-                              $ref: '#/components/schemas/Ubicacion'
-                            promedioCalificaciones:
-                              type: number
-                              format: float
-                            capacidad:
-                              type: integer
-        '400':
-          description: Parámetros de búsqueda inválidos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /alojamientos/ciudades/sugerencias:
+  /alojamientos/sugerencias:
     get:
       summary: Búsqueda predictiva de ciudades
       tags: [Alojamientos]
@@ -1263,10 +1242,10 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   # GESTIÓN DE ANFITRIÓN
-  /anfitriones/alojamientos:
+  /usuarios/{id}/alojamientos:
     get:
       summary: Listar alojamientos del anfitrión
-      tags: [ Anfitriones ]
+      tags: [ Usuarios ]
       security:
         - BearerAuth: [ ]
       parameters:
@@ -1310,49 +1289,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /anfitriones/alojamientos/{id}:
-    get:
-      summary: Obtener alojamiento específico del anfitrión
-      tags: [ Anfitriones ]
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Datos del alojamiento
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Alojamiento'
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: No tiene permisos (no es el anfitrión propietario)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Alojamiento no existe
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /anfitriones/alojamientos/{id}/metricas:
+  /usuarios/alojamientos/{id}/metricas:
     get:
       summary: Obtener métricas de alojamiento por rango de fechas
-      tags: [ Anfitriones ]
+      tags: [ Usuarios ]
       security:
         - BearerAuth: [ ]
       parameters:
@@ -1398,77 +1338,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /anfitriones/reservas:
-    get:
-      summary: Obtener reservas de alojamientos del anfitrión
-      tags: [ Anfitriones ]
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - name: estado
-          in: query
-          schema:
-            type: string
-            enum: [ PENDIENTE, CONFIRMADA, CANCELADA, COMPLETADA ]
-        - name: fecha_inicio
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: fecha_fin
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: alojamiento_id
-          in: query
-          schema:
-            type: integer
-            format: int64
-        - name: pagina
-          in: query
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-        - name: tamano
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 10
-      responses:
-        '200':
-          description: Lista paginada de reservas (ordenadas de más reciente a más antigua)
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      contenido:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Reserva'
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: No es anfitrión
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /anfitriones/reservas/{id}/estado:
+  /usuarios/reservas/{id}/estado:
     patch:
       summary: Aprobar/rechazar reservas (funcionalidad opcional)
-      tags: [ Anfitriones ]
+      tags: [ Usuarios ]
       security:
         - BearerAuth: [ ]
       parameters:
@@ -1642,7 +1515,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /comentarios/{id}/respuesta:
+  /alojamientos/{id_alojamiento}/comentarios/{id}/respuesta:
     post:
       summary: Responder a comentarios
       tags: [Comentarios]
@@ -1865,7 +1738,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /chat/mensajes/{id_mensaje}/marcar-leido:
+  /chat/mensajes/{id_mensaje}/estado:
     patch:
       summary: Marcar mensaje como leído
       tags: [Chat]
@@ -1909,8 +1782,6 @@ tags:
     description: CRUD de alojamientos y búsqueda
   - name: Reservas
     description: Gestión de reservas
-  - name: Anfitriones
-    description: Funcionalidades específicas para anfitriones
   - name: Comentarios
     description: Sistema de comentarios y calificaciones
   - name: Chat
