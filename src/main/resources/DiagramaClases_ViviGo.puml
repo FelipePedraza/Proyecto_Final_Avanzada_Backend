@@ -1,0 +1,130 @@
+@startuml DiagramaClasesViviGo
+' ViviGo - Class Diagram (Entities and Relationships only)
+' Focused on domain entities and associations (no DTOs, no methods)
+
+class Usuario {
+  +Long id
+  +String nombre
+  +String email
+  +String passwordHash
+  +String telefono
+  +String rol
+  +LocalDate fechaNacimiento
+  +String fotoUrl
+}
+
+class Anfitrion {
+  +String descripcion
+  +List<String> documentosUrls
+}
+Anfitrion --|> Usuario
+
+class Ubicacion {
+  +String ciudad
+  +String direccion
+  +Double latitud
+  +Double longitud
+}
+
+class Alojamiento {
+  +Long id
+  +String titulo
+  +String descripcion
+  +Double precioNoche
+  +Integer capacidad
+  +AlojamientoEstado estado
+  +LocalDateTime fechaCreacion
+}
+
+class Imagen {
+  +Long id
+  +String url
+  +Integer orden
+  +Boolean esPrincipal
+}
+
+class Servicio {
+  +Long id
+  +String nombre
+}
+
+class Reserva {
+  +Long id
+  +LocalDate fechaEntrada
+  +LocalDate fechaSalida
+  +Integer numeroHuespedes
+  +Double precioTotal
+  +ReservaEstado estado
+  +LocalDateTime fechaCreacion
+  +LocalDateTime fechaCancelacion
+}
+
+class Comentario {
+  +Long id
+  +Integer calificacion
+  +String texto
+  +LocalDateTime fechaComentario
+  +String respuestaHost  ' (nullable)
+}
+
+class Chat {
+  +Long id
+}
+
+class Mensaje {
+  +Long id
+  +String contenido
+  +LocalDateTime fechaEnvio
+  +Boolean leido
+}
+
+enum AlojamientoEstado {
+  ACTIVO
+  ELIMINADO
+}
+AlojamientoEstado --|> Alojamiento
+
+enum ReservaEstado {
+  PENDIENTE
+  CONFIRMADA
+  CANCELADA
+  COMPLETADA
+}
+ReservaEstado --|> Reserva
+
+
+' Associations and multiplicities
+Usuario "1" -- "*" Reserva : hace >
+Alojamiento "1" -- "*" Reserva : recibe >
+Anfitrion "1" -- "*" Alojamiento : posee >
+Alojamiento "1" -- "1" Ubicacion : tiene >
+Alojamiento "1" -- "*" Imagen : posee >
+Alojamiento "*" -- "*" Servicio : ofrece >
+Reserva "1" -- "0..1" Comentario : puede_generar >
+Reserva "1" -- "1" Chat : asociada_a >
+Chat "1" -- "*" Mensaje : contiene >
+Usuario "1" -- "*" Comentario : escribe >
+Usuario "1" -- "*" Mensaje : envia >
+
+' Constraints / Business rules (notes)
+note right of Alojamiento
+  - Imágenes: 1..10 por alojamiento.
+  - Eliminación lógica: estado = ELIMINADO (soft-delete).
+  - Búsquedas deben ignorar alojamientos eliminados.
+end note
+
+note left of Reserva
+  - Validaciones al crear reserva:
+    * fechaEntrada < fechaSalida
+    * mínimo 1 noche
+    * no reservar fechas pasadas
+    * numeroHuespedes <= Alojamiento.capacidad
+    * no solapamiento con otras reservas confirmadas
+end note
+
+note bottom of Comentario
+  - Solo se permite 1 comentario por reserva y solo si la reserva está COMPLETADA.
+  - El anfitrión puede responder (campo respuestaHost).
+end note
+
+@enduml
