@@ -548,7 +548,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   /auth/reset-password:
-    post:
+    patch:
       summary: Restablecer contraseña con código
       tags: [Autenticación]
       requestBody:

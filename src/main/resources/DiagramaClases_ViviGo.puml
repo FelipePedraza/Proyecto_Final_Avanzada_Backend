@@ -1,7 +1,5 @@
 @startuml DiagramaClasesViviGo
-' ViviGo - Class Diagram (Entities and Relationships only)
-' Focused on domain entities and associations (no DTOs, no methods)
-
+'Diagrama de Clases - ViviGo (Entidades y Relaciones)
 class Usuario {
   +Long id
   +String nombre
