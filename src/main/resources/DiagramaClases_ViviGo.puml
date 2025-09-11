@@ -8,6 +8,7 @@ class Usuario {
   +String telefono
   +String rol
   +LocalDate fechaNacimiento
+  +LocalDateTime fechaCreacion
   +String fotoUrl
 }
 
