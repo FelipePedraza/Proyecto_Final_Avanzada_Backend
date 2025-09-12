@@ -1,8 +1,63 @@
 package co.edu.uniquindio.application.controllers;
 
-import org.springframework.web.bind.annotation.RestController;
+
+import co.edu.uniquindio.application.dtos.Usuarios.CreacionUsuarioDTO;
+import co.edu.uniquindio.application.dtos.Usuarios.EdicionUsuarioDTO;
+import co.edu.uniquindio.application.dtos.RespuestaDTO;
+import co.edu.uniquindio.application.dtos.Usuarios.CambioContrasenaDTO;
+import co.edu.uniquindio.application.dtos.Usuarios.UsuarioDTO;
+import co.edu.uniquindio.application.services.UsuarioServicio;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+
+import java.util.List;
 
 @RestController
+@RequestMapping("/api/usuarios")
+@Validated
 public class UsuarioControlador {
 
+    private final UsuarioServicio usuarioServicio;
+
+    public UsuarioControlador(UsuarioServicio usuarioServicio) {
+        this.usuarioServicio = usuarioServicio;
+    }
+
+    @PostMapping
+    public ResponseEntity<RespuestaDTO<UsuarioDTO>> crear(@Valid @RequestBody CreacionUsuarioDTO dto) throws Exception {
+        UsuarioDTO created = usuarioServicio.crear(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, created));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<RespuestaDTO<UsuarioDTO>> editar(@PathVariable("id") Long id, @Valid @RequestBody EdicionUsuarioDTO dto) throws Exception {
+        UsuarioDTO updated = usuarioServicio.editar(new EdicionUsuarioDTO(id, dto.nombre(), dto.telefono(), dto.foto(), dto.rol()));
+        return ResponseEntity.ok(new RespuestaDTO<>(false, updated));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<RespuestaDTO<UsuarioDTO>> obtener(@PathVariable("id") Long id) throws Exception {
+        return ResponseEntity.ok(new RespuestaDTO<>(false, usuarioServicio.obtener(id)));
+    }
+
+    @GetMapping
+    public ResponseEntity<RespuestaDTO<List<UsuarioDTO>>> listAll() {
+        return ResponseEntity.ok(new RespuestaDTO<>(false, usuarioServicio.listAll()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<RespuestaDTO<String>> eliminar(@PathVariable("id") Long id) throws Exception {
+        usuarioServicio.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/password")
+    public ResponseEntity<RespuestaDTO<String>> changePassword(@PathVariable("id") Long id, @Valid @RequestBody CambioContrasenaDTO dto) throws Exception {
+        usuarioServicio.cambiarContrasena(id, dto);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, "Contraseña cambiada correctamente"));
+    }
 }

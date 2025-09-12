@@ -319,14 +319,14 @@ components:
         codigo:
           type: string
           minLength: 1
-        newPassword:
+        nuevaContrasena:
           type: string
           minLength: 8
           pattern: '^(?=.*[A-Z])(?=.*[0-9]).{8,}$'
       required:
         - email
         - codigo
-        - newPassword
+        - nuevaContrasena
 
     Respuesta_Accion:
       type: object
