@@ -370,45 +370,9 @@ components:
 
 paths:
   # AUTENTICACIÓN
-  /auth/registerhuespedes:
+  /auth/registro:
     post:
-      summary: Registro de huésped
-      tags: [Autenticación]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Usuario'
-      responses:
-        '201':
-          description: Usuario creado correctamente
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Usuario'
-        '400':
-          description: Faltan datos que son requeridos o datos inválidos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: Correo repetido
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Error interno del servidor
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /auth/registeranfitriones:
-    post:
-      summary: Registro de anfitrión
+      summary: Registro del Usuario
       tags: [Autenticación]
       requestBody:
         required: true
@@ -418,7 +382,7 @@ paths:
               $ref: '#/components/schemas/Anfitrion'
       responses:
         '201':
-          description: Anfitrión creado correctamente
+          description: Usuario creado correctamente
           content:
             application/json:
               schema:
@@ -673,7 +637,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /usuarios/{id}/password:
+  /usuarios/{id}/contrasena:
     patch:
       summary: Cambiar contraseña (usuario autenticado)
       tags: [ Usuarios ]
@@ -720,7 +684,103 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-
+  /usuarios/{id}/alojamientos:
+    get:
+      summary: Listar alojamientos del anfitrión
+      tags: [ Usuarios ]
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: pagina
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: tamano
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Lista paginada de alojamientos del anfitrión
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      contenido:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Alojamiento'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No es anfitrión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /usuarios/{id}/reservas:
+    get:
+      summary: Listar reservas del Usuario
+      tags: [ Usuarios ]
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: pagina
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: tamano
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Lista paginada de reservas del usuario
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      contenido:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Reserva'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No es el Usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /usuarios/anfitrion:
+    post:
+      tags: [ Usuarios ]
+      security:
+        - BearerAuth: [ ]
 
   # GESTIÓN DE ALOJAMIENTOS
   /alojamientos:
@@ -1199,54 +1259,6 @@ paths:
                 $ref: '#/components/schemas/Error'
         '404':
           description: Reserva no existe
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  # GESTIÓN DE ANFITRIÓN
-  /usuarios/{id}/alojamientos:
-    get:
-      summary: Listar alojamientos del anfitrión
-      tags: [ Usuarios ]
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - name: pagina
-          in: query
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-        - name: tamano
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 10
-      responses:
-        '200':
-          description: Lista paginada de alojamientos del anfitrión
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      contenido:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Alojamiento'
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: No es anfitrión
           content:
             application/json:
               schema:

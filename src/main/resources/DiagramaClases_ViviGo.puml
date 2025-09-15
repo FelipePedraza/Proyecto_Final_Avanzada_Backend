@@ -1,137 +1,154 @@
-@startuml DiagramaClasesViviGo
-'Diagrama de Clases - ViviGo (Entidades y Relaciones)
-class Usuario {
-  +Long id
-  +String nombre
-  +String email
-  +String passwordHash
-  +String telefono
-  +String rol
-  +PerfilAnfitrion perfilAnfitrion
-  +LocalDate fechaNacimiento
-  +LocalDateTime fechaCreacion
-  +String fotoUrl
+@startuml DiagramaClases
+' --- Opciones de estilo ---
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor<<enum>> Silver
+  BorderColor Black
 }
 
-class PerfilAnfitrion {
-  +String descripcion
-  +List<String> documentosUrls
+' --- Enumeraciones ---
+enum EstadoReserva {
+  CANCELADO
+  COMPLETADO
+  CONFIRMADO
+  PENDIENTE
+  label : String
 }
 
+enum Estado {
+  INACTIVO
+  ACTIVO
+}
 
-class Ubicacion {
-  +String ciudad
-  +String direccion
+enum ServicioTipo {
+  PISCINA
+  DESAYUNO
+  AIRE_ACONDICIONADO
+  WIFI
+  ESTACIONAMIENTO
+}
+
+enum Rol {
+  ANFITRION
+  HUESPED
+  ADMIN
+}
+
+' --- Clases principales ---
+class Reserva {
+  +id : Long
+  +fechaEntrada : LocalDateTime
+  +fechaSalida : LocalDateTime
+  +creadoEn : LocalDateTime
+  +cantidadHuespedes : int
+  +precio : float
+  +estado : EstadoReserva
+  +alojamiento : Alojamiento
+  +huesped : Usuario
 }
 
 class Alojamiento {
-  +Long id
-  +String titulo
-  +String descripcion
-  +Double precioNoche
-  +Integer capacidad
-  +AlojamientoEstado estado
-  +LocalDateTime fechaCreacion
-  +Set Servicio
+  +id : Long
+  +titulo : String
+  +descripcion : String
+  +direccion : Direccion
+  +localización : Localización
+  +maxHuespedes : int
+  +creadoEn : LocalDateTime
+  +precioPorNoche : float
+  +imagenes : List<String>
+  +estado : Estado
+  +servicios : Set<Servicio>
+  +anfitrion : Usuario
 }
 
-class Imagen {
-  +Long id
-  +String url
-  +Integer orden
-  +Boolean esPrincipal
+class Usuario {
+  +id : Long
+  +nombre : String
+  +email : String
+  +contrasena : String
+  +telefono : String
+  +fotoUrl : String
+  +fechaNacimiento : LocalDate
+  +creadoEn : LocalDateTime
+  +estado : Estado
+  +rol : Rol
+  +esAnfitrion : boolean
 }
 
-enum Servicio {
-  RESTAURANTE
-  INTERNET
-  PISCINA
-}
-Servicio --|> Alojamiento
-
-class Reserva {
-  +Long id
-  +LocalDate fechaEntrada
-  +LocalDate fechaSalida
-  +Integer numeroHuespedes
-  +Double precioTotal
-  +ReservaEstado estado
-  +LocalDateTime fechaCreacion
-  +LocalDateTime fechaCancelacion
+class PerfilAnfitrion {
+  +id : Long
+  +documentoLegal : String
+  +sobreMi : String
+  +usuario : Usuario
 }
 
-class Comentario {
-  +Long id
-  +Integer calificacion
-  +String texto
-  +LocalDateTime fechaComentario
-  +String respuestaHost  ' (nullable)
+class CodigoRestablecerContrasena {
+  +id : Long
+  +codigo : String
+  +creadoEn : LocalDateTime
+  +usuario : Usuario
 }
 
-class Chat {
-  +Long id
+class Reseña {
+  +id : Long
+  +calificacion : int
+  +comentario : String
+  +creadoEn : LocalDateTime
+  +usuario : Usuario
+  +alojamiento : Alojamiento
+  +respuesta : Respuesta
 }
 
-class Mensaje {
-  +Long id
-  +String contenido
-  +LocalDateTime fechaEnvio
-  +Boolean leido
+class Respuesta {
+  +mensaje : String
+  +respondidoEn : LocalDateTime
 }
 
-class Localizacion {
-  +Double latitud
-  +Double longitud
+class Direccion {
+  +ciudad : String
+  +direccion : String
+  +localización : Localización
 }
 
-enum AlojamientoEstado {
-  ACTIVO
-  ELIMINADO
+class Localización {
+  +latitud : float
+  +longitud : float
 }
-AlojamientoEstado --|> Alojamiento
 
-enum ReservaEstado {
-  PENDIENTE
-  CONFIRMADA
-  CANCELADA
-  COMPLETADA
+class Servicio {
+  +nombre : String
+  ' valores en ServicioTipo (enum)
 }
-ReservaEstado --|> Reserva
 
+Alojamiento "1" *-- "*" Reserva : reservas
 
-' Associations and multiplicities
-Usuario "1" -- "*" Reserva : hace >
-PerfilAnfitrion "1"--"1" Usuario : tiene
-Alojamiento "1" -- "*" Reserva : recibe >
-Usuario "1" -- "*" Alojamiento : posee >
-Alojamiento "1" -- "1" Ubicacion : tiene >
-Alojamiento "1" -- "*" Imagen : posee >
-Reserva "1" -- "0..1" Comentario : puede_generar >
-Reserva "1" -- "1" Chat : asociada_a >
-Chat "1" -- "*" Mensaje : contiene >
-Usuario "1" -- "*" Comentario : escribe >
-Usuario "1" -- "*" Mensaje : envia >
-Ubicacion "1" -- "1" Localizacion : tiene
+Reserva "1" *-- "1" Usuario : huesped
 
-' Constraints / Business rules (notes)
-note right of Alojamiento
-  - Imágenes: 1..10 por alojamiento.
-  - Eliminación lógica: estado = ELIMINADO (soft-delete).
-  - Búsquedas deben ignorar alojamientos eliminados.
-end note
+Alojamiento "1" *-- "*" Servicio : servicios
 
-note left of Reserva
-  - Validaciones al crear reserva:
-    * fechaEntrada < fechaSalida
-    * mínimo 1 noche
-    * no reservar fechas pasadas
-    * numeroHuespedes <= Alojamiento.capacidad
-    * no solapamiento con otras reservas confirmadas
-end note
+Alojamiento "1" *-- "1" Usuario : anfitrion
 
-note bottom of Comentario
-  - Solo se permite 1 comentario por reserva y solo si la reserva está COMPLETADA.
-  - El anfitrión puede responder (campo respuestaHost).
-end note
+Alojamiento "1" *-- "1" Direccion : anfitrion
+
+Usuario "1" --* "0..1" PerfilAnfitrion : perfil
+
+Usuario "1" --* "0..1" CodigoRestablecerContrasena : codigoRestablecimiento
+
+Alojamiento "1" *-- "*" Reseña : reseñas
+
+Reseña "1" *-- "1" Usuario : autor
+
+Reseña "1" *-- "0..1" Respuesta : respuesta
+
+Direccion "1" *-- "1" Localización : localización
+
+Usuario .. Rol
+Usuario .. Estado
+
+Alojamiento .. Estado
+Servicio .. ServicioTipo
+
+Reserva .. EstadoReserva
 
 @enduml
