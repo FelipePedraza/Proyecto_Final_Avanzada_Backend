@@ -12,6 +12,5 @@ public interface UsuarioServicio {
     UsuarioDTO editar(EdicionUsuarioDTO dto) throws Exception;
     void eliminar(Long id) throws Exception;
     UsuarioDTO obtener(Long id) throws Exception;
-    List<UsuarioDTO> listAll();
     void cambiarContrasena(Long id, CambioContrasenaDTO dto) throws Exception;
 }

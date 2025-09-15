@@ -33,6 +33,10 @@ public class UsuarioControlador {
         return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, created));
     }
 
+    /// users/host
+    /// users/{id}/places
+    /// users/{id}/bookings
+
     @PutMapping("/{id}")
     public ResponseEntity<RespuestaDTO<UsuarioDTO>> editar(@PathVariable("id") Long id, @Valid @RequestBody EdicionUsuarioDTO dto) throws Exception {
         UsuarioDTO updated = usuarioServicio.editar(new EdicionUsuarioDTO(id, dto.nombre(), dto.telefono(), dto.foto(), dto.rol()));
@@ -44,11 +48,6 @@ public class UsuarioControlador {
         return ResponseEntity.ok(new RespuestaDTO<>(false, usuarioServicio.obtener(id)));
     }
 
-    @GetMapping
-    public ResponseEntity<RespuestaDTO<List<UsuarioDTO>>> listAll() {
-        return ResponseEntity.ok(new RespuestaDTO<>(false, usuarioServicio.listAll()));
-    }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<RespuestaDTO<String>> eliminar(@PathVariable("id") Long id) throws Exception {
         usuarioServicio.eliminar(id);
@@ -56,7 +55,7 @@ public class UsuarioControlador {
     }
 
     @PatchMapping("/{id}/password")
-    public ResponseEntity<RespuestaDTO<String>> changePassword(@PathVariable("id") Long id, @Valid @RequestBody CambioContrasenaDTO dto) throws Exception {
+    public ResponseEntity<RespuestaDTO<String>> cambiarContrasena(@PathVariable("id") Long id, @Valid @RequestBody CambioContrasenaDTO dto) throws Exception {
         usuarioServicio.cambiarContrasena(id, dto);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Contraseña cambiada correctamente"));
     }

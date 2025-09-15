@@ -12,10 +12,6 @@ Content-Type: application/json
   "rol": "Anfitrion"
 }
 
-### Listar usuarios (200)
-GET http://localhost:8080/api/usuarios
-Accept: application/json
-
 ### Obtener usuario por id (200)
 GET http://localhost:8080/api/usuarios/1
 Accept: application/json
@@ -36,13 +32,13 @@ POST http://localhost:8080/api/usuarios
 Content-Type: application/json
 
 {
-  "nombre": "Prueba Val",
+  "nombre": "Prueba-Val",
   "email": "prueba.invalid@example.com",
   "contrasena": "short", 
   "telefono": "3000000000",
   "foto": null,
   "fechaNacimiento": "1990-01-01",
-  "rol": "CLIENTE"
+  "rol": "Huesped"
 }
 
 ### Cambiar contraseña (PATCH) (200) — usa ChangePasswordDTO

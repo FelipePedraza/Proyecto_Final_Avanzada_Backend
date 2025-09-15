@@ -65,10 +65,6 @@ public class UsuarioServicioImpl implements UsuarioServicio {
         return UsuarioMapper.toDTO(u);
     }
 
-    @Override
-    public List<UsuarioDTO> listAll() {
-        return usuarioRepositorio.findAll().stream().map(UsuarioMapper::toDTO).collect(Collectors.toList());
-    }
 
     @Override
     public void cambiarContrasena(Long id, CambioContrasenaDTO dto) throws Exception {
