@@ -7,22 +7,21 @@ class Usuario {
   +String passwordHash
   +String telefono
   +String rol
+  +PerfilAnfitrion perfilAnfitrion
   +LocalDate fechaNacimiento
   +LocalDateTime fechaCreacion
   +String fotoUrl
 }
 
-class Anfitrion {
+class PerfilAnfitrion {
   +String descripcion
   +List<String> documentosUrls
 }
-Anfitrion --|> Usuario
+
 
 class Ubicacion {
   +String ciudad
   +String direccion
-  +Double latitud
-  +Double longitud
 }
 
 class Alojamiento {
@@ -33,6 +32,7 @@ class Alojamiento {
   +Integer capacidad
   +AlojamientoEstado estado
   +LocalDateTime fechaCreacion
+  +Set Servicio
 }
 
 class Imagen {
@@ -42,10 +42,12 @@ class Imagen {
   +Boolean esPrincipal
 }
 
-class Servicio {
-  +Long id
-  +String nombre
+enum Servicio {
+  RESTAURANTE
+  INTERNET
+  PISCINA
 }
+Servicio --|> Alojamiento
 
 class Reserva {
   +Long id
@@ -77,6 +79,11 @@ class Mensaje {
   +Boolean leido
 }
 
+class Localizacion {
+  +Double latitud
+  +Double longitud
+}
+
 enum AlojamientoEstado {
   ACTIVO
   ELIMINADO
@@ -94,16 +101,17 @@ ReservaEstado --|> Reserva
 
 ' Associations and multiplicities
 Usuario "1" -- "*" Reserva : hace >
+PerfilAnfitrion "1"--"1" Usuario : tiene
 Alojamiento "1" -- "*" Reserva : recibe >
-Anfitrion "1" -- "*" Alojamiento : posee >
+Usuario "1" -- "*" Alojamiento : posee >
 Alojamiento "1" -- "1" Ubicacion : tiene >
 Alojamiento "1" -- "*" Imagen : posee >
-Alojamiento "*" -- "*" Servicio : ofrece >
 Reserva "1" -- "0..1" Comentario : puede_generar >
 Reserva "1" -- "1" Chat : asociada_a >
 Chat "1" -- "*" Mensaje : contiene >
 Usuario "1" -- "*" Comentario : escribe >
 Usuario "1" -- "*" Mensaje : envia >
+Ubicacion "1" -- "1" Localizacion : tiene
 
 ' Constraints / Business rules (notes)
 note right of Alojamiento

@@ -1,8 +1,8 @@
 package co.edu.uniquindio.application.mappers;
 
-import co.edu.uniquindio.application.dtos.Usuarios.UsuarioDTO;
-import co.edu.uniquindio.application.dtos.Usuarios.CreacionUsuarioDTO;
-import co.edu.uniquindio.application.dtos.Usuarios.EdicionUsuarioDTO;
+import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
+import co.edu.uniquindio.application.dtos.usuario.CreacionUsuarioDTO;
+import co.edu.uniquindio.application.dtos.usuario.EdicionUsuarioDTO;
 import co.edu.uniquindio.application.models.entitys.Usuario;
 
 public class UsuarioMapper {

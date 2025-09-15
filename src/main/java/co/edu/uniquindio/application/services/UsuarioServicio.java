@@ -1,9 +1,9 @@
 package co.edu.uniquindio.application.services;
 
-import co.edu.uniquindio.application.dtos.Usuarios.CreacionUsuarioDTO;
-import co.edu.uniquindio.application.dtos.Usuarios.EdicionUsuarioDTO;
-import co.edu.uniquindio.application.dtos.Usuarios.UsuarioDTO;
-import co.edu.uniquindio.application.dtos.Usuarios.CambioContrasenaDTO;
+import co.edu.uniquindio.application.dtos.usuario.CreacionUsuarioDTO;
+import co.edu.uniquindio.application.dtos.usuario.EdicionUsuarioDTO;
+import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
+import co.edu.uniquindio.application.dtos.usuario.CambioContrasenaDTO;
 
 
 public interface UsuarioServicio {
@@ -12,4 +12,5 @@ public interface UsuarioServicio {
     void eliminar(Long id) throws Exception;
     UsuarioDTO obtener(Long id) throws Exception;
     void cambiarContrasena(Long id, CambioContrasenaDTO dto) throws Exception;
+    /// crear Anfitrion
 }

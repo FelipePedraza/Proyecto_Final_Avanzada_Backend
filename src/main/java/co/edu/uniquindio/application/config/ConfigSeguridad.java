@@ -1,4 +1,4 @@
-package co.edu.uniquindio.application.configs;
+package co.edu.uniquindio.application.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

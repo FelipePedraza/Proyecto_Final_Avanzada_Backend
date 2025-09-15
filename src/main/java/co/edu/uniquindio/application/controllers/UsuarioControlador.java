@@ -1,11 +1,11 @@
 package co.edu.uniquindio.application.controllers;
 
 
-import co.edu.uniquindio.application.dtos.Usuarios.CreacionUsuarioDTO;
-import co.edu.uniquindio.application.dtos.Usuarios.EdicionUsuarioDTO;
+import co.edu.uniquindio.application.dtos.usuario.CreacionUsuarioDTO;
+import co.edu.uniquindio.application.dtos.usuario.EdicionUsuarioDTO;
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
-import co.edu.uniquindio.application.dtos.Usuarios.CambioContrasenaDTO;
-import co.edu.uniquindio.application.dtos.Usuarios.UsuarioDTO;
+import co.edu.uniquindio.application.dtos.usuario.CambioContrasenaDTO;
+import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
 import co.edu.uniquindio.application.services.UsuarioServicio;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -22,6 +22,7 @@ public class UsuarioControlador {
     private final UsuarioServicio usuarioServicio;
 
     public UsuarioControlador(UsuarioServicio usuarioServicio) {
+
         this.usuarioServicio = usuarioServicio;
     }
 

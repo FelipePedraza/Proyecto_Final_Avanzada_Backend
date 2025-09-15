@@ -1,9 +1,9 @@
 package co.edu.uniquindio.application.services.impl;
 
-import co.edu.uniquindio.application.dtos.Usuarios.CreacionUsuarioDTO;
-import co.edu.uniquindio.application.dtos.Usuarios.EdicionUsuarioDTO;
-import co.edu.uniquindio.application.dtos.Usuarios.CambioContrasenaDTO;
-import co.edu.uniquindio.application.dtos.Usuarios.UsuarioDTO;
+import co.edu.uniquindio.application.dtos.usuario.CreacionUsuarioDTO;
+import co.edu.uniquindio.application.dtos.usuario.EdicionUsuarioDTO;
+import co.edu.uniquindio.application.dtos.usuario.CambioContrasenaDTO;
+import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
 import co.edu.uniquindio.application.exceptions.ResourceNotFoundException;
 import co.edu.uniquindio.application.mappers.UsuarioMapper;
 import co.edu.uniquindio.application.models.entitys.Usuario;
