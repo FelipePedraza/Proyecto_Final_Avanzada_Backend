@@ -5,7 +5,6 @@ import co.edu.uniquindio.application.dtos.Usuarios.EdicionUsuarioDTO;
 import co.edu.uniquindio.application.dtos.Usuarios.UsuarioDTO;
 import co.edu.uniquindio.application.dtos.Usuarios.CambioContrasenaDTO;
 
-import java.util.List;
 
 public interface UsuarioServicio {
     UsuarioDTO crear(CreacionUsuarioDTO dto) throws Exception;

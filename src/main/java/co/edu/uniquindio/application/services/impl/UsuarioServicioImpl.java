@@ -14,9 +14,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 @Transactional
 public class UsuarioServicioImpl implements UsuarioServicio {
@@ -40,7 +37,7 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     }
 
     @Override
-    public UsuarioDTO editar(EdicionUsuarioDTO dto) throws Exception {
+    public UsuarioDTO editar(EdicionUsuarioDTO dto) {
         Usuario existing = usuarioRepositorio.findById(dto.id())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         existing.setNombre(dto.nombre());
@@ -52,14 +49,14 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     }
 
     @Override
-    public void eliminar(Long id) throws Exception {
+    public void eliminar(Long id) {
         Usuario existing = usuarioRepositorio.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         usuarioRepositorio.delete(existing);
     }
 
     @Override
-    public UsuarioDTO obtener(Long id) throws Exception {
+    public UsuarioDTO obtener(Long id) {
         Usuario u = usuarioRepositorio.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         return UsuarioMapper.toDTO(u);
@@ -67,7 +64,7 @@ public class UsuarioServicioImpl implements UsuarioServicio {
 
 
     @Override
-    public void cambiarContrasena(Long id, CambioContrasenaDTO dto) throws Exception {
+    public void cambiarContrasena(Long id, CambioContrasenaDTO dto) {
         Usuario u = usuarioRepositorio.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         // Aquí podrías verificar la contraseña anterior si la incluyes en el DTO.
