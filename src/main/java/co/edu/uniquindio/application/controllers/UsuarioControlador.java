@@ -1,61 +1,65 @@
 package co.edu.uniquindio.application.controllers;
 
 
-import co.edu.uniquindio.application.dtos.usuario.CreacionUsuarioDTO;
+import co.edu.uniquindio.application.dtos.PaginacionDTO;
+import co.edu.uniquindio.application.dtos.alojamiento.ItemAlojamientoDTO;
+import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
 import co.edu.uniquindio.application.dtos.usuario.EdicionUsuarioDTO;
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.usuario.CambioContrasenaDTO;
 import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
 import co.edu.uniquindio.application.services.UsuarioServicio;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequestMapping("/api/usuarios")
-@Validated
+@RequiredArgsConstructor
 public class UsuarioControlador {
 
     private final UsuarioServicio usuarioServicio;
 
-    public UsuarioControlador(UsuarioServicio usuarioServicio) {
-
-        this.usuarioServicio = usuarioServicio;
-    }
-
-    @PostMapping
-    public ResponseEntity<RespuestaDTO<UsuarioDTO>> crear(@Valid @RequestBody CreacionUsuarioDTO dto) throws Exception {
-        UsuarioDTO created = usuarioServicio.crear(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, created));
-    }
-
-    /// users/host
-    /// users/{id}/places
-    /// users/{id}/bookings
-
     @PutMapping("/{id}")
-    public ResponseEntity<RespuestaDTO<UsuarioDTO>> editar(@PathVariable("id") Long id, @Valid @RequestBody EdicionUsuarioDTO dto) throws Exception {
-        UsuarioDTO updated = usuarioServicio.editar(new EdicionUsuarioDTO(id, dto.nombre(), dto.telefono(), dto.foto(), dto.rol()));
+    public ResponseEntity<RespuestaDTO<UsuarioDTO>> editarPerfil(@PathVariable("id") Long id, @Valid @RequestBody EdicionUsuarioDTO dto) throws Exception {
+        UsuarioDTO updated = usuarioServicio.editarPerfil(id, dto);
         return ResponseEntity.ok(new RespuestaDTO<>(false, updated));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RespuestaDTO<UsuarioDTO>> obtener(@PathVariable("id") Long id) throws Exception {
-        return ResponseEntity.ok(new RespuestaDTO<>(false, usuarioServicio.obtener(id)));
+    public ResponseEntity<RespuestaDTO<UsuarioDTO>> obtenerInformacion(@PathVariable("id") Long id) throws Exception {
+        return ResponseEntity.ok(new RespuestaDTO<>(false, usuarioServicio.obtenerInformacion(id)));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<RespuestaDTO<String>> eliminar(@PathVariable("id") Long id) throws Exception {
-        usuarioServicio.eliminar(id);
+    public ResponseEntity<RespuestaDTO<String>> eliminarCuenta(@PathVariable("id") Long id) throws Exception {
+        usuarioServicio.eliminarCuenta(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/password")
+    @PatchMapping("/{id}/contrasena")
     public ResponseEntity<RespuestaDTO<String>> cambiarContrasena(@PathVariable("id") Long id, @Valid @RequestBody CambioContrasenaDTO dto) throws Exception {
         usuarioServicio.cambiarContrasena(id, dto);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Contraseña cambiada correctamente"));
+    }
+
+    @GetMapping("/{id}/alojamientos")
+    public ResponseEntity<RespuestaDTO<PaginacionDTO<ItemAlojamientoDTO>>> listarAlojamientos(
+            @PathVariable("id") Long id,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int tamano) throws Exception {
+        PaginacionDTO<ItemAlojamientoDTO> alojamientos = usuarioServicio.listarAlojamientos(id, pagina, tamano);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientos));
+    }
+
+    @GetMapping("/{id}/reservas")
+    public ResponseEntity<RespuestaDTO<PaginacionDTO<ItemReservaDTO>>> listarReservas(
+            @PathVariable("id") Long id,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int tamano) throws Exception {
+        PaginacionDTO<ItemReservaDTO> reservas = usuarioServicio.listarReservas(id, pagina, tamano);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
 }

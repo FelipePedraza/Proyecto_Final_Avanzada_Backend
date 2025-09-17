@@ -1,44 +1,17 @@
 package co.edu.uniquindio.application.mappers;
 
+import co.edu.uniquindio.application.dtos.usuario.CreacionAnfitrionDTO;
 import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
-import co.edu.uniquindio.application.dtos.usuario.CreacionUsuarioDTO;
-import co.edu.uniquindio.application.dtos.usuario.EdicionUsuarioDTO;
 import co.edu.uniquindio.application.models.entitys.Usuario;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-public class UsuarioMapper {
+@Mapper(componentModel = "spring")
+public interface UsuarioMapper {
 
-    public static Usuario toEntity(CreacionUsuarioDTO dto) {
-        Usuario u = new Usuario();
-        u.setNombre(dto.nombre());
-        u.setEmail(dto.email());
-        u.setContrasena(dto.contrasena());
-        u.setTelefono(dto.telefono());
-        u.setFoto(dto.foto());
-        u.setFechaNacimiento(dto.fechaNacimiento());
-        u.setRol(dto.rol());
-        return u;
-    }
+    @Mapping(target = "id", ignore = true)
+    Usuario fromDTO(CreacionAnfitrionDTO dto);
 
-    public static Usuario toEntity(EdicionUsuarioDTO dto) {
-        Usuario u = new Usuario();
-        u.setId(dto.id());
-        u.setNombre(dto.nombre());
-        u.setTelefono(dto.telefono());
-        u.setFoto(dto.foto());
-        u.setRol(dto.rol());
-        return u;
-    }
+    UsuarioDTO toDTO(Usuario usuario);
 
-    public static UsuarioDTO toDTO(Usuario u) {
-        if (u == null) return null;
-        return new UsuarioDTO(
-                u.getId(),
-                u.getNombre(),
-                u.getEmail(),
-                u.getTelefono(),
-                u.getFoto(),
-                u.getFechaNacimiento(),
-                u.getRol()
-        );
-    }
 }

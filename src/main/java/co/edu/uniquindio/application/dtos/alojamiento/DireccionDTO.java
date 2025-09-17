@@ -1,4 +1,14 @@
 package co.edu.uniquindio.application.dtos.alojamiento;
 
-public record DireccionDTO() {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record DireccionDTO(
+        @NotBlank
+        String ciudad,
+        @NotBlank
+        String direccion,
+        @NotNull
+        LocalizacionDTO coordenadas
+) {
 }

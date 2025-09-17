@@ -1,4 +1,6 @@
 package co.edu.uniquindio.application.dtos.usuario;
 
-public record TokenDTO() {
+public record TokenDTO(
+        String token
+) {
 }
