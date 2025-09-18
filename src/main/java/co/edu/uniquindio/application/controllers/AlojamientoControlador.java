@@ -7,6 +7,9 @@ import co.edu.uniquindio.application.dtos.resena.ItemResenaDTO;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,8 +28,8 @@ public class AlojamientoControlador {
     }
 
     @GetMapping
-    public ResponseEntity<RespuestaDTO<PaginacionDTO<ItemAlojamientoDTO>>> buscarAlojamientos(AlojamientoFiltro filtro) throws Exception {
-        PaginacionDTO<ItemAlojamientoDTO> alojamientos = alojamientoServicio.buscarAlojamientos(filtro);
+    public ResponseEntity<RespuestaDTO<Page<ItemAlojamientoDTO>>> buscarAlojamientos(@ParameterObject Pageable pageable, @ParameterObject AlojamientoFiltro filtro) throws Exception {
+        Page<ItemAlojamientoDTO> alojamientos = alojamientoServicio.buscarAlojamientos(pageable, filtro);
         return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientos));
     }
 
@@ -64,11 +67,10 @@ public class AlojamientoControlador {
     }
 
     @GetMapping("/{id}/comentarios")
-    public ResponseEntity<RespuestaDTO<PaginacionDTO<ItemResenaDTO>>> listarComentarios(
+    public ResponseEntity<RespuestaDTO<Page<ItemResenaDTO>>> listarComentarios(
             @PathVariable Long id,
-            @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "10") int tamano) throws Exception {
-        PaginacionDTO<ItemResenaDTO> comentarios = alojamientoServicio.listarComentarios(id, pagina, tamano);
+            @ParameterObject Pageable pageable) throws Exception {
+        Page<ItemResenaDTO> comentarios = alojamientoServicio.listarComentarios(id, pageable);
         return ResponseEntity.ok(new RespuestaDTO<>(false, comentarios));
     }
 

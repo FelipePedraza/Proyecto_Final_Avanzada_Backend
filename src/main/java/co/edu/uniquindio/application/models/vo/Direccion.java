@@ -1,5 +1,6 @@
 package co.edu.uniquindio.application.models.vo;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,5 +13,11 @@ import lombok.Setter;
 @Setter
 @Embeddable
 public class Direccion {
+
+    @Column(nullable = false)
+    private String ciudad;
+
+    @Column(nullable = false)
+    private String direccion;
 
 }

@@ -4,6 +4,8 @@ import co.edu.uniquindio.application.dtos.alojamiento.*;
 import co.edu.uniquindio.application.dtos.resena.CreacionResenaDTO;
 import co.edu.uniquindio.application.dtos.resena.ItemResenaDTO;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,7 +18,7 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     }
 
     @Override
-    public PaginacionDTO<ItemAlojamientoDTO> buscarAlojamientos(AlojamientoFiltro filtro) throws Exception {
+    public Page<ItemAlojamientoDTO> buscarAlojamientos(Pageable pageable, AlojamientoFiltro filtro) throws Exception {
         // Lógica de negocio a implementar
         return null;
     }
@@ -51,7 +53,7 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     }
 
     @Override
-    public PaginacionDTO<ItemResenaDTO> listarComentarios(Long id, int pagina, int tamano) throws Exception {
+    public Page<ItemResenaDTO> listarComentarios(Long id, Pageable pageable) throws Exception {
         // Lógica de negocio a implementar
         return null;
     }

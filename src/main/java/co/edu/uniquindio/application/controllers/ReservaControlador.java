@@ -7,6 +7,9 @@ import co.edu.uniquindio.application.dtos.reserva.ReservaDTO;
 import co.edu.uniquindio.application.services.ReservaServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,14 +28,13 @@ public class ReservaControlador {
     }
 
     @GetMapping
-    public ResponseEntity<RespuestaDTO<PaginacionDTO<ItemReservaDTO>>> listarReservas(
+    public ResponseEntity<RespuestaDTO<Page<ItemReservaDTO>>> listarReservas(
             @RequestParam Long id,
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) String fechaInicio,
             @RequestParam(required = false) String fechaFin,
-            @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "10") int tamano) throws Exception {
-        PaginacionDTO<ItemReservaDTO> reservas = reservaServicio.listarReservas(id, estado, fechaInicio, fechaFin, pagina, tamano);
+            @ParameterObject Pageable pageable) throws Exception {
+        Page<ItemReservaDTO> reservas = reservaServicio.listarReservas(id, estado, fechaInicio, fechaFin, pageable);
         return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
 

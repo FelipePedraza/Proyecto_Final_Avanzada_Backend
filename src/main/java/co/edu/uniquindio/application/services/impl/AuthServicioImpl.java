@@ -35,7 +35,7 @@ public class AuthServicioImpl implements AuthServicio {
     }
 
     @Override
-    public LoginResponseDTO login(LoginDTO loginDTO) throws Exception {
+    public TokenDTO login(LoginDTO loginDTO) throws Exception {
         // Lógica de negocio a implementar
         return null;
     }

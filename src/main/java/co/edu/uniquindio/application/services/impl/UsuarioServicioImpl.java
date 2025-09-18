@@ -6,6 +6,8 @@ import co.edu.uniquindio.application.dtos.usuario.CambioContrasenaDTO;
 import co.edu.uniquindio.application.dtos.usuario.EdicionUsuarioDTO;
 import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
 import co.edu.uniquindio.application.services.UsuarioServicio;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -35,13 +37,13 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     }
 
     @Override
-    public PaginacionDTO<ItemAlojamientoDTO> listarAlojamientos(Long id, int pagina, int tamano) throws Exception {
+    public Page<ItemAlojamientoDTO> listarAlojamientos(Long id, Pageable pageable) throws Exception {
         // Lógica de negocio a implementar
         return null;
     }
 
     @Override
-    public PaginacionDTO<ItemReservaDTO> listarReservas(Long id, int pagina, int tamano) throws Exception {
+    public Page<ItemReservaDTO> listarReservas(Long id, Pageable pageable) throws Exception {
         // Lógica de negocio a implementar
         return null;
     }

@@ -4,6 +4,8 @@ import co.edu.uniquindio.application.dtos.reserva.CreacionReservaDTO;
 import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
 import co.edu.uniquindio.application.dtos.reserva.ReservaDTO;
 import co.edu.uniquindio.application.services.ReservaServicio;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,7 +18,7 @@ public class ReservaServicioImpl implements ReservaServicio {
     }
 
     @Override
-    public PaginacionDTO<ItemReservaDTO> listarReservas(Long id, String estado, String fechaInicio, String fechaFin, int pagina, int tamano) throws Exception {
+    public Page<ItemReservaDTO> listarReservas(Long id, String estado, String fechaInicio, String fechaFin, Pageable pageable) throws Exception {
         // Lógica de negocio a implementar
         return null;
     }

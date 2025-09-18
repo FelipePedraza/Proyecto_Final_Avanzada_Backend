@@ -23,8 +23,8 @@ public class AuthControlador {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<RespuestaDTO<LoginResponseDTO>> login(@Valid @RequestBody LoginDTO loginDTO) throws Exception {
-        LoginResponseDTO loginResponse = authServicio.login(loginDTO);
+    public ResponseEntity<RespuestaDTO<TokenDTO>> login(@Valid @RequestBody LoginDTO loginDTO) throws Exception {
+        TokenDTO loginResponse = authServicio.login(loginDTO);
         return ResponseEntity.ok(new RespuestaDTO<>(false, loginResponse));
     }
 

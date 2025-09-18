@@ -10,6 +10,9 @@ import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
 import co.edu.uniquindio.application.services.UsuarioServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,20 +48,18 @@ public class UsuarioControlador {
     }
 
     @GetMapping("/{id}/alojamientos")
-    public ResponseEntity<RespuestaDTO<PaginacionDTO<ItemAlojamientoDTO>>> listarAlojamientos(
+    public ResponseEntity<RespuestaDTO<Page<ItemAlojamientoDTO>>> listarAlojamientos(
             @PathVariable("id") Long id,
-            @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "10") int tamano) throws Exception {
-        PaginacionDTO<ItemAlojamientoDTO> alojamientos = usuarioServicio.listarAlojamientos(id, pagina, tamano);
+            @ParameterObject Pageable pageable) throws Exception {
+        Page<ItemAlojamientoDTO> alojamientos = usuarioServicio.listarAlojamientos(id, pageable);
         return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientos));
     }
 
     @GetMapping("/{id}/reservas")
-    public ResponseEntity<RespuestaDTO<PaginacionDTO<ItemReservaDTO>>> listarReservas(
+    public ResponseEntity<RespuestaDTO<Page<ItemReservaDTO>>> listarReservas(
             @PathVariable("id") Long id,
-            @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "10") int tamano) throws Exception {
-        PaginacionDTO<ItemReservaDTO> reservas = usuarioServicio.listarReservas(id, pagina, tamano);
+            @ParameterObject Pageable pageable) throws Exception {
+        Page<ItemReservaDTO> reservas = usuarioServicio.listarReservas(id, pageable);
         return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
 }

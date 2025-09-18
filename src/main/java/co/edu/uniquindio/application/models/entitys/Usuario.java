@@ -41,7 +41,7 @@ public class Usuario {
     @Column(length = 300)
     private String foto;
 
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "usuario")
     private PerfilAnfitrion perfilAnfitrion;
 
     @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
