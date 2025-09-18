@@ -1,4 +1,10 @@
 package co.edu.uniquindio.application.dtos.usuario;
 
-public record OlvidoContrasenaDTO() {
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public record OlvidoContrasenaDTO(
+        @NotBlank @Email
+        String email
+) {
 }

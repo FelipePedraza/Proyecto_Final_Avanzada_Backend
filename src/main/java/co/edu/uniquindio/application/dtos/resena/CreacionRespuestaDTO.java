@@ -1,4 +1,9 @@
 package co.edu.uniquindio.application.dtos.resena;
 
-public record CreacionRespuestaDTO() {
+import jakarta.validation.constraints.NotBlank;
+
+public record CreacionRespuestaDTO(
+        @NotBlank
+        String mensaje
+) {
 }
