@@ -1,6 +1,6 @@
 package co.edu.uniquindio.application.models.enums;
 
-public enum AlojamientoEstado {
+public enum Estado {
     ACTIVO,
     ELIMINADO
 }

@@ -3,13 +3,15 @@ package co.edu.uniquindio.application.models.entitys;
 import co.edu.uniquindio.application.models.enums.Rol;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "usuarios")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Usuario {
 
     @Id
@@ -32,8 +34,16 @@ public class Usuario {
     @Column(nullable = false, length = 20)
     private Rol rol;
 
+
     private LocalDate fechaNacimiento;
 
     @Column(length = 300)
     private String foto;
+
+    @OneToOne(mappedBy = "user")
+    private PerfilAnfitrion perfilAnfitrion;
+
+    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime creadoEn;
+
 }
