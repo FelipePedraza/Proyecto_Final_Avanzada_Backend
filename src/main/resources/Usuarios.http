@@ -1,14 +1,14 @@
 ### Crear usuario (201 Created)
-POST http://localhost:8080/api/usuarios
+POST http://localhost:8080/api/auth/registro
 Content-Type: application/json
 
 {
-  "nombre": "Carlos Gomez",
-  "email": "carlos.gomez@example.com",
+  "nombre": "David Posso",
+  "email": "david.posso@example.com",
   "contrasena": "Passw0rd1",
   "telefono": "3001234567",
   "foto": null,
-  "fechaNacimiento": "1995-03-10",
+  "fechaNacimiento": "1994-03-10",
   "rol": "Anfitrion"
 }
 
@@ -28,7 +28,7 @@ Content-Type: application/json
 }
 
 ### Prueba validación: contraseña inválida al crear (400)
-POST http://localhost:8080/api/usuarios
+POST http://localhost:8080/api/auth/registro
 Content-Type: application/json
 
 {

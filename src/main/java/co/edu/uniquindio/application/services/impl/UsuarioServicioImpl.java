@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class UsuarioServicioImpl implements UsuarioServicio {
 
+
     @Override
     public UsuarioDTO editarPerfil(Long id, EdicionUsuarioDTO dto) throws Exception {
         // Lógica de negocio a implementar
