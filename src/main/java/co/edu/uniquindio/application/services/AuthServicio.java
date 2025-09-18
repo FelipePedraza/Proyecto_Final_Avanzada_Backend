@@ -1,7 +1,6 @@
 package co.edu.uniquindio.application.services;
 
 import co.edu.uniquindio.application.dtos.usuario.LoginDTO;
-import co.edu.uniquindio.application.dtos.usuario.LoginResponseDTO;
 import co.edu.uniquindio.application.dtos.usuario.CreacionAnfitrionDTO;
 import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
 import co.edu.uniquindio.application.dtos.usuario.OlvidoContrasenaDTO;

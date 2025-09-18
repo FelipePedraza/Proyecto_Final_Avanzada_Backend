@@ -12,4 +12,5 @@ import lombok.Setter;
 @Setter
 @Embeddable
 public class Direccion {
+
 }

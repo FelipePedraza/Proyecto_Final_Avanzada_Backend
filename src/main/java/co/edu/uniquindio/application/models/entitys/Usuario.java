@@ -1,6 +1,7 @@
 package co.edu.uniquindio.application.models.entitys;
 
 import co.edu.uniquindio.application.models.enums.Rol;
+import co.edu.uniquindio.application.models.enums.Estado;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -24,17 +25,17 @@ public class Usuario {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 150)
     private String contrasena;
 
     @Column(length = 20)
     private String telefono;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false)
     private Rol rol;
 
-
+    @Column(nullable = false)
     private LocalDate fechaNacimiento;
 
     @Column(length = 300)
@@ -45,5 +46,13 @@ public class Usuario {
 
     @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime creadoEn;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Estado estado;
+
+    @Column(nullable = false)
+    private Boolean esAnfitrion;
+
 
 }

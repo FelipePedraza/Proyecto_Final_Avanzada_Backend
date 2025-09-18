@@ -1,11 +1,8 @@
 package co.edu.uniquindio.application.services;
 
-import co.edu.uniquindio.application.dtos.PaginacionDTO;
 import co.edu.uniquindio.application.dtos.alojamiento.*;
 import co.edu.uniquindio.application.dtos.resena.CreacionResenaDTO;
 import co.edu.uniquindio.application.dtos.resena.ItemResenaDTO;
-
-import java.util.List;
 
 public interface AlojamientoServicio {
     AlojamientoDTO crearAlojamiento(CreacionAlojamientoDTO dto) throws Exception;

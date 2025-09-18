@@ -1,6 +1,5 @@
 package co.edu.uniquindio.application.controllers;
 
-import co.edu.uniquindio.application.dtos.PaginacionDTO;
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.reserva.CreacionReservaDTO;
 import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
