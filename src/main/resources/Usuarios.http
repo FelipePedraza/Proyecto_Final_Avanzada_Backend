@@ -13,7 +13,7 @@ Content-Type: application/json
 }
 
 ### Obtener usuario por id (200)
-GET http://localhost:8080/api/usuarios/2
+GET http://localhost:8080/api/usuarios/1
 Accept: application/json
 
 ### Editar usuario (PUT) (200)
