@@ -16,22 +16,26 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthServicioImpl implements AuthServicio {
 
     private final UsuarioRepositorio usuarioRepositorio;
-    private final UsuarioMapper usuarioMapper;
+    //private final UsuarioMapper usuarioMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public UsuarioDTO registro(CreacionAnfitrionDTO anfitrionDTO) throws Exception {
 
+        /*
         if (usuarioRepositorio.findByEmail(anfitrionDTO.email()).isPresent()) {
             throw new Exception("El correo electrónico ya está en uso");
         }
 
-        Usuario usuario = usuarioMapper.fromDTO(anfitrionDTO);
+        Usuario usuario = usuarioMapper.toEntity(anfitrionDTO);
         usuario.setContrasena(passwordEncoder.encode(anfitrionDTO.contrasena()));
 
         Usuario saved = usuarioRepositorio.save(usuario);
 
         return usuarioMapper.toDTO(saved);
+
+         */
+        return null;
     }
 
     @Override
