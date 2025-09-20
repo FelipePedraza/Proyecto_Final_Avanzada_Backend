@@ -2,6 +2,7 @@ package co.edu.uniquindio.application.models.vo;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,5 +20,9 @@ public class Direccion {
 
     @Column(nullable = false)
     private String direccion;
+
+    @Embedded
+    @Column(nullable = false)
+    private Localizacion ubicacion;
 
 }

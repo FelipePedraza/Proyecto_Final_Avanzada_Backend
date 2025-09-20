@@ -123,11 +123,11 @@ class Servicio {
 
 Alojamiento "1" *-- "*" Reserva : reservas
 
-Reserva "1" *-- "1" Usuario : huesped
+Reserva "*" *-- "1" Usuario : huesped
 
 Alojamiento "1" *-- "*" Servicio : servicios
 
-Alojamiento "1" *-- "1" Usuario : anfitrion
+Alojamiento "*" *-- "1" Usuario : anfitrion
 
 Alojamiento "1" *-- "1" Direccion : anfitrion
 
@@ -137,9 +137,9 @@ Usuario "1" --* "0..1" CodigoRestablecerContrasena : codigoRestablecimiento
 
 Alojamiento "1" *-- "*" Reseña : reseñas
 
-Reseña "1" *-- "1" Usuario : autor
+Reseña "*" *-- "1" Usuario : autor
 
-Reseña "1" *-- "0..1" Respuesta : respuesta
+Reseña "1" *-- "*" Respuesta : respuesta
 
 Direccion "1" *-- "1" Localización : localización
 
