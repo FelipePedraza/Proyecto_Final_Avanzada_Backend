@@ -54,12 +54,12 @@ public class UsuarioControlador {
     }
 
     @GetMapping("/{id}/alojamientos")
-    public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> obtenerAlojamientosUsuario(@PathVariable("id") Long id) throws Exception {
+    public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> obtenerAlojamientosUsuario(@PathVariable String id) throws Exception {
         return ResponseEntity.ok(new RespuestaDTO(false, List.of()));
     }
 
     @GetMapping("/{id}/reservas")
-    public ResponseEntity<RespuestaDTO<List<ItemReservaDTO>>> obtenerReservasUsuario(@PathVariable("id") Long id) throws Exception {
+    public ResponseEntity<RespuestaDTO<List<ItemReservaDTO>>> obtenerReservasUsuario(@PathVariable String id) throws Exception {
         return ResponseEntity.ok(new RespuestaDTO(false, List.of()));
     }
 
