@@ -3,6 +3,7 @@ package co.edu.uniquindio.application.controllers;
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.usuario.*;
 import co.edu.uniquindio.application.services.AuthServicio;
+import co.edu.uniquindio.application.services.UsuarioServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,28 +16,28 @@ import org.springframework.web.bind.annotation.*;
 public class AuthControlador {
 
     private final AuthServicio authServicio;
+    private final UsuarioServicio usuarioServicio;
 
     @PostMapping("/registro")
-    public ResponseEntity<RespuestaDTO<UsuarioDTO>> registrar(@Valid @RequestBody CreacionAnfitrionDTO anfitrionDTO) throws Exception {
-        UsuarioDTO usuario = authServicio.registro(anfitrionDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, usuario));
+    public ResponseEntity<RespuestaDTO<String>> crear(@Valid @RequestBody CreacionUsuarioDTO usuarioDTO) throws Exception {
+        usuarioServicio.crear(usuarioDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, "El registro ha sido exitoso"));
     }
 
     @PostMapping("/login")
     public ResponseEntity<RespuestaDTO<TokenDTO>> login(@Valid @RequestBody LoginDTO loginDTO) throws Exception {
-        TokenDTO loginResponse = authServicio.login(loginDTO);
-        return ResponseEntity.ok(new RespuestaDTO<>(false, loginResponse));
+        TokenDTO token = authServicio.login(loginDTO);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, token));
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<RespuestaDTO<String>> solicitarRecuperacion(@Valid @RequestBody OlvidoContrasenaDTO olvidoContrasenaDTO) throws Exception {
-        authServicio.solicitarRecuperacion(olvidoContrasenaDTO);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Código de recuperación enviado al correo."));
     }
 
     @PatchMapping("/reset-password")
-    public ResponseEntity<RespuestaDTO<String>> restablecerContrasena(@Valid @RequestBody ReiniciarContrasena reiniciarContrasena) throws Exception {
-        authServicio.restablecerContrasena(reiniciarContrasena);
+    public ResponseEntity<RespuestaDTO<String>> restablecerContrasena(@Valid @RequestBody ReinicioContrasenaDTO reinicioContrasenaDTO) throws Exception {
+        usuarioServicio.reiniciarContrasena(reinicioContrasenaDTO);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Contraseña restablecida correctamente."));
     }
 }

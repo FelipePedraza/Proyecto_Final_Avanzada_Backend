@@ -8,7 +8,6 @@ import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.URL;
 
 public record EdicionUsuarioDTO(
-        @NotBlank Long id,
         @NotBlank @Length(max = 100) String nombre,
         @Length(max = 20) String telefono,
         @URL String foto,

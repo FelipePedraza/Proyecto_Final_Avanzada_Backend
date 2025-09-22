@@ -16,8 +16,7 @@ import java.time.LocalDateTime;
 public class Usuario {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     @Column(nullable = false, length = 100)
     private String nombre;
@@ -28,7 +27,7 @@ public class Usuario {
     @Column(nullable = false, length = 150)
     private String contrasena;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 15)
     private String telefono;
 
     @Enumerated(EnumType.STRING)
@@ -51,7 +50,6 @@ public class Usuario {
     @Column(nullable = false)
     private Estado estado;
 
-    @Column(nullable = false)
     private Boolean esAnfitrion;
 
 

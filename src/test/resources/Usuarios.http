@@ -1,0 +1,42 @@
+### Crear usuario (201 Created)
+POST http://localhost:8080/api/auth/registro
+Content-Type: application/json
+
+{
+  "nombre": "David Posso",
+  "email": "david.posso@example.com",
+  "contrasena": "Passw0rd1",
+  "telefono": "3001234567",
+  "foto": null,
+  "fechaNacimiento": "1994-03-10",
+  "rol": "Huesped"
+}
+
+### Obtener usuario por id (200)
+GET http://localhost:8080/api/usuarios/797d814a-5fd0-4953-810d-f593ff73928f
+Accept: application/json
+
+### Editar usuario (PUT) (200)
+PUT http://localhost:8080/api/usuarios/797d814a-5fd0-4953-810d-f593ff73928f
+Content-Type: application/json
+
+{
+  "id": "797d814a-5fd0-4953-810d-f593ff73928f",
+  "nombre": "David Pedraza",
+  "telefono": "3102399644",
+  "foto": null,
+  "rol": "Huesped"
+}
+
+### Cambiar contraseña (PATCH) (200) — usa CambioContrasenaDTO
+PATCH http://localhost:8080/api/usuarios/797d814a-5fd0-4953-810d-f593ff73928f/contrasena
+Content-Type: application/json
+
+{
+  "id": "797d814a-5fd0-4953-810d-f593ff73928f",
+  "contrasenaActual": "Passw0rd1",
+  "contrasenaNueva": "Pass0123"
+}
+
+### Eliminar usuario (DELETE) (204)
+DELETE http://localhost:8080/api/usuarios/1

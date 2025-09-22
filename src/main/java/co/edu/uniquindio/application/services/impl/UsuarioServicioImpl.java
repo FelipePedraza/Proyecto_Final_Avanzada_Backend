@@ -1,89 +1,125 @@
 package co.edu.uniquindio.application.services.impl;
 
-import co.edu.uniquindio.application.dtos.alojamiento.ItemAlojamientoDTO;
-import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
-import co.edu.uniquindio.application.dtos.usuario.CambioContrasenaDTO;
-import co.edu.uniquindio.application.dtos.usuario.CreacionUsuarioDTO;
-import co.edu.uniquindio.application.dtos.usuario.EdicionUsuarioDTO;
-import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
-import co.edu.uniquindio.application.exceptions.ResourceNotFoundException;
+import co.edu.uniquindio.application.dtos.usuario.*;
+import co.edu.uniquindio.application.exceptions.NoResourceFoundException;
+import co.edu.uniquindio.application.exceptions.ValueConflictException;
 import co.edu.uniquindio.application.mappers.UsuarioMapper;
+import co.edu.uniquindio.application.models.entitys.ContrasenaCodigoReinicio;
 import co.edu.uniquindio.application.models.entitys.Usuario;
+import co.edu.uniquindio.application.models.enums.Estado;
+import co.edu.uniquindio.application.repositories.ContrasenaCodigoReinicioRepositorio;
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
 import co.edu.uniquindio.application.services.UsuarioServicio;
-import jakarta.transaction.Transactional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
 @Service
-@Transactional
+@RequiredArgsConstructor
 public class UsuarioServicioImpl implements UsuarioServicio {
 
     private final UsuarioRepositorio usuarioRepositorio;
     private final PasswordEncoder passwordEncoder;
+    private final UsuarioMapper usuarioMapper;
+    private final ContrasenaCodigoReinicioRepositorio contrasenaCodigoReinicioRepositorio;
 
-    public UsuarioServicioImpl(UsuarioRepositorio usuarioRepositorio, PasswordEncoder passwordEncoder) {
-        this.usuarioRepositorio = usuarioRepositorio;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Override
-    public UsuarioDTO crear(CreacionUsuarioDTO dto) throws Exception {
-        if (usuarioRepositorio.findByEmail(dto.email()).isPresent()) {
-            throw new Exception("Ya existe un usuario con ese correo");
+    public void crear(CreacionUsuarioDTO usuarioDTO) throws Exception {
+
+        if(existePorEmail(usuarioDTO.email())){
+            throw new ValueConflictException("El email ya existe");
         }
-        Usuario u = UsuarioMapper.toEntity(dto);
-        Usuario saved = usuarioRepositorio.save(u);
-        return UsuarioMapper.toDTO(saved);
+
+        Usuario nuevoUsuario = usuarioMapper.toEntity(usuarioDTO);
+        nuevoUsuario.setContrasena(passwordEncoder.encode(usuarioDTO.contrasena()));
+        usuarioRepositorio.save(nuevoUsuario);
     }
 
     @Override
-    public UsuarioDTO editar(EdicionUsuarioDTO dto) {
-        Usuario existing = usuarioRepositorio.findById(dto.id())
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
-        existing.setNombre(dto.nombre());
-        existing.setTelefono(dto.telefono());
-        existing.setFoto(dto.foto());
-        existing.setRol(dto.rol());
-        Usuario saved = usuarioRepositorio.save(existing);
-        return UsuarioMapper.toDTO(saved);
+    public void editar(String id, EdicionUsuarioDTO usuarioDTO) throws Exception {
+        Usuario usuario = obtenerUsuario(id);
+        usuarioMapper.updateUsuarioFromDTO(usuarioDTO, usuario);
+        usuarioRepositorio.save(usuario);
     }
 
     @Override
-    public void eliminar(Long id) {
-        Usuario existing = usuarioRepositorio.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
-        usuarioRepositorio.delete(existing);
+    public void eliminar(String id) throws Exception {
+        Usuario usuario = obtenerUsuario(id);
+        usuario.setEstado(Estado.ELIMINADO);
+        usuarioRepositorio.save(usuario);
+
     }
 
     @Override
-    public UsuarioDTO obtener(Long id) {
-        Usuario u = usuarioRepositorio.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
-        return UsuarioMapper.toDTO(u);
+    public UsuarioDTO obtener(String id) throws Exception {
+        Usuario usuario = obtenerUsuario(id);
+        return usuarioMapper.toUserDTO(usuario);
     }
 
     @Override
-    public void cambiarContrasena(Long id, CambioContrasenaDTO dto) {
-        Usuario u = usuarioRepositorio.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+    public void cambiarContrasena(CambioContrasenaDTO cambioContrasenaDTO) throws Exception {
 
-        // Aquí podrías verificar la contraseña anterior si la incluyes en el DTO.
-        u.setContrasena(passwordEncoder.encode(dto.passwordNueva()));
-        usuarioRepositorio.save(u);
+        Usuario usuario = obtenerUsuario(cambioContrasenaDTO.id());
+
+        if( passwordEncoder.matches(usuario.getContrasena(), cambioContrasenaDTO.contrasenaActual())){
+            throw new ValueConflictException("La contraseña no coinciden con su contraseña actual");
+        }
+
+        if( passwordEncoder.matches(cambioContrasenaDTO.contrasenaNueva(), usuario.getContrasena())){
+            throw new ValueConflictException("La contraseña no puede ser igual a la anterior");
+        }
+
+        usuario.setContrasena(passwordEncoder.encode(cambioContrasenaDTO.contrasenaNueva()));
+        usuarioRepositorio.save(usuario);
     }
 
     @Override
-    public Page<ItemAlojamientoDTO> listarAlojamientos(Long id, Pageable pageable) throws Exception {
-        // Lógica de negocio a implementar
-        return null;
+    public void reiniciarContrasena(ReinicioContrasenaDTO reinicioContrasenaDTO) throws Exception {
+        Optional<ContrasenaCodigoReinicio> contrasenaCodigoReinicio = contrasenaCodigoReinicioRepositorio.findByUsuario_Email(reinicioContrasenaDTO.email());
+
+        if(contrasenaCodigoReinicio.isEmpty()){
+            throw new NoResourceFoundException("El usuario no existe");
+        }
+
+        ContrasenaCodigoReinicio contrasenaCodigoReinicioActualizado = contrasenaCodigoReinicio.get();
+
+        if(!contrasenaCodigoReinicioActualizado.getCodigo().equals(reinicioContrasenaDTO.codigoVerificacion())){
+            throw new Exception("El codigo no es válido");
+        }
+
+        if ( contrasenaCodigoReinicioActualizado.getCreadoEn().plusMinutes(15).isBefore(LocalDateTime.now())){
+            throw new Exception("El codigo ya vencio, solicite otro");
+        }
+
+        Usuario usuario = contrasenaCodigoReinicioActualizado.getUsuario();
+        usuario.setContrasena(passwordEncoder.encode(reinicioContrasenaDTO.nuevaContrasena()));
+        usuarioRepositorio.save(usuario);
+
     }
 
     @Override
-    public Page<ItemReservaDTO> listarReservas(Long id, Pageable pageable) throws Exception {
-        // Lógica de negocio a implementar
-        return null;
+    public void crearAnfitrion(CreacionAnfitrionDTO dto) throws Exception {
+
+    }
+
+    public boolean existePorEmail(String email){
+
+        Optional<Usuario> optionalUsuario = usuarioRepositorio.findByEmail(email);
+
+        return optionalUsuario.isPresent();
+    }
+
+    private Usuario obtenerUsuario(String id) throws Exception {
+        Optional<Usuario> optionalUsuario =  usuarioRepositorio.findById(id);
+
+        if(optionalUsuario.isEmpty()){
+            throw new NoResourceFoundException("No se encontro el usuario con el id: " + id);
+        }
+
+        return optionalUsuario.get();
     }
 }
