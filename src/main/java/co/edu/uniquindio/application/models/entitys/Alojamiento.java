@@ -43,7 +43,7 @@ public class Alojamiento {
     private Float precioPorNoche;
 
     @ElementCollection
-    @Column(name = "imagen_url", length = 500, nullable = false)
+    @Column(length = 500, nullable = false)
     private List<String> imagenes;
 
     @Enumerated(EnumType.STRING)

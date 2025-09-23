@@ -3,8 +3,8 @@ POST http://localhost:8080/api/auth/registro
 Content-Type: application/json
 
 {
-  "nombre": "David Posso",
-  "email": "david.posso@example.com",
+  "nombre": "David Pedraza",
+  "email": "david.pedraza@example.com",
   "contrasena": "Passw0rd1",
   "telefono": "3001234567",
   "foto": null,
@@ -21,9 +21,8 @@ PUT http://localhost:8080/api/usuarios/797d814a-5fd0-4953-810d-f593ff73928f
 Content-Type: application/json
 
 {
-  "id": "797d814a-5fd0-4953-810d-f593ff73928f",
-  "nombre": "David Pedraza",
-  "telefono": "3102399644",
+  "nombre": "David Posso",
+  "telefono": "3001234567",
   "foto": null,
   "rol": "Huesped"
 }
