@@ -30,7 +30,7 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     }
 
     @Override
-    public AlojamientoDTO editarAlojamiento(Long id, EditarAlojamientoDTO dto) throws Exception {
+    public AlojamientoDTO editarAlojamiento(Long id, EdicionAlojamientoDTO dto) throws Exception {
         // Lógica de negocio a implementar
         return null;
     }

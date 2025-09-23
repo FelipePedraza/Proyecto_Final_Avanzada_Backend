@@ -40,7 +40,7 @@ public class AlojamientoControlador {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RespuestaDTO<AlojamientoDTO>> editarAlojamiento(@PathVariable Long id, @Valid @RequestBody EditarAlojamientoDTO dto) throws Exception {
+    public ResponseEntity<RespuestaDTO<AlojamientoDTO>> editarAlojamiento(@PathVariable Long id, @Valid @RequestBody EdicionAlojamientoDTO dto) throws Exception {
         AlojamientoDTO alojamiento = alojamientoServicio.editarAlojamiento(id, dto);
         return ResponseEntity.ok(new RespuestaDTO<>(false, alojamiento));
     }

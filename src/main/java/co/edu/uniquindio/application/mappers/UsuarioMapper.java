@@ -15,6 +15,8 @@ public interface UsuarioMapper {
     @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
     @Mapping(target = "estado", constant = "ACTIVO")
     @Mapping(target = "creadoEn", expression = "java(java.time.LocalDateTime.now())")
+
+
     Usuario toEntity(CreacionUsuarioDTO userDTO);
 
     UsuarioDTO toUserDTO(Usuario user);

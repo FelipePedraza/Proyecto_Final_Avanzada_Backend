@@ -10,7 +10,7 @@ public interface AlojamientoServicio {
     AlojamientoDTO crearAlojamiento(CreacionAlojamientoDTO dto) throws Exception;
     Page<ItemAlojamientoDTO> buscarAlojamientos(Pageable pageable, AlojamientoFiltro filtro) throws Exception;
     AlojamientoDTO obtenerAlojamiento(Long id) throws Exception;
-    AlojamientoDTO editarAlojamiento(Long id, EditarAlojamientoDTO dto) throws Exception;
+    AlojamientoDTO editarAlojamiento(Long id, EdicionAlojamientoDTO dto) throws Exception;
     void eliminarAlojamiento(Long id) throws Exception;
     BusquedaCiudadDTO sugerirCiudades(String q) throws Exception;
     MetricasDTO obtenerMetricas(Long id, String fechaInicio, String fechaFin) throws Exception;
