@@ -30,8 +30,8 @@ public class UsuarioControlador {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RespuestaDTO<String>> editar(@PathVariable String id, @Valid @RequestBody EdicionUsuarioDTO dto) throws Exception {
-        usuarioServicio.editar(id ,new EdicionUsuarioDTO(dto.nombre(), dto.telefono(), dto.foto(), dto.rol()));
+    public ResponseEntity<RespuestaDTO<String>> editar(@PathVariable String id, @Valid @RequestBody EdicionUsuarioDTO edicionUsuarioDTO) throws Exception {
+        usuarioServicio.editar(id , edicionUsuarioDTO);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "El usuario ha sido actualizado"));
     }
 
@@ -49,7 +49,7 @@ public class UsuarioControlador {
 
     @PatchMapping("/{id}/contrasena")
     public ResponseEntity<RespuestaDTO<String>> cambiarContrasena(@PathVariable String id, @Valid @RequestBody CambioContrasenaDTO dto) throws Exception {
-        usuarioServicio.cambiarContrasena(dto);
+        usuarioServicio.cambiarContrasena(id, dto);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "La contraseña ha sido cambiada"));
     }
 

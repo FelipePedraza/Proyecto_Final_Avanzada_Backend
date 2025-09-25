@@ -12,7 +12,7 @@ public interface UsuarioServicio {
     void editar(String id,EdicionUsuarioDTO dto) throws Exception;
     void eliminar(String id) throws Exception;
     UsuarioDTO obtener(String id) throws Exception;
-    void cambiarContrasena(CambioContrasenaDTO dto) throws Exception;
+    void cambiarContrasena(String id, CambioContrasenaDTO dto) throws Exception;
     void reiniciarContrasena(ReinicioContrasenaDTO dto) throws Exception;
     void crearAnfitrion(CreacionAnfitrionDTO dto) throws Exception;
 }

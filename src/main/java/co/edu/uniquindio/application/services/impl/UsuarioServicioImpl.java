@@ -1,7 +1,8 @@
 package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dtos.usuario.*;
-import co.edu.uniquindio.application.exceptions.NoResourceFoundException;
+import co.edu.uniquindio.application.exceptions.NoFoundException;
+import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.exceptions.ValueConflictException;
 import co.edu.uniquindio.application.mappers.UsuarioMapper;
 import co.edu.uniquindio.application.models.entitys.ContrasenaCodigoReinicio;
@@ -11,6 +12,7 @@ import co.edu.uniquindio.application.repositories.ContrasenaCodigoReinicioReposi
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
 import co.edu.uniquindio.application.services.UsuarioServicio;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +24,6 @@ import java.util.Optional;
 public class UsuarioServicioImpl implements UsuarioServicio {
 
     private final UsuarioRepositorio usuarioRepositorio;
-    private final PasswordEncoder passwordEncoder;
     private final UsuarioMapper usuarioMapper;
     private final ContrasenaCodigoReinicioRepositorio contrasenaCodigoReinicioRepositorio;
 
@@ -34,6 +35,7 @@ public class UsuarioServicioImpl implements UsuarioServicio {
             throw new ValueConflictException("El email ya existe");
         }
 
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         Usuario nuevoUsuario = usuarioMapper.toEntity(usuarioDTO);
         nuevoUsuario.setContrasena(passwordEncoder.encode(usuarioDTO.contrasena()));
         usuarioRepositorio.save(nuevoUsuario);
@@ -41,14 +43,14 @@ public class UsuarioServicioImpl implements UsuarioServicio {
 
     @Override
     public void editar(String id, EdicionUsuarioDTO usuarioDTO) throws Exception {
-        Usuario usuario = obtenerUsuario(id);
+        Usuario usuario = obtenerUsuarioId(id);
         usuarioMapper.updateUsuarioFromDTO(usuarioDTO, usuario);
         usuarioRepositorio.save(usuario);
     }
 
     @Override
     public void eliminar(String id) throws Exception {
-        Usuario usuario = obtenerUsuario(id);
+        Usuario usuario = obtenerUsuarioId(id);
         usuario.setEstado(Estado.ELIMINADO);
         usuarioRepositorio.save(usuario);
 
@@ -56,21 +58,25 @@ public class UsuarioServicioImpl implements UsuarioServicio {
 
     @Override
     public UsuarioDTO obtener(String id) throws Exception {
-        Usuario usuario = obtenerUsuario(id);
+        Usuario usuario = obtenerUsuarioId(id);
         return usuarioMapper.toUserDTO(usuario);
     }
 
     @Override
-    public void cambiarContrasena(CambioContrasenaDTO cambioContrasenaDTO) throws Exception {
+    public void cambiarContrasena(String id, CambioContrasenaDTO cambioContrasenaDTO) throws Exception {
 
-        Usuario usuario = obtenerUsuario(cambioContrasenaDTO.id());
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-        if( passwordEncoder.matches(usuario.getContrasena(), cambioContrasenaDTO.contrasenaActual())){
-            throw new ValueConflictException("La contraseña no coinciden con su contraseña actual");
+        Usuario usuario = obtenerUsuarioId(id);
+
+        // Verificar que la contraseña actual coincida
+        if(!passwordEncoder.matches(cambioContrasenaDTO.contrasenaActual(), usuario.getContrasena())){
+            throw new ValidationException("La contraseña actual es incorrecta.");
         }
 
-        if( passwordEncoder.matches(cambioContrasenaDTO.contrasenaNueva(), usuario.getContrasena())){
-            throw new ValueConflictException("La contraseña no puede ser igual a la anterior");
+        // Verificar que la nueva contraseña sea diferente a la actual
+        if(cambioContrasenaDTO.contrasenaActual().equals(cambioContrasenaDTO.contrasenaNueva())){
+            throw new ValueConflictException("La nueva contraseña no puede ser igual a la actual.");
         }
 
         usuario.setContrasena(passwordEncoder.encode(cambioContrasenaDTO.contrasenaNueva()));
@@ -79,10 +85,12 @@ public class UsuarioServicioImpl implements UsuarioServicio {
 
     @Override
     public void reiniciarContrasena(ReinicioContrasenaDTO reinicioContrasenaDTO) throws Exception {
+
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         Optional<ContrasenaCodigoReinicio> contrasenaCodigoReinicio = contrasenaCodigoReinicioRepositorio.findByUsuario_Email(reinicioContrasenaDTO.email());
 
         if(contrasenaCodigoReinicio.isEmpty()){
-            throw new NoResourceFoundException("El usuario no existe");
+            throw new NoFoundException("El usuario no existe");
         }
 
         ContrasenaCodigoReinicio contrasenaCodigoReinicioActualizado = contrasenaCodigoReinicio.get();
@@ -113,11 +121,11 @@ public class UsuarioServicioImpl implements UsuarioServicio {
         return optionalUsuario.isPresent();
     }
 
-    private Usuario obtenerUsuario(String id) throws Exception {
+    private Usuario obtenerUsuarioId(String id) throws Exception {
         Optional<Usuario> optionalUsuario =  usuarioRepositorio.findById(id);
 
         if(optionalUsuario.isEmpty()){
-            throw new NoResourceFoundException("No se encontro el usuario con el id: " + id);
+            throw new NoFoundException("No se encontro el usuario con el id: " + id);
         }
 
         return optionalUsuario.get();

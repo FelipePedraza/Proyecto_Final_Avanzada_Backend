@@ -5,8 +5,6 @@ import jakarta.validation.constraints.Pattern;
 import org.hibernate.validator.constraints.Length;
 
 public record CambioContrasenaDTO(
-        @NotBlank
-        String id, //Token
 
         @NotBlank
         String contrasenaActual,

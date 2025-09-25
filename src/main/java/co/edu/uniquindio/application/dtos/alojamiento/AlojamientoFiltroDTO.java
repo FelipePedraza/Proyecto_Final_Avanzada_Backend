@@ -1,4 +1,4 @@
 package co.edu.uniquindio.application.dtos.alojamiento;
 
-public class AlojamientoFiltro {
+public class AlojamientoFiltroDTO {
 }

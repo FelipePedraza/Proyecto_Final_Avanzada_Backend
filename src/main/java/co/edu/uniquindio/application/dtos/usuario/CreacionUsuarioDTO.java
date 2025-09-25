@@ -1,9 +1,7 @@
 package co.edu.uniquindio.application.dtos.usuario;
 
-import co.edu.uniquindio.application.models.enums.Rol;
 import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDate;
 
@@ -20,16 +18,13 @@ public record CreacionUsuarioDTO(
         @Pattern(regexp = "^(?=.*[A-Z])(?=.*[0-9]).{8,}$", message = "La contraseña debe tener al menos 8 caracteres, una mayúscula y un número")
         String contrasena,
 
-        @Length(max = 20)
+        @Length(max = 10)
         String telefono,
 
-        @URL
+        @Length(max = 300)
         String foto,
 
         @NotNull @Past
-        LocalDate fechaNacimiento,
-
-        @NotNull
-        Rol rol
+        LocalDate fechaNacimiento
 ) {
 }
