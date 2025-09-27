@@ -301,6 +301,19 @@ components:
         - passwordActual
         - passwordNueva
 
+    Creacion_Anfitrion:
+      type: object
+      properties:
+        sobreMi:
+          type: string
+          minLength: 1
+        DocumentoLegal:
+          type: string
+          minLength: 1
+      required:
+        - sobreMi
+        - DocumentoLegal
+
     Recuperacion_Contraseña:
       type: object
       properties:
@@ -776,11 +789,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /usuarios/anfitrion:
+  /usuarios/{id}/anfitrion:
     post:
+      summary: Convertir usuario a anfitrión
       tags: [ Usuarios ]
       security:
         - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Creacion_Anfitrion'
+      responses:
+        '200':
+          description: Usuario convertido a anfitrión exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Respuesta'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No tiene permisos o usuario no es Huesped
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Usuario no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   # GESTIÓN DE ALOJAMIENTOS
   /alojamientos:

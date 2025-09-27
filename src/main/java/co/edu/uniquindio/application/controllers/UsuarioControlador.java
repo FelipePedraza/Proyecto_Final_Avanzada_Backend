@@ -7,6 +7,7 @@ import co.edu.uniquindio.application.dtos.usuario.CreacionUsuarioDTO;
 import co.edu.uniquindio.application.dtos.usuario.EdicionUsuarioDTO;
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.usuario.CambioContrasenaDTO;
+import co.edu.uniquindio.application.dtos.usuario.CreacionAnfitrionDTO;
 import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
 import co.edu.uniquindio.application.services.UsuarioServicio;
 import jakarta.validation.Valid;
@@ -24,9 +25,10 @@ public class UsuarioControlador {
 
     private final UsuarioServicio usuarioServicio;
 
-    @PostMapping("/anfitrion")
-    public ResponseEntity<RespuestaDTO<String>> crearAnfitrion(@Valid @RequestBody CreacionUsuarioDTO dto) throws Exception {
-        return ResponseEntity.ok(new RespuestaDTO<>(false, "Se ha creado el anfitrion"));
+    @PostMapping("/{id}/anfitrion")
+    public ResponseEntity<RespuestaDTO<String>> crearAnfitrion(@PathVariable String id, @Valid @RequestBody CreacionAnfitrionDTO dto) throws Exception {
+        usuarioServicio.crearAnfitrion(id, dto);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, "Usuario convertido a anfitrión exitosamente"));
     }
 
     @PutMapping("/{id}")

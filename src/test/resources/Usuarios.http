@@ -3,8 +3,8 @@ POST http://localhost:8080/api/auth/registro
 Content-Type: application/json
 
 {
-  "nombre": "David Pedraza",
-  "email": "david.pedraza@example.com",
+  "nombre": "Daniela Arboleda",
+  "email": "dani.arboleda@example.com",
   "contrasena": "Passw0rd1",
   "telefono": "3001234567",
   "foto": null,
@@ -39,3 +39,12 @@ Content-Type: application/json
 
 ### Eliminar usuario (DELETE) (204)
 DELETE http://localhost:8080/api/usuarios/1
+
+### Convertir usuario a anfitrión (POST) (200)
+POST http://localhost:8080/api/usuarios/79b3734c-15e3-420e-a9c8-725217acfc7c/anfitrion
+Content-Type: application/json
+
+{
+  "sobreMi": "Soy un anfitrión apasionado por compartir experiencias únicas con mis huéspedes",
+  "DocumentoLegal": "CC-12345678"
+}

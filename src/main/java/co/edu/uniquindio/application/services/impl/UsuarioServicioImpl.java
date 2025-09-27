@@ -6,9 +6,12 @@ import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.exceptions.ValueConflictException;
 import co.edu.uniquindio.application.mappers.UsuarioMapper;
 import co.edu.uniquindio.application.models.entitys.ContrasenaCodigoReinicio;
+import co.edu.uniquindio.application.models.entitys.PerfilAnfitrion;
 import co.edu.uniquindio.application.models.entitys.Usuario;
 import co.edu.uniquindio.application.models.enums.Estado;
+import co.edu.uniquindio.application.models.enums.Rol;
 import co.edu.uniquindio.application.repositories.ContrasenaCodigoReinicioRepositorio;
+import co.edu.uniquindio.application.repositories.PerfilAnfitrionRepositorio;
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
 import co.edu.uniquindio.application.services.UsuarioServicio;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,7 @@ import java.util.Optional;
 public class UsuarioServicioImpl implements UsuarioServicio {
 
     private final UsuarioRepositorio usuarioRepositorio;
+    private final PerfilAnfitrionRepositorio perfilAnfitrionRepositorio;
     private final UsuarioMapper usuarioMapper;
     private final ContrasenaCodigoReinicioRepositorio contrasenaCodigoReinicioRepositorio;
 
@@ -37,6 +41,7 @@ public class UsuarioServicioImpl implements UsuarioServicio {
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         Usuario nuevoUsuario = usuarioMapper.toEntity(usuarioDTO);
+        nuevoUsuario.setRol(Rol.Huesped); // Always create as Huesped
         nuevoUsuario.setContrasena(passwordEncoder.encode(usuarioDTO.contrasena()));
         usuarioRepositorio.save(nuevoUsuario);
     }
@@ -110,8 +115,20 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     }
 
     @Override
-    public void crearAnfitrion(CreacionAnfitrionDTO dto) throws Exception {
+    public void crearAnfitrion(String usuarioId, CreacionAnfitrionDTO dto) throws Exception {
+        Usuario usuario = obtenerUsuarioId(usuarioId);
+        if (usuario.getRol() != Rol.Huesped) {
+            throw new ValidationException("El usuario debe ser Huesped para convertirse en Anfitrion");
+        }
+        usuario.setRol(Rol.Anfitrion);
 
+        // Crear perfil de anfitrión
+        PerfilAnfitrion perfil = new PerfilAnfitrion(null, dto.sobreMi(), dto.DocumentoLegal(), usuario);
+        perfilAnfitrionRepositorio.save(perfil);
+
+        // Actualizar la relación bidireccional
+        usuario.setPerfilAnfitrion(perfil);
+        usuarioRepositorio.save(usuario);
     }
 
     public boolean existePorEmail(String email){

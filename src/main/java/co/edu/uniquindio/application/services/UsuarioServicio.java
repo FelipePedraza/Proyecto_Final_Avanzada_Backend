@@ -14,5 +14,5 @@ public interface UsuarioServicio {
     UsuarioDTO obtener(String id) throws Exception;
     void cambiarContrasena(String id, CambioContrasenaDTO dto) throws Exception;
     void reiniciarContrasena(ReinicioContrasenaDTO dto) throws Exception;
-    void crearAnfitrion(CreacionAnfitrionDTO dto) throws Exception;
+    void crearAnfitrion(String usuarioId, CreacionAnfitrionDTO dto) throws Exception;
 }
