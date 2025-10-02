@@ -26,6 +26,7 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     private final UsuarioRepositorio usuarioRepositorio;
     private final UsuarioMapper usuarioMapper;
     private final ContrasenaCodigoReinicioRepositorio contrasenaCodigoReinicioRepositorio;
+    private final PasswordEncoder passwordEncoder;
 
 
     @Override
@@ -35,7 +36,6 @@ public class UsuarioServicioImpl implements UsuarioServicio {
             throw new ValueConflictException("El email ya existe");
         }
 
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         Usuario nuevoUsuario = usuarioMapper.toEntity(usuarioDTO);
         nuevoUsuario.setContrasena(passwordEncoder.encode(usuarioDTO.contrasena()));
         usuarioRepositorio.save(nuevoUsuario);
@@ -65,8 +65,6 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     @Override
     public void cambiarContrasena(String id, CambioContrasenaDTO cambioContrasenaDTO) throws Exception {
 
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
         Usuario usuario = obtenerUsuarioId(id);
 
         // Verificar que la contraseña actual coincida
@@ -86,7 +84,6 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     @Override
     public void reiniciarContrasena(ReinicioContrasenaDTO reinicioContrasenaDTO) throws Exception {
 
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         Optional<ContrasenaCodigoReinicio> contrasenaCodigoReinicio = contrasenaCodigoReinicioRepositorio.findByUsuario_Email(reinicioContrasenaDTO.email());
 
         if(contrasenaCodigoReinicio.isEmpty()){

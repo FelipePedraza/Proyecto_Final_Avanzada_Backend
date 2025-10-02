@@ -24,25 +24,25 @@ public class AlojamientoControlador {
     @PostMapping
     public ResponseEntity<RespuestaDTO<AlojamientoDTO>> crearAlojamiento(@Valid @RequestBody CreacionAlojamientoDTO dto) throws Exception {
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, alojamiento));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, null));
     }
 
     @GetMapping
     public ResponseEntity<RespuestaDTO<Page<ItemAlojamientoDTO>>> buscarAlojamientos(@ParameterObject Pageable pageable, @ParameterObject AlojamientoFiltroDTO filtro) throws Exception {
 
-        return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientos));
+        return ResponseEntity.ok(new RespuestaDTO<>(false, null));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<RespuestaDTO<AlojamientoDTO>> obtenerAlojamiento(@PathVariable Long id) throws Exception {
 
-        return ResponseEntity.ok(new RespuestaDTO<>(false, alojamiento));
+        return ResponseEntity.ok(new RespuestaDTO<>(false, null));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<RespuestaDTO<AlojamientoDTO>> editarAlojamiento(@PathVariable Long id, @Valid @RequestBody EdicionAlojamientoDTO dto) throws Exception {
 
-        return ResponseEntity.ok(new RespuestaDTO<>(false, alojamiento));
+        return ResponseEntity.ok(new RespuestaDTO<>(false, null));
     }
 
     @DeleteMapping("/{id}")
@@ -53,12 +53,12 @@ public class AlojamientoControlador {
 
     @GetMapping("/sugerencias")
     public ResponseEntity<RespuestaDTO<BusquedaCiudadDTO>> sugerirCiudades(@RequestParam String q) throws Exception {
-        return ResponseEntity.ok(new RespuestaDTO<>(false, sugerencias));
+        return ResponseEntity.ok(new RespuestaDTO<>(false, null));
     }
 
     @GetMapping("/{id}/metricas")
     public ResponseEntity<RespuestaDTO<MetricasDTO>> obtenerMetricas(@PathVariable Long id, @RequestParam String fechaInicio, @RequestParam String fechaFin) throws Exception {
 
-        return ResponseEntity.ok(new RespuestaDTO<>(false, metricas));
+        return ResponseEntity.ok(new RespuestaDTO<>(false, null));
     }
 }

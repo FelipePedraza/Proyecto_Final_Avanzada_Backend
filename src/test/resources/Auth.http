@@ -1,0 +1,46 @@
+### Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "david.posso@example.com",
+  "contrasena": "Pass0123"
+}
+
+> {% client.global.set("auth_token", response.body.token) %}
+
+### Crear usuario (201 Created)
+POST http://localhost:8080/api/auth/registro
+Content-Type: application/json
+
+{
+  "nombre": "David Pedraza",
+  "email": "david.pedraza@example.com",
+  "contrasena": "Passw0rd1",
+  "telefono": "3001234567",
+  "foto": null,
+  "fechaNacimiento": "1994-03-10",
+  "rol": "Huesped"
+}
+
+### Cambiar contraseña (PATCH) (200) — usa CambioContrasenaDTO
+PATCH http://localhost:8080/api/usuarios/797d814a-5fd0-4953-810d-f593ff73928f/contrasena
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "contrasenaActual": "Passw0rd1",
+  "contrasenaNueva": "Pass0123"
+}
+
+### Editar usuario (PUT) (200)
+PUT http://localhost:8080/api/usuarios/797d814a-5fd0-4953-810d-f593ff73928f
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "nombre": "David Posso",
+  "telefono": "3001234567",
+  "foto": null,
+  "rol": "Huesped"
+}

@@ -7,6 +7,6 @@ public record LoginDTO(
         @NotBlank @Email
         String email,
         @NotBlank
-        String password
+        String contrasena
 ) {
 }
