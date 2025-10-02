@@ -9,6 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.authentication.BadCredentialsException;
 
 import java.util.Map;
 import java.util.Optional;
@@ -24,22 +28,40 @@ public class AuthServicioImpl implements AuthServicio {
 
     @Override
     public TokenDTO login(LoginDTO loginDTO) throws Exception {
-
         Optional<Usuario> optionalUsuario = usuarioRepositorio.findByEmail(loginDTO.email());
 
         if(optionalUsuario.isEmpty()){
-            throw new Exception("El usuario no existe");
+            // Lanzar BadCredentialsException para que Spring Security lo traduzca a 401 cuando corresponda
+            throw new BadCredentialsException("Credenciales inválidas");
         }
 
         Usuario usuario = optionalUsuario.get();
 
         // Verificar si la contraseña es correcta usando el PasswordEncoder
         if(!passwordEncoder.matches(loginDTO.contrasena(), usuario.getContrasena())){
-            throw new Exception("El usuario no existe");
+            throw new BadCredentialsException("Credenciales inválidas");
         }
 
         String token = jwtUtils.generarToken(usuario.getId(), crearReclamos(usuario));
         return new TokenDTO(token);
+    }
+
+    @Override
+    public Boolean obtnerIdAutenticado(String idUsuario) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated()) return false;
+
+        Object principal = auth.getPrincipal();
+
+        // El principal puede ser una instancia de User, String (username) u otro tipo
+        if (principal instanceof User) {
+            return ((User) principal).getUsername().equals(idUsuario);
+        } else if (principal instanceof String) {
+            return principal.equals(idUsuario);
+        }
+
+        return false;
     }
 
     private Map<String, String> crearReclamos(Usuario usuario){

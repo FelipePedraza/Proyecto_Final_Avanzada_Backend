@@ -3,10 +3,6 @@ package co.edu.uniquindio.application.dtos.usuario;
 import jakarta.validation.constraints.Past;
 import org.hibernate.validator.constraints.Length;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
-
 import java.time.LocalDate;
 
 public record EdicionUsuarioDTO(

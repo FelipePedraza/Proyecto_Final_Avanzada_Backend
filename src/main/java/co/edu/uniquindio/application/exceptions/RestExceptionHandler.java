@@ -1,6 +1,6 @@
 package co.edu.uniquindio.application.exceptions;
 
-import org.springframework.dao.DataIntegrityViolationException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.ValidacionDTO;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.security.access.AccessDeniedException;
+ 
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,5 +43,11 @@ public class RestExceptionHandler {
     @ExceptionHandler(ValueConflictException.class)
     public ResponseEntity<RespuestaDTO<String>> handleValueConflictException(ValueConflictException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body( new RespuestaDTO<>(true, ex.getMessage()) );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<RespuestaDTO<String>> accessDeniedExceptionHandler(AccessDeniedException ex){
+        // 403 Prohibido: usuario autenticado pero sin permisos suficientes
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body( new RespuestaDTO<>(true, ex.getMessage()) );
     }
 }

@@ -10,9 +10,10 @@ import co.edu.uniquindio.application.models.entitys.Usuario;
 import co.edu.uniquindio.application.models.enums.Estado;
 import co.edu.uniquindio.application.repositories.ContrasenaCodigoReinicioRepositorio;
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
+import co.edu.uniquindio.application.services.AuthServicio;
 import co.edu.uniquindio.application.services.UsuarioServicio;
+import org.springframework.security.access.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,7 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     private final UsuarioMapper usuarioMapper;
     private final ContrasenaCodigoReinicioRepositorio contrasenaCodigoReinicioRepositorio;
     private final PasswordEncoder passwordEncoder;
+    private final AuthServicio authServicio;
 
 
     @Override
@@ -43,6 +45,13 @@ public class UsuarioServicioImpl implements UsuarioServicio {
 
     @Override
     public void editar(String id, EdicionUsuarioDTO usuarioDTO) throws Exception {
+
+        if(!authServicio.obtnerIdAutenticado(id)){
+            // Si el usuario no está autorizado a cambiar la contraseña de otro usuario,
+            // lanzamos AccessDeniedException para que se traduzca a 403 Forbidden.
+            throw new AccessDeniedException("No tiene permisos para cambiar la contraseña de este usuario.");
+        }
+
         Usuario usuario = obtenerUsuarioId(id);
         usuarioMapper.updateUsuarioFromDTO(usuarioDTO, usuario);
         usuarioRepositorio.save(usuario);
@@ -66,6 +75,12 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     public void cambiarContrasena(String id, CambioContrasenaDTO cambioContrasenaDTO) throws Exception {
 
         Usuario usuario = obtenerUsuarioId(id);
+
+        if(!authServicio.obtnerIdAutenticado(id)){
+            // Si el usuario no está autorizado a cambiar la contraseña de otro usuario,
+            // lanzamos AccessDeniedException para que se traduzca a 403 Forbidden.
+            throw new AccessDeniedException("No tiene permisos para cambiar la contraseña de este usuario.");
+        }
 
         // Verificar que la contraseña actual coincida
         if(!passwordEncoder.matches(cambioContrasenaDTO.contrasenaActual(), usuario.getContrasena())){
