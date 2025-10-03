@@ -1,5 +1,6 @@
 package co.edu.uniquindio.application.services.impl;
 
+import co.edu.uniquindio.application.dtos.EmailDTO;
 import co.edu.uniquindio.application.dtos.usuario.*;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.exceptions.ValidationException;
@@ -11,6 +12,7 @@ import co.edu.uniquindio.application.models.enums.Estado;
 import co.edu.uniquindio.application.repositories.ContrasenaCodigoReinicioRepositorio;
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
 import co.edu.uniquindio.application.services.AuthServicio;
+import co.edu.uniquindio.application.services.EmailServicio;
 import co.edu.uniquindio.application.services.UsuarioServicio;
 import org.springframework.security.access.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     private final ContrasenaCodigoReinicioRepositorio contrasenaCodigoReinicioRepositorio;
     private final PasswordEncoder passwordEncoder;
     private final AuthServicio authServicio;
+    private final EmailServicio emailServicio;
 
 
     @Override
@@ -41,6 +44,8 @@ public class UsuarioServicioImpl implements UsuarioServicio {
         Usuario nuevoUsuario = usuarioMapper.toEntity(usuarioDTO);
         nuevoUsuario.setContrasena(passwordEncoder.encode(usuarioDTO.contrasena()));
         usuarioRepositorio.save(nuevoUsuario);
+
+        emailServicio.enviarEmail(new EmailDTO("Registro Exitoso", "El usuario se ha registrado correctamente", nuevoUsuario.getEmail()));
     }
 
     @Override
