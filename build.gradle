@@ -44,6 +44,7 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
     implementation 'org.simplejavamail:simple-java-mail:8.12.6'
     implementation 'org.simplejavamail:batch-module:8.12.6'
+    implementation 'com.cloudinary:cloudinary-http5:2.3.2'
 }
 
 tasks.named('test') {
