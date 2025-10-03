@@ -18,8 +18,8 @@ public class ImagenControlador {
 
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<RespuestaDTO<Map>> actualizar(@RequestParam("file") MultipartFile image) throws Exception{
-        Map response = imagenServicio.actualizar(image);
-        return ResponseEntity.ok( new RespuestaDTO<>(false, response) );
+        Map respuesta = imagenServicio.actualizar(image, "Vivi_Go");
+        return ResponseEntity.ok( new RespuestaDTO<>(false, respuesta) );
     }
 
     @DeleteMapping

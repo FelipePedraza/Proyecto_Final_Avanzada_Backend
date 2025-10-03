@@ -13,13 +13,16 @@ import co.edu.uniquindio.application.repositories.ContrasenaCodigoReinicioReposi
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
 import co.edu.uniquindio.application.services.AuthServicio;
 import co.edu.uniquindio.application.services.EmailServicio;
+import co.edu.uniquindio.application.services.ImagenServicio;
 import co.edu.uniquindio.application.services.UsuarioServicio;
 import org.springframework.security.access.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -32,6 +35,7 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     private final PasswordEncoder passwordEncoder;
     private final AuthServicio authServicio;
     private final EmailServicio emailServicio;
+    private final ImagenServicio imagenServicio;
 
 
     @Override
@@ -49,17 +53,67 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     }
 
     @Override
-    public void editar(String id, EdicionUsuarioDTO usuarioDTO) throws Exception {
+    public void editar(String id, EdicionUsuarioDTO usuarioDTO, MultipartFile file) throws Exception {
 
         if(!authServicio.obtnerIdAutenticado(id)){
-            // Si el usuario no está autorizado a cambiar la contraseña de otro usuario,
-            // lanzamos AccessDeniedException para que se traduzca a 403 Forbidden.
-            throw new AccessDeniedException("No tiene permisos para cambiar la contraseña de este usuario.");
+            throw new AccessDeniedException("No tiene permisos para editar de este usuario.");
         }
 
-        Usuario usuario = obtenerUsuarioId(id);
-        usuarioMapper.updateUsuarioFromDTO(usuarioDTO, usuario);
-        usuarioRepositorio.save(usuario);
+        String actualizadaPublicId = null;
+        String viejaPublicId = null; // Para almacenar el public_id anterior
+
+        try {
+            // Obtener el usuario actual ANTES de cualquier operación
+            Usuario usuario = obtenerUsuarioId(id);
+
+            // Guardar el public_id anterior si existe
+            if (usuario.getFoto() != null) {
+                // Extraer el public_id de la URL de Cloudinary
+                // Asumiendo que la URL es algo como: https://res.cloudinary.com/.../Vivi_Go/Perfiles/abc123.jpg
+                // Necesitamos extraer "Vivi_Go/Perfiles/abc123"
+                String fotoUrl = usuario.getFoto();
+                viejaPublicId = imagenServicio.extraerPublicIdDelUrl(fotoUrl);
+            }
+
+            // Subir imagen si fue proporcionada
+            if (file != null && !file.isEmpty()) {
+                Map uploadResp = imagenServicio.actualizar(file, "Vivi_Go/Perfiles");
+                actualizadaPublicId = (String) uploadResp.get("public_id");
+                String secureUrl = (String) uploadResp.get("secure_url");
+
+                // Clonar el DTO con la nueva URL de imagen
+                usuarioDTO = new EdicionUsuarioDTO(
+                        usuarioDTO.nombre(),
+                        usuarioDTO.telefono(),
+                        secureUrl,
+                        usuarioDTO.fechaNacimiento()
+                );
+
+                // Eliminar la foto anterior SI existe y SI se subió una nueva exitosamente
+                if (viejaPublicId != null) {
+                    try {
+                        imagenServicio.eliminar(viejaPublicId);
+                    } catch (Exception e) {
+                        System.out.println("Advertencia: No se pudo eliminar la foto anterior: " + viejaPublicId);
+                        // logear este error
+                    }
+                }
+            }
+
+            usuarioMapper.updateUsuarioFromDTO(usuarioDTO, usuario);
+            usuarioRepositorio.save(usuario);
+
+        } catch (Exception ex) {
+            // Si ocurre un error, eliminar la imagen recién subida (si se subió)
+            if (actualizadaPublicId != null) {
+                try {
+                    imagenServicio.eliminar(actualizadaPublicId);
+                } catch (Exception ignored) {
+                    // loggear este fallo
+                }
+            }
+            throw ex;
+        }
     }
 
     @Override

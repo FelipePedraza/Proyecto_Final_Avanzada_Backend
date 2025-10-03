@@ -5,6 +5,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 public interface ImagenServicio {
-    Map actualizar(MultipartFile image) throws Exception;
-    Map eliminar(String imageId) throws Exception;
+    Map<String, Object> actualizar(MultipartFile image, String carpeta) throws Exception;
+    Map<String, Object> eliminar(String imageId) throws Exception;
+    String extraerPublicIdDelUrl(String fotoUrl);
 }

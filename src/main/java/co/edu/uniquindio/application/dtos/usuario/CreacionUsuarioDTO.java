@@ -21,9 +21,6 @@ public record CreacionUsuarioDTO(
         @Length(max = 10)
         String telefono,
 
-        @Length(max = 300)
-        String foto,
-
         @NotNull @Past
         LocalDate fechaNacimiento
 ) {

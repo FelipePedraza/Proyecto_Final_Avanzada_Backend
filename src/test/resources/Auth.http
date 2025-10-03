@@ -4,7 +4,7 @@ Content-Type: application/json
 
 {
   "email": "david.posso@example.com",
-  "contrasena": "Passw0rd1"
+  "contrasena": "Pass0123"
 }
 
 > {% client.global.set("auth_token", response.body.token) %}
@@ -18,7 +18,6 @@ Content-Type: application/json
   "email": "felipedraza830@gmail.com",
   "contrasena": "Contrasena123",
   "telefono": "3102399644",
-  "foto": null,
   "fechaNacimiento": "2002-08-30",
   "rol": "Huesped"
 }
@@ -26,7 +25,7 @@ Content-Type: application/json
 ### Cambiar contraseña (PATCH) (200) — usa CambioContrasenaDTO
 PATCH http://localhost:8080/api/usuarios/1ccd6ad2-6ab3-4987-996c-99bdffd2905d/contrasena
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wbGUuY29tIiwibmFtZSI6IkRhdmlkIFBvc3NvIiwicm9sZSI6IlJPTF9IdWVzcGVkIiwic3ViIjoiMWNjZDZhZDItNmFiMy00OTg3LTk5NmMtOTliZGZmZDI5MDVkIiwiaWF0IjoxNzU5NDQ3NzIwLCJleHAiOjE3NTk0NTEzMjB9.4Zg-_Ujg6vl6nKR_gHjBMlYjG9wG26pTbnDuSVRpRZs
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wbGUuY29tIiwibmFtZSI6IkRhdmlkIFBvc3NvIiwicm9sZSI6IlJPTF9IdWVzcGVkIiwic3ViIjoiMWNjZDZhZDItNmFiMy00OTg3LTk5NmMtOTliZGZmZDI5MDVkIiwiaWF0IjoxNzU5NTIzNDgxLCJleHAiOjE3NTk1MjcwODF9.FpSXPOnwhyp7SQPvtg4pl3SUp8wd9PbMX9o1INR4KkQ
 
 {
   "contrasenaActual": "Passw0rd1",
@@ -35,13 +34,25 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wb
 
 ### Editar usuario (PUT) (200)
 PUT http://localhost:8080/api/usuarios/1ccd6ad2-6ab3-4987-996c-99bdffd2905d
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wbGUuY29tIiwibmFtZSI6IkRhdmlkIFBvc3NvIiwicm9sZSI6IlJPTF9IdWVzcGVkIiwic3ViIjoiMWNjZDZhZDItNmFiMy00OTg3LTk5NmMtOTliZGZmZDI5MDVkIiwiaWF0IjoxNzU5NTI2NDE3LCJleHAiOjE3NTk1MzAwMTd9.1ir-kS-HHaP8KTRAXteMkYm1pMpseDdcxYIYoQr_KDs
+Content-Type: multipart/form-data; boundary=simpleboundary
+
+--simpleboundary
+Content-Disposition: form-data; name="usuario"
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wbGUuY29tIiwibmFtZSI6IkRhdmlkIFBvc3NvIiwicm9sZSI6IlJPTF9IdWVzcGVkIiwic3ViIjoiMWNjZDZhZDItNmFiMy00OTg3LTk5NmMtOTliZGZmZDI5MDVkIiwiaWF0IjoxNzU5NDQ3NzIwLCJleHAiOjE3NTk0NTEzMjB9.4Zg-_Ujg6vl6nKR_gHjBMlYjG9wG26pTbnDuSVRpRZs
 
 {
   "nombre": "David Posso",
   "telefono": "3001234567",
-  "foto": null,
   "fechaNacimiento": "1994-03-10",
   "rol": "Huesped"
 }
+
+--simpleboundary
+Content-Disposition: form-data; name="foto"; filename="Alucard pixel art.png"
+Content-Type: image/png
+
+< C:\Users\FELIPE\OneDrive\Imágenes\Saved Pictures\Alucard pixel art.png
+--simpleboundary--
+
+

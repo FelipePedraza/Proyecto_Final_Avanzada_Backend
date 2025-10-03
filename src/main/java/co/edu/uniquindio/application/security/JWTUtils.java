@@ -2,6 +2,7 @@ package co.edu.uniquindio.application.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.time.Instant;
@@ -11,6 +12,9 @@ import java.util.Map;
 
 @Component
 public class JWTUtils {
+
+    @Value("${secretKey}")
+    private String secretKey;
 
     public String generarToken(String id, Map<String, String> claims) {
         Instant now = Instant.now();
@@ -30,7 +34,6 @@ public class JWTUtils {
     }
 
     private SecretKey obtenerKey(){
-        String secretKey = "vivigoeslamejorapp12345678904208302025";
         byte[] secretKeyBytes = secretKey.getBytes();
         return Keys.hmacShaKeyFor(secretKeyBytes);
     }
