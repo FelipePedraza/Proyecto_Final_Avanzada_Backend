@@ -2,8 +2,6 @@ package co.edu.uniquindio.application.controllers;
 
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.alojamiento.*;
-import co.edu.uniquindio.application.dtos.resena.CreacionResenaDTO;
-import co.edu.uniquindio.application.dtos.resena.ItemResenaDTO;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +20,9 @@ public class AlojamientoControlador {
     private final AlojamientoServicio alojamientoServicio;
 
     @PostMapping
-    public ResponseEntity<RespuestaDTO<AlojamientoDTO>> crearAlojamiento(@Valid @RequestBody CreacionAlojamientoDTO dto) throws Exception {
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, null));
+    public ResponseEntity<RespuestaDTO<String>> crearAlojamiento(@Valid @RequestBody CreacionAlojamientoDTO dto) throws Exception {
+        alojamientoServicio.crear(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, "Alojamiento creado con exito"));
     }
 
     @GetMapping
@@ -35,7 +33,7 @@ public class AlojamientoControlador {
 
     @GetMapping("/{id}")
     public ResponseEntity<RespuestaDTO<AlojamientoDTO>> obtenerAlojamiento(@PathVariable Long id) throws Exception {
-
+        alojamientoServicio.obtenerAlojamientoId(id);
         return ResponseEntity.ok(new RespuestaDTO<>(false, null));
     }
 

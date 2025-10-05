@@ -9,6 +9,6 @@ public record DireccionDTO(
         @NotBlank
         String direccion,
         @NotNull
-        LocalizacionDTO coordenadas
+        LocalizacionDTO localizacion
 ) {
 }

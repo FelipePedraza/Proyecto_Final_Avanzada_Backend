@@ -10,7 +10,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.authentication.BadCredentialsException;
 
@@ -48,20 +47,9 @@ public class AuthServicioImpl implements AuthServicio {
 
     @Override
     public Boolean obtnerIdAutenticado(String idUsuario) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth == null || !auth.isAuthenticated()) return false;
-
-        Object principal = auth.getPrincipal();
-
-        // El principal puede ser una instancia de User, String (username) u otro tipo
-        if (principal instanceof User) {
-            return ((User) principal).getUsername().equals(idUsuario);
-        } else if (principal instanceof String) {
-            return principal.equals(idUsuario);
-        }
-
-        return false;
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String idUsuarioAutenticado = user.getUsername();
+        return idUsuarioAutenticado.equals(idUsuario);
     }
 
     private Map<String, String> crearReclamos(Usuario usuario){

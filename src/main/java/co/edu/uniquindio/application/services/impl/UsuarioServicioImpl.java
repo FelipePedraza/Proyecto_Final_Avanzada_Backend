@@ -6,9 +6,12 @@ import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.exceptions.ValueConflictException;
 import co.edu.uniquindio.application.mappers.UsuarioMapper;
+import co.edu.uniquindio.application.mappers.PerfilAnfitrionMapper;
 import co.edu.uniquindio.application.models.entitys.ContrasenaCodigoReinicio;
+import co.edu.uniquindio.application.models.entitys.PerfilAnfitrion;
 import co.edu.uniquindio.application.models.entitys.Usuario;
 import co.edu.uniquindio.application.models.enums.Estado;
+import co.edu.uniquindio.application.models.enums.Rol;
 import co.edu.uniquindio.application.repositories.ContrasenaCodigoReinicioRepositorio;
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
 import co.edu.uniquindio.application.services.AuthServicio;
@@ -20,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import co.edu.uniquindio.application.repositories.PerfilAnfitrionRepositorio;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -36,6 +40,8 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     private final AuthServicio authServicio;
     private final EmailServicio emailServicio;
     private final ImagenServicio imagenServicio;
+    private final PerfilAnfitrionRepositorio perfilAnfitrionRepositorio;
+    private final PerfilAnfitrionMapper perfilAnfitrionMapper;
 
 
     @Override
@@ -183,6 +189,26 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     @Override
     public void crearAnfitrion(CreacionAnfitrionDTO dto) throws Exception {
 
+        // Verificar que el usuario autenticado coincide con el id del DTO (permiso)
+        if (!authServicio.obtnerIdAutenticado(dto.usuarioId())) {
+            throw new AccessDeniedException("No tiene permisos para crear perfil de anfitrión para este usuario.");
+        }
+
+        Usuario usuario = obtenerUsuarioId(dto.usuarioId());
+        
+        if (usuario.getRol() == Rol.Anfitrion) {
+            throw new ValueConflictException("El usuario ya es un anfitrion");
+        }
+
+        // Crear perfil de anfitrión
+        PerfilAnfitrion perfil = perfilAnfitrionMapper.toEntity(dto);
+        perfil.setUsuario(usuario);
+        perfilAnfitrionRepositorio.save(perfil);
+
+        // Actualizar la relación bidireccional
+        usuario.setRol(Rol.Anfitrion);
+        usuario.setPerfilAnfitrion(perfil);
+        usuarioRepositorio.save(usuario);
     }
 
     public boolean existePorEmail(String email){

@@ -5,3 +5,46 @@ Accept: application/json
 ### Eliminar usuario (DELETE) (204)
 DELETE http://localhost:8080/api/usuarios/1
 
+### Cambiar contraseña (PATCH) (200) — usa CambioContrasenaDTO
+PATCH http://localhost:8080/api/usuarios/1ccd6ad2-6ab3-4987-996c-99bdffd2905d/contrasena
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTF9IdWVzcGVkIiwibmFtZSI6IkRhdmlkIFBvc3NvIiwic3ViIjoiMWNjZDZhZDItNmFiMy00OTg3LTk5NmMtOTliZGZmZDI5MDVkIiwiaWF0IjoxNzU5NjIzMzMwLCJleHAiOjE3NTk2MjY5MzB9.3rtGWaRc2AgLU8hHAIb4Not5SOOcLyFrZc-Mtzvryb8
+
+{
+  "contrasenaActual": "Passw0rd1",
+  "contrasenaNueva": "Pass0123"
+}
+
+### Editar usuario (PUT) (200)
+PUT http://localhost:8080/api/usuarios/1ccd6ad2-6ab3-4987-996c-99bdffd2905d
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wbGUuY29tIiwibmFtZSI6IkRhdmlkIFBvc3NvIiwicm9sZSI6IlJPTF9IdWVzcGVkIiwic3ViIjoiMWNjZDZhZDItNmFiMy00OTg3LTk5NmMtOTliZGZmZDI5MDVkIiwiaWF0IjoxNzU5NTI2NDE3LCJleHAiOjE3NTk1MzAwMTd9.1ir-kS-HHaP8KTRAXteMkYm1pMpseDdcxYIYoQr_KDs
+Content-Type: multipart/form-data; boundary=simpleboundary
+
+--simpleboundary
+Content-Disposition: form-data; name="usuario"
+Content-Type: application/json
+
+{
+  "nombre": "David Posso",
+  "telefono": "3001234567",
+  "fechaNacimiento": "1994-03-10",
+  "rol": "Huesped"
+}
+
+--simpleboundary
+Content-Disposition: form-data; name="foto"; filename="Alucard pixel art.png"
+Content-Type: image/png
+
+< C:\Users\FELIPE\OneDrive\Imágenes\Saved Pictures\Alucard pixel art.png
+--simpleboundary--
+
+### Crear Anfitrion (POST)
+POST http://localhost:8080/api/usuarios/anfitrion
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiRGF2aWQgUG9zc28iLCJyb2xlIjoiUk9MX0h1ZXNwZWQiLCJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wbGUuY29tIiwic3ViIjoiMWNjZDZhZDItNmFiMy00OTg3LTk5NmMtOTliZGZmZDI5MDVkIiwiaWF0IjoxNzU5NjI0NzcxLCJleHAiOjE3NTk2MjgzNzF9.PsWNABLJHKwczVGEWLH2L73nzvJpmiogff-Db16n5Mk
+
+{
+  "usuarioId": "1ccd6ad2-6ab3-4987-996c-99bdffd2905d",
+  "sobreMi": "Me gusta el baloncesto",
+  "documentoLegal": "documento.pdf"
+}

@@ -23,6 +23,6 @@ public class Direccion {
 
     @Embedded
     @Column(nullable = false)
-    private Localizacion ubicacion;
+    private Localizacion localizacion;
 
 }

@@ -3,11 +3,8 @@ package co.edu.uniquindio.application.controllers;
 
 import co.edu.uniquindio.application.dtos.alojamiento.ItemAlojamientoDTO;
 import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
-import co.edu.uniquindio.application.dtos.usuario.CreacionUsuarioDTO;
-import co.edu.uniquindio.application.dtos.usuario.EdicionUsuarioDTO;
+import co.edu.uniquindio.application.dtos.usuario.*;
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
-import co.edu.uniquindio.application.dtos.usuario.CambioContrasenaDTO;
-import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
 import co.edu.uniquindio.application.services.UsuarioServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RequestPart;
-
-import java.util.Map;
-import co.edu.uniquindio.application.services.ImagenServicio;
 
 import java.util.List;
 
@@ -28,10 +22,10 @@ import java.util.List;
 public class UsuarioControlador {
 
     private final UsuarioServicio usuarioServicio;
-    private final ImagenServicio imagenServicio;
 
     @PostMapping("/anfitrion")
-    public ResponseEntity<RespuestaDTO<String>> crearAnfitrion(@Valid @RequestBody CreacionUsuarioDTO dto) throws Exception {
+    public ResponseEntity<RespuestaDTO<String>> crearAnfitrion(@Valid @RequestBody CreacionAnfitrionDTO dto) throws Exception {
+        usuarioServicio.crearAnfitrion(dto);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Se ha creado el anfitrion"));
     }
 

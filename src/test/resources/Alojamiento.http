@@ -1,0 +1,26 @@
+### Crear Alojamiento
+POST http://localhost:8080/api/alojamientos
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiRGF2aWQgUG9zc28iLCJyb2xlIjoiUk9MX0h1ZXNwZWQiLCJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wbGUuY29tIiwic3ViIjoiMWNjZDZhZDItNmFiMy00OTg3LTk5NmMtOTliZGZmZDI5MDVkIiwiaWF0IjoxNzU5NjI0NzcxLCJleHAiOjE3NTk2MjgzNzF9.PsWNABLJHKwczVGEWLH2L73nzvJpmiogff-Db16n5Mk
+
+{
+  "titulo": "Hotal 420",
+  "descripcion": "Un hotel parchado",
+  "maxHuespedes": 4,
+  "direccion": {
+    "ciudad": "Armenia",
+    "direccion": "cra 14",
+    "localizacion": {
+      "latitud": 50,
+      "longitud": -50
+    }
+  },
+  "precioPorNoche": 100.0,
+  "servicios": [
+    "PISCINA"
+  ],
+  "imagenes": [
+    "string"
+  ]
+}
+###

@@ -22,37 +22,4 @@ Content-Type: application/json
   "rol": "Huesped"
 }
 
-### Cambiar contraseña (PATCH) (200) — usa CambioContrasenaDTO
-PATCH http://localhost:8080/api/usuarios/1ccd6ad2-6ab3-4987-996c-99bdffd2905d/contrasena
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wbGUuY29tIiwibmFtZSI6IkRhdmlkIFBvc3NvIiwicm9sZSI6IlJPTF9IdWVzcGVkIiwic3ViIjoiMWNjZDZhZDItNmFiMy00OTg3LTk5NmMtOTliZGZmZDI5MDVkIiwiaWF0IjoxNzU5NTIzNDgxLCJleHAiOjE3NTk1MjcwODF9.FpSXPOnwhyp7SQPvtg4pl3SUp8wd9PbMX9o1INR4KkQ
-
-{
-  "contrasenaActual": "Passw0rd1",
-  "contrasenaNueva": "Pass0123"
-}
-
-### Editar usuario (PUT) (200)
-PUT http://localhost:8080/api/usuarios/1ccd6ad2-6ab3-4987-996c-99bdffd2905d
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wbGUuY29tIiwibmFtZSI6IkRhdmlkIFBvc3NvIiwicm9sZSI6IlJPTF9IdWVzcGVkIiwic3ViIjoiMWNjZDZhZDItNmFiMy00OTg3LTk5NmMtOTliZGZmZDI5MDVkIiwiaWF0IjoxNzU5NTI2NDE3LCJleHAiOjE3NTk1MzAwMTd9.1ir-kS-HHaP8KTRAXteMkYm1pMpseDdcxYIYoQr_KDs
-Content-Type: multipart/form-data; boundary=simpleboundary
-
---simpleboundary
-Content-Disposition: form-data; name="usuario"
-Content-Type: application/json
-
-{
-  "nombre": "David Posso",
-  "telefono": "3001234567",
-  "fechaNacimiento": "1994-03-10",
-  "rol": "Huesped"
-}
-
---simpleboundary
-Content-Disposition: form-data; name="foto"; filename="Alucard pixel art.png"
-Content-Type: image/png
-
-< C:\Users\FELIPE\OneDrive\Imágenes\Saved Pictures\Alucard pixel art.png
---simpleboundary--
-
 
