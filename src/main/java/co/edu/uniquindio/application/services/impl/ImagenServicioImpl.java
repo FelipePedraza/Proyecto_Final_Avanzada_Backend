@@ -25,13 +25,13 @@ public class ImagenServicioImpl implements ImagenServicio {
     }
 
     @Override
-    public Map<String, Object> actualizar(MultipartFile image, String carpeta) throws Exception {
+    public Map actualizar(MultipartFile image, String carpeta) throws Exception {
         File file = convertir(image);
         return cloudinary.uploader().upload(file, ObjectUtils.asMap("folder", carpeta));
     }
 
     @Override
-    public Map<String, Object> eliminar(String imagenId) throws Exception {
+    public Map eliminar(String imagenId) throws Exception {        
         return cloudinary.uploader().destroy(imagenId, ObjectUtils.emptyMap());
     }
 

@@ -34,14 +34,13 @@ public class AlojamientoControlador {
 
     @GetMapping("/{id}")
     public ResponseEntity<RespuestaDTO<AlojamientoDTO>> obtenerAlojamiento(@PathVariable Long id) throws Exception {
-        alojamientoServicio.obtenerAlojamientoId(id);
-        return ResponseEntity.ok(new RespuestaDTO<>(false, null));
+        return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientoServicio.obtenerPorId(id)));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<RespuestaDTO<AlojamientoDTO>> editarAlojamiento(@PathVariable Long id, @Valid @RequestBody EdicionAlojamientoDTO dto) throws Exception {
-
-        return ResponseEntity.ok(new RespuestaDTO<>(false, null));
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<RespuestaDTO<String>> editarAlojamiento(@PathVariable Long id, @RequestPart("alojamiento") @Valid EdicionAlojamientoDTO dto, @RequestPart(value = "imagenes", required = false) MultipartFile[] imagenes) throws Exception {
+        alojamientoServicio.editar(id, dto, imagenes);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, "Se actualizo correctamente el alojamiento"));
     }
 
     @DeleteMapping("/{id}")

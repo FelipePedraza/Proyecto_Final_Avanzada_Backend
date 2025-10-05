@@ -69,7 +69,7 @@ public class UsuarioServicioImpl implements UsuarioServicio {
         String viejaPublicId = null; // Para almacenar el public_id anterior
 
         try {
-            // Obtener el usuario actual ANTES de cualquier operación
+            // Obtener el usuario actual
             Usuario usuario = obtenerUsuarioId(id);
 
             // Guardar el public_id anterior si existe

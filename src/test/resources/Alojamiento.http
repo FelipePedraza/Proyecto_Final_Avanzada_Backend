@@ -25,15 +25,55 @@ Content-Type: application/json
     "DESAYUNO"
   ]
 }
+
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="imagenes"; filename="438485075.jpg"
 Content-Type: image/jpeg
 
 < C:\Users\FELIPE\Downloads\438485075.jpg
+
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="imagenes"; filename="729357497.jpg"
 Content-Type: image/jpeg
 
 < C:\Users\FELIPE\Downloads\729357497.jpg
+
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
-###
+### Actualizar Alojamiento
+PUT http://localhost:8080/api/alojamientos/2
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wbGUuY29tIiwibmFtZSI6IkRhdmlkIFBvc3NvIiwicm9sZSI6IlJPTF9BbmZpdHJpb24iLCJzdWIiOiIxY2NkNmFkMi02YWIzLTQ5ODctOTk2Yy05OWJkZmZkMjkwNWQiLCJpYXQiOjE3NTk3MDc2MjIsImV4cCI6MTc1OTcxMTIyMn0.c_LHSnI6yHddQnnheoy-1mriebFPd01vMY6CVJhWwsg
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="alojamiento"
+Content-Type: application/json
+
+{
+  "titulo": "Hotel 420 EDITADO",
+  "descripcion": "Un hotel parchado EDITADO",
+  "maxHuespedes": 4,
+  "direccion": {
+    "ciudad": "Armenia",
+    "direccion": "cra 14",
+    "localizacion": {
+      "latitud": 30,
+      "longitud": -100
+    }
+  },
+  "precioPorNoche": 200.0,
+  "servicios": [
+    "PISCINA",
+    "DESAYUNO"
+  ],
+  "imagenes": [
+    "https://res.cloudinary.com/dxvvp4ote/image/upload/v1759698207/Vivi_Go/Alojamientos/qfjjt1mww3ogkqomm25z.jpg",
+    "https://res.cloudinary.com/dxvvp4ote/image/upload/v1759698208/Vivi_Go/Alojamientos/mg6bp4snspdlqhixdkv7.jpg"
+  ]
+}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="imagenes"; filename="438485076.jpg"
+Content-Type: image/jpeg
+
+< C:\Users\FELIPE\Downloads\438485076.jpg
+

@@ -1,8 +1,8 @@
 package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dtos.alojamiento.*;
-import co.edu.uniquindio.application.dtos.usuario.EdicionUsuarioDTO;
 import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
+import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.models.entitys.Alojamiento;
 import co.edu.uniquindio.application.repositories.AlojamientoRepositorio;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
@@ -37,7 +37,7 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     private final ImagenServicio imagenServicio;
 
     @Override
-    public void crear(CreacionAlojamientoDTO alojamientoDTO, MultipartFile[] archivos) throws Exception {
+    public void crear(CreacionAlojamientoDTO alojamientoDTO, MultipartFile[] imagenes) throws Exception {
 
         //Se verifica que no se repita el titulo
         if(existePorTitulo(alojamientoDTO.titulo())){
@@ -60,9 +60,9 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
         List<String> urlsSeguras = new ArrayList<>();
 
         try {
-            // Si vienen archivos, subirlos
-            if (archivos != null) {
-                for (MultipartFile archivo : archivos) {
+            // Si vienen imagenes, subirlos
+            if (imagenes != null) {
+                for (MultipartFile archivo : imagenes) {
                     if (archivo != null && !archivo.isEmpty()) {
                         Map uploadResp = imagenServicio.actualizar(archivo, "Vivi_Go/Alojamientos");
                         String publicId = (String) uploadResp.get("public_id");
@@ -93,8 +93,140 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     }
 
     @Override
-    public void editar (Long id, EdicionUsuarioDTO edicionUsuarioDTO) throws Exception {
+    public void editar (Long id, EdicionAlojamientoDTO edicionAlojamientoDTO, MultipartFile[] imagenes) throws Exception {
+        
+        // Obtener alojamiento existente
+        Alojamiento alojamiento = obtenerAlojamientoId(id);
 
+        // Permisos: solo anfitrión propietario puede editar
+        User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String idUsuarioAutenticado = usuarioAutenticado.getUsername();
+        UsuarioDTO usuarioDTO = usuarioServicio.obtener(idUsuarioAutenticado);
+        Usuario usuario = usuarioMapper.toEntity(usuarioDTO);
+
+        if (!usuario.getRol().name().equals("Anfitrion")) {
+            throw new AccessDeniedException("El usuario no es un anfitrión");
+        }
+        if (alojamiento.getAnfitrion() == null || !alojamiento.getAnfitrion().getId().equals(usuario.getId())) {
+            throw new AccessDeniedException("No tiene permiso para editar este alojamiento");
+        }
+
+        // Copia de imágenes actuales
+        List<String> actuales = alojamiento.getImagenes() != null ? new ArrayList<>(alojamiento.getImagenes()) : new ArrayList<>();
+
+        // Validar cambio de título (si viene)
+        if (edicionAlojamientoDTO.titulo() != null && !edicionAlojamientoDTO.titulo().equalsIgnoreCase(alojamiento.getTitulo())) {
+            if (existePorTitulo(edicionAlojamientoDTO.titulo())) {
+                throw new Exception("El título ya existe");
+            }
+        }
+
+        // Aplicar cambios parciales con el mapper
+        alojamientoMapper.updateAlojamientoFromDto(edicionAlojamientoDTO, alojamiento);
+
+        // Según tu regla: edicionAlojamientoDTO.imagenes() == null => el cliente eliminó todas las imágenes.
+        List<String> deseadas = edicionAlojamientoDTO.imagenes() != null ? new ArrayList<>(edicionAlojamientoDTO.imagenes()) : null;
+
+        // Detectar si vienen archivos en multipart
+        boolean hayArchivos = false;
+        if (imagenes != null) {
+            for (MultipartFile f : imagenes) {
+                if (f != null && !f.isEmpty()) { 
+                    hayArchivos = true; 
+                    break; 
+                }
+            }
+        }
+
+        // Si cliente eliminó todas las imágenes y no envía nuevas, y además no había actuales -> inválido
+        if (deseadas == null && !hayArchivos && (actuales == null || actuales.isEmpty())) {
+            throw new Exception("El alojamiento debe tener al menos una imagen");
+        }
+
+        // Auxiliares para rollback y tracking
+        List<String> publicIdsSubidos = new ArrayList<>();
+        List<String> urlsNuevas = new ArrayList<>();
+
+        // 1) Subir nuevas imágenes (si vienen). Si falla alguna subida, borrar las ya subidas y lanzar excepción.
+        if (hayArchivos) {
+            for (MultipartFile archivo : imagenes) {
+                if (archivo != null && !archivo.isEmpty()) {
+                    Map<String, Object> uploadResp;
+                    try {
+                        uploadResp = imagenServicio.actualizar(archivo, "Vivi_Go/Alojamientos");
+                    } catch (Exception ex) {
+                        // rollback de subidas parciales
+                        for (String pid : publicIdsSubidos) {
+                            try { 
+                                imagenServicio.eliminar(pid); 
+                            } catch (Exception ignored) {
+                                // loggear
+                            }
+                        }
+                        throw new Exception("Error subiendo imágenes", ex);
+                    }
+                    String publicId = (String) uploadResp.get("public_id");
+                    String secureUrl = (String) uploadResp.get("secure_url");
+                    if (publicId != null) publicIdsSubidos.add(publicId);
+                    if (secureUrl != null) urlsNuevas.add(secureUrl);
+                }
+            }
+        }
+
+        // 2) Construir lista final de imágenes:
+        List<String> finalImgs = new ArrayList<>();
+        if (deseadas != null) {
+            finalImgs.addAll(deseadas);
+        }
+        for (String u : urlsNuevas) if (!finalImgs.contains(u)) finalImgs.add(u);
+
+        // 3) Validar al menos una imagen
+        if (finalImgs.isEmpty()) {
+            // rollback de nuevas subidas
+            for (String pid : publicIdsSubidos) {
+                try { imagenServicio.eliminar(pid); } catch (Exception ignored) {}
+            }
+            throw new Exception("El alojamiento debe tener al menos una imagen");
+        }
+
+        // 4) Guardar en BD la lista final (si falla, revertir nuevas subidas)
+        alojamiento.setImagenes(finalImgs);
+        try {
+            alojamientoRepositorio.save(alojamiento);
+        } catch (Exception bdEx) {
+            for (String pid : publicIdsSubidos) {
+                try { 
+                    imagenServicio.eliminar(pid); 
+                } catch (Exception ignored) {
+                    // loggear
+                }
+            }
+            throw new Exception("Error guardando alojamiento (BD). Se revirtieron nuevas subidas.", bdEx);
+        }
+
+        // 5) Calcular imágenes a eliminar: actuales - deseadas (si deseadas != null), si deseadas == null => eliminar todas las actuales
+        List<String> aEliminar = new ArrayList<>();
+        if (deseadas != null) {
+            for (String url : new ArrayList<>(actuales)) {
+                if (!deseadas.contains(url)) aEliminar.add(url);
+            }
+        } else {
+            aEliminar.addAll(actuales);
+        }
+
+        // 6) Eliminar antiguas en Cloudinary
+        for (String url : aEliminar) {
+            try {
+                String publicId = imagenServicio.extraerPublicIdDelUrl(url);
+                if (publicId != null && !publicId.isBlank()) {
+                    imagenServicio.eliminar(publicId);
+                } else {
+                    imagenServicio.eliminar(url);
+                }
+            } catch (Exception ignored) {
+                // loggear
+            }
+        }
     }
 
     @Override
@@ -103,8 +235,9 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     }
 
     @Override
-    public Alojamiento obtenerAlojamientoId(Long id) throws Exception {
-        return null;
+    public AlojamientoDTO obtenerPorId(Long id) throws Exception {
+        Alojamiento alojamiento = obtenerAlojamientoId(id);
+        return alojamientoMapper.toDTO(alojamiento);
     }
 
     @Override
@@ -131,6 +264,16 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
         Optional<Alojamiento> optionalAlojamiento = alojamientoRepositorio.findByTitulo(titulo);
 
         return optionalAlojamiento.isPresent();
+    }
+
+    public Alojamiento obtenerAlojamientoId(Long id) throws Exception {
+        Optional<Alojamiento> optionalAlojamiento = alojamientoRepositorio.findById(id);
+
+        if(optionalAlojamiento.isEmpty()){
+            throw new NoFoundException("No se encontro el alojamiento con el id: " + id);
+        }
+
+        return optionalAlojamiento.get();
     }
 
 }
