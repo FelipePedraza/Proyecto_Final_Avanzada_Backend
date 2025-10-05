@@ -54,6 +54,7 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
         Alojamiento nuevoAlojamiento = alojamientoMapper.toEntity(alojamientoDTO);
         nuevoAlojamiento.setAnfitrion(usuario);
         alojamientoRepositorio.save(nuevoAlojamiento);
+
     }
 
     @Override

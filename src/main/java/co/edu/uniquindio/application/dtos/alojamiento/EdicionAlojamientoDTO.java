@@ -18,7 +18,7 @@ public record EdicionAlojamientoDTO(
         int maxHuespedes,
 
         @NotNull @Min(0)
-        Float precioNoche,
+        Float precioPorNoche,
 
         @NotNull
         List<Servicio> servicios,

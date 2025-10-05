@@ -209,6 +209,13 @@ public class UsuarioServicioImpl implements UsuarioServicio {
         usuario.setRol(Rol.Anfitrion);
         usuario.setPerfilAnfitrion(perfil);
         usuarioRepositorio.save(usuario);
+
+        // Enviar email de confirmación
+        emailServicio.enviarEmail(new EmailDTO(
+                "¡Felicidades! Ahora eres Anfitrión en ViviGo",
+                "Tu perfil de anfitrión ha sido creado exitosamente. Ahora puedes publicar tus alojamientos y comenzar a recibir reservas.",
+                usuario.getEmail()
+        ));
     }
 
     public boolean existePorEmail(String email){
