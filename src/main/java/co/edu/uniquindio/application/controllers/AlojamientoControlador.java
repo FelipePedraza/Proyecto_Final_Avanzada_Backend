@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/alojamientos")
@@ -19,9 +20,9 @@ public class AlojamientoControlador {
 
     private final AlojamientoServicio alojamientoServicio;
 
-    @PostMapping
-    public ResponseEntity<RespuestaDTO<String>> crearAlojamiento(@Valid @RequestBody CreacionAlojamientoDTO dto) throws Exception {
-        alojamientoServicio.crear(dto);
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<RespuestaDTO<String>> crearAlojamiento(@RequestPart("alojamiento") @Valid CreacionAlojamientoDTO dto, @RequestPart(value = "imagenes", required = false) MultipartFile[] imagenes) throws Exception {
+        alojamientoServicio.crear(dto, imagenes);
         return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, "Alojamiento creado con exito"));
     }
 

@@ -17,9 +17,14 @@ import co.edu.uniquindio.application.mappers.AlojamientoMapper;
 import co.edu.uniquindio.application.mappers.UsuarioMapper;
 import co.edu.uniquindio.application.models.entitys.Usuario;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.multipart.MultipartFile;
+import co.edu.uniquindio.application.services.UsuarioServicio;
+import co.edu.uniquindio.application.services.ImagenServicio;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -27,18 +32,18 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
 
     private final AlojamientoRepositorio alojamientoRepositorio;
     private final AlojamientoMapper alojamientoMapper;
-    private final UsuarioServicioImpl usuarioServicio;
+    private final UsuarioServicio usuarioServicio;
     private final UsuarioMapper usuarioMapper;
-
+    private final ImagenServicio imagenServicio;
 
     @Override
-    public void crear(CreacionAlojamientoDTO alojamientoDTO) throws Exception {
+    public void crear(CreacionAlojamientoDTO alojamientoDTO, MultipartFile[] archivos) throws Exception {
 
         //Se verifica que no se repita el titulo
         if(existePorTitulo(alojamientoDTO.titulo())){
             throw new Exception("El titulo ya existe");
         }
-
+        
         //Se obtiene la informacion del usuario autenticado
         User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String idUsuarioAutenticado = usuarioAutenticado.getUsername();
@@ -50,11 +55,41 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
             throw new AccessDeniedException("El usuario no es un anfitrion");
         }
 
-        //Se crea el alojamiento
-        Alojamiento nuevoAlojamiento = alojamientoMapper.toEntity(alojamientoDTO);
-        nuevoAlojamiento.setAnfitrion(usuario);
-        alojamientoRepositorio.save(nuevoAlojamiento);
+        // Lista para almacenar public_ids subidas (para limpiar en caso de fallo)
+        List<String> publicIdsSubidos = new ArrayList<>();
+        List<String> urlsSeguras = new ArrayList<>();
 
+        try {
+            // Si vienen archivos, subirlos
+            if (archivos != null) {
+                for (MultipartFile archivo : archivos) {
+                    if (archivo != null && !archivo.isEmpty()) {
+                        Map uploadResp = imagenServicio.actualizar(archivo, "Vivi_Go/Alojamientos");
+                        String publicId = (String) uploadResp.get("public_id");
+                        String secureUrl = (String) uploadResp.get("secure_url");
+                        if (publicId != null) publicIdsSubidos.add(publicId);
+                        if (secureUrl != null) urlsSeguras.add(secureUrl);
+                    }
+                }
+            }
+
+            // Construir y guardar alojamiento con las URLs
+            Alojamiento nuevoAlojamiento = alojamientoMapper.toEntity(alojamientoDTO);
+            nuevoAlojamiento.setImagenes(urlsSeguras);
+            nuevoAlojamiento.setAnfitrion(usuario);
+            alojamientoRepositorio.save(nuevoAlojamiento);
+
+        } catch (Exception ex) {
+            // Si hay un error, eliminar las imágenes que se subieron
+            for (String pid : publicIdsSubidos) {
+                try {
+                    imagenServicio.eliminar(pid);
+                } catch (Exception ignored) {
+                    // loggear
+                }
+            }
+            throw ex;
+        }
     }
 
     @Override

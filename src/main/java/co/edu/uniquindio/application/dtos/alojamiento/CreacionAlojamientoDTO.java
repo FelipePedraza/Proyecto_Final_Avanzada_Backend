@@ -25,7 +25,7 @@ public record CreacionAlojamientoDTO(
 
         List<Servicio> servicios,
 
-        @NotNull @Size(min = 1, max = 10)
+        @Size(min = 1, max = 10)
         List<String> imagenes
 
 ) {
