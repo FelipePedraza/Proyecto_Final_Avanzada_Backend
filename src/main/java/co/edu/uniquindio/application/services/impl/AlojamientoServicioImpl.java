@@ -273,12 +273,12 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     }
 
     @Override
-    public List<ItemAlojamientoDTO> obtenerAlojamiento(AlojamientoFiltroDTO filtros) throws Exception {
+    public List<ItemAlojamientoDTO> obtenerAlojamientos(AlojamientoFiltroDTO filtros) throws Exception {
         return null;
     }
 
     @Override
-    public List<ItemAlojamientoDTO> obtenerAlojamientoUsuario(int pagina) throws Exception {
+    public List<ItemAlojamientoDTO> obtenerAlojamientosUsuario(int pagina) throws Exception {
 
         //Se obtiene la informacion del usuario autenticado
         User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

@@ -11,6 +11,6 @@ public interface AlojamientoServicio {
     void eliminar(Long id) throws Exception;
     AlojamientoDTO obtenerPorId(Long id) throws Exception;
     MetricasDTO obtenerMetricas(Long id) throws Exception;
-    List<ItemAlojamientoDTO> obtenerAlojamiento(AlojamientoFiltroDTO filtros) throws Exception;
-    List<ItemAlojamientoDTO> obtenerAlojamientoUsuario(int pagina) throws Exception;
+    List<ItemAlojamientoDTO> obtenerAlojamientos(AlojamientoFiltroDTO filtros) throws Exception;
+    List<ItemAlojamientoDTO> obtenerAlojamientosUsuario(int pagina) throws Exception;
 }

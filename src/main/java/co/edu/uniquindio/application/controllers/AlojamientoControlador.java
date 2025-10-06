@@ -2,13 +2,12 @@ package co.edu.uniquindio.application.controllers;
 
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.alojamiento.*;
+import co.edu.uniquindio.application.dtos.usuario.CreacionAnfitrionDTO;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,7 +28,7 @@ public class AlojamientoControlador {
 
     @GetMapping
     public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> obtenerAlojamientoUsuario(@RequestParam(defaultValue = "0") int pagina) throws Exception {
-        return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientoServicio.obtenerAlojamientoUsuario(pagina)));
+        return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientoServicio.obtenerAlojamientosUsuario(pagina)));
     }
 
     @GetMapping("/{id}")
@@ -50,13 +49,18 @@ public class AlojamientoControlador {
     }
 
     @GetMapping("/sugerencias")
-    public ResponseEntity<RespuestaDTO<BusquedaCiudadDTO>> sugerirCiudades(@RequestParam String q) throws Exception {
+    public ResponseEntity<RespuestaDTO<BusquedaCiudadDTO>> sugerirCiudades(@RequestParam String ciudad) throws Exception {
         return ResponseEntity.ok(new RespuestaDTO<>(false, null));
     }
 
     @GetMapping("/{id}/metricas")
-    public ResponseEntity<RespuestaDTO<MetricasDTO>> obtenerMetricas(@PathVariable Long id, @RequestParam String fechaInicio, @RequestParam String fechaFin) throws Exception {
+    public ResponseEntity<RespuestaDTO<MetricasDTO>> obtenerMetricas(@PathVariable Long id) throws Exception {
 
         return ResponseEntity.ok(new RespuestaDTO<>(false, null));
+    }
+
+    @GetMapping
+    public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> obtenerAlojamientos(@Valid @RequestBody AlojamientoFiltroDTO filtros) throws Exception {
+        return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientoServicio.obtenerAlojamientos(filtros)));
     }
 }
