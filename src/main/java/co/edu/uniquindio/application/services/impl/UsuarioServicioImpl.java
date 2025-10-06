@@ -1,10 +1,12 @@
 package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dtos.EmailDTO;
+import co.edu.uniquindio.application.dtos.alojamiento.ItemAlojamientoDTO;
 import co.edu.uniquindio.application.dtos.usuario.*;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.exceptions.ValueConflictException;
+import co.edu.uniquindio.application.mappers.AlojamientoMapper;
 import co.edu.uniquindio.application.mappers.UsuarioMapper;
 import co.edu.uniquindio.application.mappers.PerfilAnfitrionMapper;
 import co.edu.uniquindio.application.models.entitys.ContrasenaCodigoReinicio;
@@ -12,20 +14,24 @@ import co.edu.uniquindio.application.models.entitys.PerfilAnfitrion;
 import co.edu.uniquindio.application.models.entitys.Usuario;
 import co.edu.uniquindio.application.models.enums.Estado;
 import co.edu.uniquindio.application.models.enums.Rol;
+import co.edu.uniquindio.application.repositories.AlojamientoRepositorio;
 import co.edu.uniquindio.application.repositories.ContrasenaCodigoReinicioRepositorio;
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
-import co.edu.uniquindio.application.services.AuthServicio;
-import co.edu.uniquindio.application.services.EmailServicio;
-import co.edu.uniquindio.application.services.ImagenServicio;
-import co.edu.uniquindio.application.services.UsuarioServicio;
+import co.edu.uniquindio.application.services.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import co.edu.uniquindio.application.repositories.PerfilAnfitrionRepositorio;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -42,6 +48,8 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     private final ImagenServicio imagenServicio;
     private final PerfilAnfitrionRepositorio perfilAnfitrionRepositorio;
     private final PerfilAnfitrionMapper perfilAnfitrionMapper;
+    private final AlojamientoRepositorio alojamientoRepositorio;
+    private final AlojamientoMapper alojamientoMapper;
 
 
     @Override
@@ -218,6 +226,19 @@ public class UsuarioServicioImpl implements UsuarioServicio {
                 "Tu perfil de anfitrión ha sido creado exitosamente. Ahora puedes publicar tus alojamientos y comenzar a recibir reservas.",
                 usuario.getEmail()
         ));
+    }
+
+    @Override
+    public List<ItemAlojamientoDTO> obtenerAlojamientosUsuario(String id, int pagina) throws Exception {
+
+        if(!authServicio.obtnerIdAutenticado(id)){
+            throw new AccessDeniedException("No tiene permisos para editar de este usuario.");
+        }
+
+        Pageable pageable = PageRequest.of(pagina, 5);
+        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.getAlojamientos(id, pageable).map(alojamientoMapper::toItemDTO);
+
+        return alojamientos.toList();
     }
 
     public boolean existePorEmail(String email){

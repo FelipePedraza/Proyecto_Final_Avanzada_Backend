@@ -3,7 +3,7 @@ package co.edu.uniquindio.application.services.impl;
 import co.edu.uniquindio.application.dtos.alojamiento.*;
 import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
-import co.edu.uniquindio.application.exceptions.ValueConflictException;
+import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.models.entitys.Alojamiento;
 import co.edu.uniquindio.application.repositories.AlojamientoRepositorio;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
@@ -23,6 +23,7 @@ import co.edu.uniquindio.application.services.UsuarioServicio;
 import co.edu.uniquindio.application.services.ImagenServicio;
 import co.edu.uniquindio.application.models.enums.Estado;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
@@ -263,7 +264,6 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     @Override
     public AlojamientoDTO obtenerPorId(Long id) throws Exception {
         Alojamiento alojamiento = obtenerAlojamientoId(id);
-        AlojamientoDTO alojamientoDTO = alojamientoMapper.toDTO(alojamiento);
         return alojamientoMapper.toDTO(alojamiento);
     }
 
@@ -273,19 +273,44 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     }
 
     @Override
-    public List<ItemAlojamientoDTO> obtenerAlojamientos(AlojamientoFiltroDTO filtros) throws Exception {
-        return null;
-    }
+    public List<ItemAlojamientoDTO> obtenerAlojamientos(AlojamientoFiltroDTO filtros, int pagina) throws Exception {
 
-    @Override
-    public List<ItemAlojamientoDTO> obtenerAlojamientosUsuario(int pagina) throws Exception {
+        // Validaciones de filtros
+        if (filtros.fechaEntrada() != null && filtros.fechaSalida() != null) {
+            if (filtros.fechaEntrada().isAfter(filtros.fechaSalida())) {
+                throw new ValidationException("La fecha de entrada no puede ser posterior a la fecha de salida");
+            }
 
-        //Se obtiene la informacion del usuario autenticado
-        User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String idUsuarioAutenticado = usuarioAutenticado.getUsername();
+            if (filtros.fechaEntrada().isBefore(LocalDate.now())) {
+                throw new ValidationException("La fecha de entrada no puede ser anterior a hoy");
+            }
+        }
 
-        Pageable pageable = PageRequest.of(pagina, 5);
-        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.getAlojamientos(idUsuarioAutenticado, pageable).map(alojamientoMapper::toItemDTO);
+        if (filtros.precioMin() != null && filtros.precioMax() != null) {
+            if (filtros.precioMin() > filtros.precioMax()) {
+                throw new ValidationException("El precio mínimo no puede ser mayor al precio máximo");
+            }
+        }
+
+        if (filtros.huespedes() != null && filtros.huespedes() < 1) {
+            throw new ValidationException("El número de huéspedes debe ser al menos 1");
+        }
+
+        // Crear paginación
+        Pageable pageable = PageRequest.of(pagina, 10);
+
+        // Buscar con filtros
+        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.buscarConFiltros(
+                filtros.ciudad(),
+                filtros.fechaEntrada(),
+                filtros.fechaSalida(),
+                filtros.huespedes(),
+                filtros.precioMin(),
+                filtros.precioMax(),
+                Estado.ACTIVO,
+                pageable
+        ).map(alojamientoMapper::toItemDTO);
+
 
         return alojamientos.toList();
     }

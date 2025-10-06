@@ -26,11 +26,6 @@ public class AlojamientoControlador {
         return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, "Alojamiento creado con exito"));
     }
 
-    @GetMapping
-    public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> obtenerAlojamientoUsuario(@RequestParam(defaultValue = "0") int pagina) throws Exception {
-        return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientoServicio.obtenerAlojamientosUsuario(pagina)));
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<RespuestaDTO<AlojamientoDTO>> obtenerAlojamiento(@PathVariable Long id) throws Exception {
         return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientoServicio.obtenerPorId(id)));
@@ -60,7 +55,7 @@ public class AlojamientoControlador {
     }
 
     @GetMapping
-    public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> obtenerAlojamientos(@Valid @RequestBody AlojamientoFiltroDTO filtros) throws Exception {
-        return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientoServicio.obtenerAlojamientos(filtros)));
+    public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> obtenerAlojamientos(@Valid AlojamientoFiltroDTO filtros, @RequestParam(defaultValue = "0") int pagina) throws Exception {
+        return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientoServicio.obtenerAlojamientos(filtros, pagina)));
     }
 }

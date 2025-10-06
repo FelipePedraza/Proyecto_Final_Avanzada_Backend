@@ -1,7 +1,10 @@
 package co.edu.uniquindio.application.services;
 
+import co.edu.uniquindio.application.dtos.alojamiento.ItemAlojamientoDTO;
 import co.edu.uniquindio.application.dtos.usuario.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 
 public interface UsuarioServicio {
@@ -12,4 +15,6 @@ public interface UsuarioServicio {
     void cambiarContrasena(String id, CambioContrasenaDTO dto) throws Exception;
     void reiniciarContrasena(ReinicioContrasenaDTO dto) throws Exception;
     void crearAnfitrion(CreacionAnfitrionDTO dto) throws Exception;
+    List<ItemAlojamientoDTO> obtenerAlojamientosUsuario(String id, int pagina) throws Exception;
+
 }

@@ -54,8 +54,9 @@ public class UsuarioControlador {
     }
 
     @GetMapping("/{id}/alojamientos")
-    public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> obtenerAlojamientosUsuario(@PathVariable String id) throws Exception {
-        return ResponseEntity.ok(new RespuestaDTO<>(false, List.of()));
+    public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> obtenerAlojamientosUsuario(@PathVariable String id, @RequestParam(defaultValue = "0") int pagina) throws Exception {
+        List<ItemAlojamientoDTO> alojamientos = usuarioServicio.obtenerAlojamientosUsuario(id, pagina);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientos));
     }
 
     @GetMapping("/{id}/reservas")
