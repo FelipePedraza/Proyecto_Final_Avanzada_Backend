@@ -1,6 +1,6 @@
 ### Crear Alojamiento
 POST http://localhost:8080/api/alojamientos
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTF9BbmZpdHJpb24iLCJuYW1lIjoiRGF2aWQgUG9zc28iLCJzdWIiOiIxY2NkNmFkMi02YWIzLTQ5ODctOTk2Yy05OWJkZmZkMjkwNWQiLCJpYXQiOjE3NTk2OTc4OTYsImV4cCI6MTc1OTcwMTQ5Nn0.oLdBhOpP-2DH81R0EylvP0B0tFCBrlKM8gksHw8SsRA
+Authorization: Bearer {{auth_token}}
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
@@ -8,8 +8,8 @@ Content-Disposition: form-data; name="alojamiento"
 Content-Type: application/json
 
 {
-  "titulo": "Hotel 420",
-  "descripcion": "Un hotel parchado",
+  "titulo": "Hotel 777 2",
+  "descripcion": "Un hotel parchado 2",
   "maxHuespedes": 4,
   "direccion": {
     "ciudad": "Armenia",
@@ -40,8 +40,8 @@ Content-Type: image/jpeg
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 ### Actualizar Alojamiento
-PUT http://localhost:8080/api/alojamientos/2
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wbGUuY29tIiwibmFtZSI6IkRhdmlkIFBvc3NvIiwicm9sZSI6IlJPTF9BbmZpdHJpb24iLCJzdWIiOiIxY2NkNmFkMi02YWIzLTQ5ODctOTk2Yy05OWJkZmZkMjkwNWQiLCJpYXQiOjE3NTk3MDc2MjIsImV4cCI6MTc1OTcxMTIyMn0.c_LHSnI6yHddQnnheoy-1mriebFPd01vMY6CVJhWwsg
+PUT http://localhost:8080/api/alojamientos/1
+Authorization: Bearer {{auth_token}}
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
@@ -49,7 +49,7 @@ Content-Disposition: form-data; name="alojamiento"
 Content-Type: application/json
 
 {
-  "titulo": "Hotel 420 EDITADO",
+  "titulo": "Hotel 777 EDITADO",
   "descripcion": "Un hotel parchado EDITADO",
   "maxHuespedes": 4,
   "direccion": {
@@ -66,8 +66,7 @@ Content-Type: application/json
     "DESAYUNO"
   ],
   "imagenes": [
-    "https://res.cloudinary.com/dxvvp4ote/image/upload/v1759698207/Vivi_Go/Alojamientos/qfjjt1mww3ogkqomm25z.jpg",
-    "https://res.cloudinary.com/dxvvp4ote/image/upload/v1759698208/Vivi_Go/Alojamientos/mg6bp4snspdlqhixdkv7.jpg"
+
   ]
 }
 
@@ -77,3 +76,11 @@ Content-Type: image/jpeg
 
 < C:\Users\FELIPE\Downloads\438485076.jpg
 
+### Obtener Alojamiento del Usuario
+GET http://localhost:8080/api/alojamientos?pagina=0
+Accept: application/json
+Authorization: Bearer {{auth_token}}
+
+### Obtener Alojamiento
+GET http://localhost:8080/api/alojamientos/1
+Accept: application/json

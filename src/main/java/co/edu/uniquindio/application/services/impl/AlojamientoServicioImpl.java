@@ -3,6 +3,7 @@ package co.edu.uniquindio.application.services.impl;
 import co.edu.uniquindio.application.dtos.alojamiento.*;
 import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
+import co.edu.uniquindio.application.exceptions.ValueConflictException;
 import co.edu.uniquindio.application.models.entitys.Alojamiento;
 import co.edu.uniquindio.application.repositories.AlojamientoRepositorio;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
@@ -20,6 +21,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.multipart.MultipartFile;
 import co.edu.uniquindio.application.services.UsuarioServicio;
 import co.edu.uniquindio.application.services.ImagenServicio;
+import co.edu.uniquindio.application.models.enums.Estado;
 
 import java.util.List;
 import java.util.Optional;
@@ -50,8 +52,9 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
         UsuarioDTO usuarioDTO = usuarioServicio.obtener(idUsuarioAutenticado);
         Usuario usuario = usuarioMapper.toEntity(usuarioDTO);
 
-        //Se comprueba que el usuario sea un anfitrion
-        if(!usuario.getRol().name().equals("Anfitrion")){
+        boolean esAnfitrion = usuario.getEsAnfitrion() != null && usuario.getEsAnfitrion();
+
+        if (!esAnfitrion) {
             throw new AccessDeniedException("El usuario no es un anfitrion");
         }
 
@@ -94,7 +97,7 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
 
     @Override
     public void editar (Long id, EdicionAlojamientoDTO edicionAlojamientoDTO, MultipartFile[] imagenes) throws Exception {
-        
+
         // Obtener alojamiento existente
         Alojamiento alojamiento = obtenerAlojamientoId(id);
 
@@ -104,9 +107,12 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
         UsuarioDTO usuarioDTO = usuarioServicio.obtener(idUsuarioAutenticado);
         Usuario usuario = usuarioMapper.toEntity(usuarioDTO);
 
-        if (!usuario.getRol().name().equals("Anfitrion")) {
-            throw new AccessDeniedException("El usuario no es un anfitrión");
+        boolean esAnfitrion = usuario.getEsAnfitrion() != null && usuario.getEsAnfitrion();
+
+        if (!esAnfitrion) {
+            throw new AccessDeniedException("El usuario no es un anfitrion");
         }
+
         if (alojamiento.getAnfitrion() == null || !alojamiento.getAnfitrion().getId().equals(usuario.getId())) {
             throw new AccessDeniedException("No tiene permiso para editar este alojamiento");
         }
@@ -231,12 +237,33 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
 
     @Override
     public void eliminar(Long id) throws Exception {
+        // Obtener alojamiento existente
+        Alojamiento alojamiento = obtenerAlojamientoId(id);
 
+        // Permisos: solo anfitrión propietario puede eliminar
+        User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String idUsuarioAutenticado = usuarioAutenticado.getUsername();
+        UsuarioDTO usuarioDTO = usuarioServicio.obtener(idUsuarioAutenticado);
+        Usuario usuario = usuarioMapper.toEntity(usuarioDTO);
+
+        boolean esAnfitrion = usuario.getEsAnfitrion() != null && usuario.getEsAnfitrion();
+
+        if (!esAnfitrion) {
+            throw new AccessDeniedException("El usuario no es un anfitrion");
+        }
+
+        if (alojamiento.getAnfitrion() == null || !alojamiento.getAnfitrion().getId().equals(usuario.getId())) {
+            throw new AccessDeniedException("No tiene permiso para eliminar este alojamiento");
+        }
+        // La eliminación es lógica
+        alojamiento.setEstado(Estado.ELIMINADO);
+        alojamientoRepositorio.save(alojamiento);
     }
 
     @Override
     public AlojamientoDTO obtenerPorId(Long id) throws Exception {
         Alojamiento alojamiento = obtenerAlojamientoId(id);
+        AlojamientoDTO alojamientoDTO = alojamientoMapper.toDTO(alojamiento);
         return alojamientoMapper.toDTO(alojamiento);
     }
 
@@ -251,10 +278,14 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     }
 
     @Override
-    public List<ItemAlojamientoDTO> obtenerAlojamientoUsuario(String id, int pagina) throws Exception {
+    public List<ItemAlojamientoDTO> obtenerAlojamientoUsuario(int pagina) throws Exception {
+
+        //Se obtiene la informacion del usuario autenticado
+        User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String idUsuarioAutenticado = usuarioAutenticado.getUsername();
 
         Pageable pageable = PageRequest.of(pagina, 5);
-        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.getAlojamientos(id, pageable);
+        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.getAlojamientos(idUsuarioAutenticado, pageable).map(alojamientoMapper::toItemDTO);
 
         return alojamientos.toList();
     }

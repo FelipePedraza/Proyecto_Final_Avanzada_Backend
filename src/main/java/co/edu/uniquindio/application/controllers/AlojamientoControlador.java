@@ -5,13 +5,14 @@ import co.edu.uniquindio.application.dtos.alojamiento.*;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/alojamientos")
@@ -27,9 +28,8 @@ public class AlojamientoControlador {
     }
 
     @GetMapping
-    public ResponseEntity<RespuestaDTO<Page<ItemAlojamientoDTO>>> buscarAlojamientos(@ParameterObject Pageable pageable, @ParameterObject AlojamientoFiltroDTO filtro) throws Exception {
-
-        return ResponseEntity.ok(new RespuestaDTO<>(false, null));
+    public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> obtenerAlojamientoUsuario(@RequestParam(defaultValue = "0") int pagina) throws Exception {
+        return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientoServicio.obtenerAlojamientoUsuario(pagina)));
     }
 
     @GetMapping("/{id}")
@@ -45,7 +45,7 @@ public class AlojamientoControlador {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<RespuestaDTO<String>> eliminarAlojamiento(@PathVariable Long id) throws Exception {
-
+        alojamientoServicio.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 

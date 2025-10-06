@@ -23,7 +23,7 @@ public record EdicionAlojamientoDTO(
         @NotNull
         List<Servicio> servicios,
 
-        @NotNull @Size(min = 1, max = 10)
+        @NotNull @Size(max = 10)
         List<String> imagenes,
 
         @NotNull

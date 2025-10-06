@@ -8,7 +8,7 @@ import org.hibernate.validator.constraints.Length;
 
 public record CreacionResenaDTO(
         @NotNull @Min(1) @Max(5)
-        Integer calificacion,
+        Float calificacion,
         @NotBlank @Length(max = 500)
         String comentario,
         @NotNull

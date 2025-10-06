@@ -62,4 +62,8 @@ public class Alojamiento {
     @OneToMany(mappedBy = "alojamiento")
     private List<Resena> resenas;
 
+    private Double promedioCalificaciones;
+
+    private Integer numeroCalificaciones;
+
 }

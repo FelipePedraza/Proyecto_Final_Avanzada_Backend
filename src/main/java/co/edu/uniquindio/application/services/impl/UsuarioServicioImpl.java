@@ -127,7 +127,6 @@ public class UsuarioServicioImpl implements UsuarioServicio {
         Usuario usuario = obtenerUsuarioId(id);
         usuario.setEstado(Estado.ELIMINADO);
         usuarioRepositorio.save(usuario);
-
     }
 
     @Override
@@ -195,8 +194,10 @@ public class UsuarioServicioImpl implements UsuarioServicio {
         }
 
         Usuario usuario = obtenerUsuarioId(dto.usuarioId());
-        
-        if (usuario.getRol() == Rol.Anfitrion) {
+
+        boolean esAnfitrion = usuario.getEsAnfitrion() != null && usuario.getEsAnfitrion();
+
+        if (esAnfitrion) {
             throw new ValueConflictException("El usuario ya es un anfitrion");
         }
 
@@ -207,6 +208,7 @@ public class UsuarioServicioImpl implements UsuarioServicio {
 
         // Actualizar la relación bidireccional
         usuario.setRol(Rol.Anfitrion);
+        usuario.setEsAnfitrion(true);
         usuario.setPerfilAnfitrion(perfil);
         usuarioRepositorio.save(usuario);
 

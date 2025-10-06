@@ -17,6 +17,6 @@ public interface AlojamientoRepositorio extends JpaRepository<Alojamiento, Long>
 
     Optional<Alojamiento> findByTitulo(String titulo);
 
-    @Query("select a.id, a.titulo, a.precioPorNoche, a.direccion, a.imagenes, a.servicios from Alojamiento a where a.anfitrion.id = :idUsuario")
-    Page<ItemAlojamientoDTO> getAlojamientos(String idUser, Pageable pageable);
+    @Query("select a from Alojamiento a where a.anfitrion.id = :idUsuario")
+    Page<Alojamiento> getAlojamientos(String idUsuario, Pageable pageable);
 }

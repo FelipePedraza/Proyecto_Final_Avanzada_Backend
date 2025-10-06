@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 public record ItemResenaDTO(
         Long id,
-        int calificacion,
+        Float calificacion,
         String comentario,
         LocalDateTime creadoEn,
         UsuarioDTO usuario,

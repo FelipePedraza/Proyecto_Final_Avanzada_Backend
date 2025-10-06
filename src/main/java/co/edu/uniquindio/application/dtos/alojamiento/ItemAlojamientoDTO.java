@@ -4,7 +4,7 @@ public record ItemAlojamientoDTO(
         Long id,
         String titulo,
         String imagenPrincipal,
-        Double precioNoche,
+        Double precioPorNoche,
         DireccionDTO direccion,
         Double promedioCalificaciones
 ) {

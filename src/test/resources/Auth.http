@@ -3,21 +3,21 @@ POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "david.posso@example.com",
-  "contrasena": "Pass0123"
+  "email": "felipedraza830@gmail.com",
+  "contrasena": "Contrasena123"
 }
 
-> {% client.global.set("auth_token", response.body.token) %}
+> {% client.global.set("auth_token", response.body.data.token); %}
 
 ### Crear usuario (201 Created)
 POST http://localhost:8080/api/auth/registro
 Content-Type: application/json
 
 {
-  "nombre": "Felipe Pedraza",
-  "email": "felipedraza830@gmail.com",
+  "nombre": "David Posso",
+  "email": "Davidp@example.com",
   "contrasena": "Contrasena123",
-  "telefono": "3102399644",
+  "telefono": "3234533356",
   "fechaNacimiento": "2002-08-30",
   "rol": "Huesped"
 }

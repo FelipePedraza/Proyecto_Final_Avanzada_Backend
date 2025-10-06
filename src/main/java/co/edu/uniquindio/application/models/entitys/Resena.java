@@ -19,7 +19,7 @@ public class Resena {
     private Long id;
 
     @Column(nullable = false)
-    private Integer calificacion;
+    private Float calificacion;
 
     @Column(length = 2000)
     private String comentario;

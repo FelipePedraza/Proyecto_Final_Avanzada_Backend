@@ -10,6 +10,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 
+import java.util.List;
+
 @Mapper (componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AlojamientoMapper {
 
@@ -18,9 +20,15 @@ public interface AlojamientoMapper {
 
     Alojamiento toEntity(CreacionAlojamientoDTO dto);
 
+    @Mapping(target = "imagenPrincipal", expression = "java(getImagenPrincipal(alojamiento.getImagenes()))")
     ItemAlojamientoDTO toItemDTO(Alojamiento alojamiento);
 
+    @Mapping(target = "nombreAnfitrion", expression = "java(alojamiento.getAnfitrion().getNombre())")
     AlojamientoDTO toDTO(Alojamiento alojamiento);
 
     void updateAlojamientoFromDto(EdicionAlojamientoDTO edicionAlojamientoDTO, @MappingTarget Alojamiento alojamiento);
+
+    default String getImagenPrincipal(List<String> imagenes){
+        return (imagenes == null || imagenes.isEmpty())  ? "" : imagenes.getFirst();
+    }
 }
