@@ -41,7 +41,7 @@ public class ReservaControlador {
         return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
 
-    @PatchMapping("/{id}/estado")
+    @PatchMapping("/{id}/cancelar")
     public ResponseEntity<RespuestaDTO<String>> cancelarReserva(@PathVariable Long id) throws Exception {
         reservaServicio.cancelarReserva(id);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Reserva cancelada correctamente."));

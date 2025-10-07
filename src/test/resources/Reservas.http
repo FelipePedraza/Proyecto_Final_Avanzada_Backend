@@ -16,105 +16,21 @@ Authorization: Bearer {{auth_token}}
 }
 
 ### 2. Listar reservas de un usuario (como huésped o anfitrión)
-GET http://localhost:8080/api/reservas/usuario/1?pagina=0&tamano=10
+GET http://localhost:8080/api/reservas/usuario/1?pagina=0
 Authorization: Bearer {{auth_token}}
 
 ### 3. Listar reservas filtradas por estado
-GET http://localhost:8080/api/reservas/usuario/1?estado=CONFIRMADA&pagina=0&tamano=10
+GET http://localhost:8080/api/reservas/usuario/1?estado=CONFIRMADA&pagina=0
 Authorization: Bearer {{auth_token}}
 
 ### 4. Listar reservas filtradas por rango de fechas
-GET http://localhost:8080/api/reservas/usuario/1?fechaInicio=2025-10-01&fechaFin=2025-12-31&pagina=0&tamano=10
+GET http://localhost:8080/api/reservas/usuario/1?fechaInicio=2025-10-01&fechaFin=2025-12-31&pagina=0
 Authorization: Bearer {{auth_token}}
 
 ### 5. Listar reservas con múltiples filtros
-GET http://localhost:8080/api/reservas/usuario/1?estado=CONFIRMADA&fechaInicio=2025-10-01&fechaFin=2025-12-31&pagina=0&tamano=10
+GET http://localhost:8080/api/reservas/usuario/1?estado=CONFIRMADA&fechaInicio=2025-10-01&fechaFin=2025-12-31&pagina=0
 Authorization: Bearer {{auth_token}}
 
 ### 6. Cancelar una reserva
 PATCH http://localhost:8080/api/reservas/1/cancelar
 Authorization: Bearer {{auth_token}}
-
-### ============================
-### RESEÑAS
-### ============================
-
-### 7. Crear una reseña (después de estadía completada)
-POST http://localhost:8080/api/resenas
-Content-Type: application/json
-Authorization: Bearer {{auth_token}}
-
-{
-  "calificacion": 4.5,
-  "comentario": "Excelente alojamiento, muy limpio y cómodo. El anfitrión fue muy amable y atento.",
-  "reservaId": 1
-}
-
-### 8. Listar reseñas de un alojamiento (público)
-GET http://localhost:8080/api/resenas/alojamiento/1?pagina=0&tamano=10
-
-### 9. Obtener promedio de calificaciones (público)
-GET http://localhost:8080/api/resenas/alojamiento/1/promedio
-
-### 10. Responder a una reseña (solo anfitrión)
-POST http://localhost:8080/api/resenas/1/responder
-Content-Type: application/json
-Authorization: Bearer {{token}}
-
-{
-  "mensaje": "¡Muchas gracias por tu comentario! Nos alegra que hayas disfrutado tu estadía. ¡Esperamos verte pronto de nuevo!"
-}
-
-### ============================
-### CASOS DE ERROR
-### ============================
-
-### 11. Intentar reservar con fechas pasadas (400 Bad Request)
-POST http://localhost:8080/api/reservas
-Content-Type: application/json
-Authorization: Bearer {{token}}
-
-{
-  "alojamientoId": 1,
-  "usuarioId": 1,
-  "fechaEntrada": "2024-10-01",
-  "fechaSalida": "2024-10-05",
-  "numeroHuespedes": 2
-}
-
-### 12. Intentar reservar con capacidad excedida (400 Bad Request)
-POST http://localhost:8080/api/reservas
-Content-Type: application/json
-Authorization: Bearer {{token}}
-
-{
-  "alojamientoId": 1,
-  "usuarioId": 1,
-  "fechaEntrada": "2025-11-01",
-  "fechaSalida": "2025-11-05",
-  "numeroHuespedes": 50
-}
-
-### 13. Intentar reseñar sin reserva completada (400 Bad Request)
-POST http://localhost:8080/api/resenas
-Content-Type: application/json
-Authorization: Bearer {{token}}
-
-{
-  "calificacion": 5,
-  "comentario": "Todavía no he ido pero se ve bien",
-  "reservaId": 999
-}
-
-### 14. Intentar cancelar reserva con menos de 48h (400 Bad Request)
-PATCH {http://localhost:8080/api/reservas/1/cancelar
-Authorization: Bearer {{token}}
-
-### 15. Intentar responder reseña sin ser anfitrión (403 Forbidden)
-POST http://localhost:8080/api/resenas/1/responder
-Content-Type: application/json
-Authorization: Bearer {{token}}
-
-{
-  "mensaje": "Intento de respuesta no autorizada"
-}
