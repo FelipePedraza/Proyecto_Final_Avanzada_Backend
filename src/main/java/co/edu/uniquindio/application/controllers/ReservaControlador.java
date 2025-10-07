@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/reservas")
 @RequiredArgsConstructor
@@ -22,19 +24,20 @@ public class ReservaControlador {
     private final ReservaServicio reservaServicio;
 
     @PostMapping
-    public ResponseEntity<RespuestaDTO<ReservaDTO>> crearReserva(@Valid @RequestBody CreacionReservaDTO dto) throws Exception {
-        ReservaDTO reserva = reservaServicio.crearReserva(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, reserva));
+    public ResponseEntity<RespuestaDTO<String>> crearReserva(@Valid @RequestBody CreacionReservaDTO dto) throws Exception {
+        reservaServicio.crear(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, "La reserva se creo con exito"));
     }
 
     @GetMapping
-    public ResponseEntity<RespuestaDTO<Page<ItemReservaDTO>>> listarReservas(
+    public ResponseEntity<RespuestaDTO<List<ItemReservaDTO>>> listarReservas(
             @RequestParam Long id,
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) String fechaInicio,
             @RequestParam(required = false) String fechaFin,
+            @RequestParam(required = false, defaultValue = "0") int pagina,
             @ParameterObject Pageable pageable) throws Exception {
-        Page<ItemReservaDTO> reservas = reservaServicio.listarReservas(id, estado, fechaInicio, fechaFin, pageable);
+        List<ItemReservaDTO> reservas = reservaServicio.listarReservas(id, estado, fechaInicio, fechaFin, pagina);
         return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
 

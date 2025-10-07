@@ -2,6 +2,7 @@ package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dtos.EmailDTO;
 import co.edu.uniquindio.application.dtos.alojamiento.ItemAlojamientoDTO;
+import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
 import co.edu.uniquindio.application.dtos.usuario.*;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.exceptions.ValidationException;
@@ -23,8 +24,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -232,11 +231,11 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     public List<ItemAlojamientoDTO> obtenerAlojamientosUsuario(String id, int pagina) throws Exception {
 
         if(!authServicio.obtnerIdAutenticado(id)){
-            throw new AccessDeniedException("No tiene permisos para editar de este usuario.");
+            throw new AccessDeniedException("No tiene permisos para ver los alojamientos de este usuario.");
         }
 
         Pageable pageable = PageRequest.of(pagina, 5);
-        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.getAlojamientos(id, pageable).map(alojamientoMapper::toItemDTO);
+        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.getAlojamientos(id, Estado.ACTIVO ,pageable).map(alojamientoMapper::toItemDTO);
 
         return alojamientos.toList();
     }
@@ -256,5 +255,17 @@ public class UsuarioServicioImpl implements UsuarioServicio {
         }
 
         return optionalUsuario.get();
+    }
+
+    @Override
+    public List<ItemReservaDTO> obtenerReservasUsuario(String id, int pagina) throws Exception {
+
+        if(!authServicio.obtnerIdAutenticado(id)){
+            throw new AccessDeniedException("No tiene permisos para las reservas de este usuario.");
+        }
+
+        Pageable pageable = PageRequest.of(pagina, 5);
+        Page<ItemReservaDTO> reservas = null;
+        return reservas.toList();
     }
 }

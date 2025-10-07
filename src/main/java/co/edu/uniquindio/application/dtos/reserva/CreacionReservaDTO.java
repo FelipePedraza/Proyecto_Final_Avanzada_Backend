@@ -10,12 +10,12 @@ public record CreacionReservaDTO(
         @NotNull
         Long alojamientoId,
         @NotNull
-        Long usuarioId,
+        String usuarioId,
         @NotNull @Future
         LocalDate fechaEntrada,
         @NotNull @Future
         LocalDate fechaSalida,
         @NotNull @Min(1)
-        Integer numeroHuespedes
+        Integer cantidadHuespedes
 ) {
 }
