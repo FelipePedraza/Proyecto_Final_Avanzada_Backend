@@ -48,3 +48,8 @@ Authorization: Bearer {{auth_token}}
   "sobreMi": "Me gusta el baloncesto",
   "documentoLegal": "documento.pdf"
 }
+
+### Obtener Alojamiento del Usuario
+GET http://localhost:8080/api/alojamientos?pagina=0
+Accept: application/json
+Authorization: Bearer {{auth_token}}

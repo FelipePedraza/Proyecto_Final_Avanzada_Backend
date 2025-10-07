@@ -76,11 +76,59 @@ Content-Type: image/jpeg
 
 < C:\Users\FELIPE\Downloads\438485076.jpg
 
-### Obtener Alojamiento del Usuario
-GET http://localhost:8080/api/alojamientos?pagina=0
-Accept: application/json
-Authorization: Bearer {{auth_token}}
-
 ### Obtener Alojamiento
 GET http://localhost:8080/api/alojamientos/1
 Accept: application/json
+
+###
+# ============================================
+# BÚSQUEDA DE ALOJAMIENTOS (Público)
+# ============================================
+
+### 1. Obtener TODOS los alojamientos (sin filtros)
+GET http://localhost:8080/api/alojamientos
+Content-Type: application/json
+
+### 2. Buscar alojamientos por CIUDAD
+GET http://localhost:8080/api/alojamientos?ciudad=Armenia
+Content-Type: application/json
+
+### 3. Buscar por ciudad (búsqueda parcial)
+GET http://localhost:8080/api/alojamientos?ciudad=arm
+Content-Type: application/json
+
+### 4. Buscar por FECHAS (disponibilidad)
+GET http://localhost:8080/api/alojamientos?fechaEntrada=2025-11-15&fechaSalida=2025-11-20
+Content-Type: application/json
+
+### 5. Buscar por NÚMERO DE HUÉSPEDES
+GET http://localhost:8080/api/alojamientos?huespedes=4
+Content-Type: application/json
+
+### 6. Buscar por RANGO DE PRECIOS
+GET http://localhost:8080/api/alojamientos?precioMin=150&precioMax=250
+Content-Type: application/json
+
+### 7. Buscar por PRECIO MÍNIMO solamente
+GET http://localhost:8080/api/alojamientos?precioMin=150
+Content-Type: application/json
+
+### 8. Buscar por PRECIO MÁXIMO solamente
+GET http://localhost:8080/api/alojamientos?precioMax=150
+Content-Type: application/json
+
+### 9. BÚSQUEDA COMPLETA (todos los filtros)
+GET http://localhost:8080/api/alojamientos?ciudad=Armenia&fechaEntrada=2025-11-15&fechaSalida=2025-11-20&huespedes=2&precioMin=150&precioMax=250
+Content-Type: application/json
+
+### 10. Búsqueda con PAGINACIÓN (página 0)
+GET http://localhost:8080/api/alojamientos?ciudad=Armenia&pagina=0
+Content-Type: application/json
+
+### 11. Búsqueda con paginación (página 1)
+GET http://localhost:8080/api/alojamientos?ciudad=Armenia&pagina=1
+Content-Type: application/json
+
+### 12. Búsqueda completa con paginación
+GET http://localhost:8080/api/alojamientos?ciudad=Calarcá&fechaEntrada=2025-12-01&fechaSalida=2025-12-05&huespedes=4&precioMin=80000&precioMax=250000&pagina=0
+Content-Type: application/json
