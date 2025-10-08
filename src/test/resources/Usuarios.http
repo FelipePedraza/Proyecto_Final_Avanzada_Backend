@@ -50,6 +50,11 @@ Authorization: Bearer {{auth_token}}
 }
 
 ### Obtener Alojamiento del Usuario
-GET http://localhost:8080/api/alojamientos?pagina=0
+GET http://localhost:8080/api/usuarios/4c4e2933-899e-469a-b883-7ab9fe75a641/alojamientos?pagina=0
 Accept: application/json
 Authorization: Bearer {{auth_token}}
+
+### Obtener Reservas del Usuario
+GET http://localhost:8080/api/usuarios/6fdc6cce-508b-433d-9069-638a4283252d/reservas?pagina=0
+Authorization: Bearer {{auth_token}}
+

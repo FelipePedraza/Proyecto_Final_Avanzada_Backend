@@ -5,14 +5,18 @@ import co.edu.uniquindio.application.dtos.alojamiento.ItemAlojamientoDTO;
 import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
 import co.edu.uniquindio.application.dtos.usuario.*;
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
+import co.edu.uniquindio.application.models.enums.ReservaEstado;
 import co.edu.uniquindio.application.services.UsuarioServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RequestPart;
 
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -60,8 +64,14 @@ public class UsuarioControlador {
     }
 
     @GetMapping("/{id}/reservas")
-    public ResponseEntity<RespuestaDTO<List<ItemReservaDTO>>> obtenerReservasUsuario(@PathVariable String id) throws Exception {
-        return ResponseEntity.ok(new RespuestaDTO<>(false, List.of()));
+    public ResponseEntity<RespuestaDTO<List<ItemReservaDTO>>> obtenerReservasUsuario(
+            @PathVariable  String id,
+            @RequestParam(required = false) ReservaEstado estado,
+            @RequestParam(required = false) LocalDate fechaEntrada,
+            @RequestParam(required = false) LocalDate fechaSalida ,
+            @RequestParam(required = false, defaultValue = "0") int pagina) throws Exception {
+        List<ItemReservaDTO> reservas = usuarioServicio.obtenerReservasUsuario(id, estado, fechaEntrada, fechaSalida, pagina);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
 
 }

@@ -8,16 +8,16 @@ import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.exceptions.ValueConflictException;
 import co.edu.uniquindio.application.mappers.AlojamientoMapper;
+import co.edu.uniquindio.application.mappers.ReservaMapper;
 import co.edu.uniquindio.application.mappers.UsuarioMapper;
 import co.edu.uniquindio.application.mappers.PerfilAnfitrionMapper;
 import co.edu.uniquindio.application.models.entitys.ContrasenaCodigoReinicio;
 import co.edu.uniquindio.application.models.entitys.PerfilAnfitrion;
 import co.edu.uniquindio.application.models.entitys.Usuario;
 import co.edu.uniquindio.application.models.enums.Estado;
+import co.edu.uniquindio.application.models.enums.ReservaEstado;
 import co.edu.uniquindio.application.models.enums.Rol;
-import co.edu.uniquindio.application.repositories.AlojamientoRepositorio;
-import co.edu.uniquindio.application.repositories.ContrasenaCodigoReinicioRepositorio;
-import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
+import co.edu.uniquindio.application.repositories.*;
 import co.edu.uniquindio.application.services.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,8 +27,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import co.edu.uniquindio.application.repositories.PerfilAnfitrionRepositorio;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +49,8 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     private final PerfilAnfitrionMapper perfilAnfitrionMapper;
     private final AlojamientoRepositorio alojamientoRepositorio;
     private final AlojamientoMapper alojamientoMapper;
+    private final ReservaRepositorio reservaRepositorio;
+    private final ReservaMapper reservaMapper;
 
 
     @Override
@@ -240,6 +242,18 @@ public class UsuarioServicioImpl implements UsuarioServicio {
         return alojamientos.toList();
     }
 
+    @Override
+    public List<ItemReservaDTO> obtenerReservasUsuario(String id, ReservaEstado estado, LocalDate fechaEntrada, LocalDate fechaSalida, int pagina) throws Exception {
+
+        if(!authServicio.obtnerIdAutenticado(id)){
+            throw new AccessDeniedException("No tiene permisos para las reservas de este usuario.");
+        }
+
+        Pageable pageable = PageRequest.of(pagina, 5);
+        Page<ItemReservaDTO> reservas = reservaRepositorio.buscarConFiltros(id, estado, fechaEntrada, fechaSalida, pageable).map(reservaMapper::toItemDTO);
+        return reservas.toList();
+    }
+
     public boolean existePorEmail(String email){
 
         Optional<Usuario> optionalUsuario = usuarioRepositorio.findByEmail(email);
@@ -257,15 +271,4 @@ public class UsuarioServicioImpl implements UsuarioServicio {
         return optionalUsuario.get();
     }
 
-    @Override
-    public List<ItemReservaDTO> obtenerReservasUsuario(String id, int pagina) throws Exception {
-
-        if(!authServicio.obtnerIdAutenticado(id)){
-            throw new AccessDeniedException("No tiene permisos para las reservas de este usuario.");
-        }
-
-        Pageable pageable = PageRequest.of(pagina, 5);
-        Page<ItemReservaDTO> reservas = null;
-        return reservas.toList();
-    }
 }

@@ -20,6 +20,4 @@ public interface ReservaMapper {
 
     Reserva toEntity(ReservaDTO reservaDTO);
 
-    ReservaDTO toReservaDTO(Reserva reserva);
-
 }

@@ -20,7 +20,7 @@ public interface AlojamientoRepositorio extends JpaRepository<Alojamiento, Long>
     Optional<Alojamiento> findByTitulo(String titulo);
 
     @Query("select a from Alojamiento a where a.anfitrion.id = :idUsuario and a.estado = :estado")
-    Page<Alojamiento> getAlojamientos(String idUsuario, Estado estado,Pageable pageable);
+    Page<Alojamiento> getAlojamientos(String idUsuario, Estado estado, Pageable pageable);
 
     @Query("""
         SELECT DISTINCT a FROM Alojamiento a

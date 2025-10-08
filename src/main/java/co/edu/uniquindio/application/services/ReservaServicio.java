@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface ReservaServicio {
     void crear(CreacionReservaDTO dto) throws Exception;
-    List<ItemReservaDTO> listarReservas(Long id, String estado, String fechaInicio, String fechaFin, int pagina) throws Exception;
+    void aceptarReserva(Long id) throws Exception;
+    void rechazarReserva(Long id) throws Exception;
     void cancelarReserva(Long id) throws Exception;
 }

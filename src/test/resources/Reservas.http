@@ -1,8 +1,4 @@
-### ============================
-### RESERVAS
-### ============================
-
-### 1. Crear una nueva reserva
+### Crear una nueva reserva
 POST http://localhost:8080/api/reservas
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
@@ -15,22 +11,14 @@ Authorization: Bearer {{auth_token}}
   "cantidadHuespedes": 2
 }
 
-### 2. Listar reservas de un usuario (como huésped o anfitrión)
-GET http://localhost:8080/api/reservas/usuario/1?pagina=0
-Authorization: Bearer {{auth_token}}
-
-### 3. Listar reservas filtradas por estado
-GET http://localhost:8080/api/reservas/usuario/1?estado=CONFIRMADA&pagina=0
-Authorization: Bearer {{auth_token}}
-
-### 4. Listar reservas filtradas por rango de fechas
-GET http://localhost:8080/api/reservas/usuario/1?fechaInicio=2025-10-01&fechaFin=2025-12-31&pagina=0
-Authorization: Bearer {{auth_token}}
-
-### 5. Listar reservas con múltiples filtros
-GET http://localhost:8080/api/reservas/usuario/1?estado=CONFIRMADA&fechaInicio=2025-10-01&fechaFin=2025-12-31&pagina=0
-Authorization: Bearer {{auth_token}}
-
-### 6. Cancelar una reserva
+### HUÉSPED:Cancelar una reserva
 PATCH http://localhost:8080/api/reservas/1/cancelar
+Authorization: Bearer {{auth_token}}
+
+### ANFITRIÓN: Aceptar reserva pendiente (PENDIENTE → CONFIRMADA)
+PATCH http://localhost:8080/api/reservas/2/aceptar
+Authorization: Bearer {{auth_token}}
+
+### ANFITRIÓN: Rechazar reserva pendiente (PENDIENTE → CANCELADA)
+PATCH http://localhost:8080/api/reservas/2/rechazar
 Authorization: Bearer {{auth_token}}

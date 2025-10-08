@@ -29,21 +29,25 @@ public class ReservaControlador {
         return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, "La reserva se creo con exito"));
     }
 
-    @GetMapping
-    public ResponseEntity<RespuestaDTO<List<ItemReservaDTO>>> listarReservas(
-            @RequestParam Long id,
-            @RequestParam(required = false) String estado,
-            @RequestParam(required = false) String fechaInicio,
-            @RequestParam(required = false) String fechaFin,
-            @RequestParam(required = false, defaultValue = "0") int pagina,
-            @ParameterObject Pageable pageable) throws Exception {
-        List<ItemReservaDTO> reservas = reservaServicio.listarReservas(id, estado, fechaInicio, fechaFin, pagina);
-        return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
-    }
-
     @PatchMapping("/{id}/cancelar")
     public ResponseEntity<RespuestaDTO<String>> cancelarReserva(@PathVariable Long id) throws Exception {
         reservaServicio.cancelarReserva(id);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Reserva cancelada correctamente."));
+    }
+
+    @PatchMapping("/{id}/aceptar")
+    public ResponseEntity<RespuestaDTO<String>> aceptarReserva(
+            @PathVariable Long id) throws Exception {
+
+        reservaServicio.aceptarReserva(id);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, "Reserva aceptada y confirmada"));
+    }
+
+    @PatchMapping("/{id}/rechazar")
+    public ResponseEntity<RespuestaDTO<String>> rechazarReserva(
+            @PathVariable Long id) throws Exception {
+
+        reservaServicio.rechazarReserva(id);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, "Reserva rechazada"));
     }
 }

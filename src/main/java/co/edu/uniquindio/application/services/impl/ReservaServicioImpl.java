@@ -2,12 +2,9 @@ package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dtos.EmailDTO;
 import co.edu.uniquindio.application.dtos.reserva.CreacionReservaDTO;
-import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.exceptions.ValidationException;
-import co.edu.uniquindio.application.mappers.AlojamientoMapper;
 import co.edu.uniquindio.application.mappers.ReservaMapper;
-import co.edu.uniquindio.application.mappers.UsuarioMapper;
 import co.edu.uniquindio.application.models.entitys.Alojamiento;
 import co.edu.uniquindio.application.models.entitys.Reserva;
 import co.edu.uniquindio.application.models.entitys.Usuario;
@@ -39,8 +36,6 @@ public class ReservaServicioImpl implements ReservaServicio {
     private final AlojamientoRepositorio alojamientoRepositorio;
     private final UsuarioRepositorio usuarioRepositorio;
     private final ReservaMapper reservaMapper;
-    private final AlojamientoMapper alojamientoMapper;
-    private final UsuarioMapper usuarioMapper;
     private final EmailServicio emailServicio;
 
     @Override
@@ -88,7 +83,7 @@ public class ReservaServicioImpl implements ReservaServicio {
         }
 
         // 7. Validar disponibilidad (no hay solapamiento con otras reservas)
-        if (existeSolapamiento(alojamiento.getId(), dto.fechaEntrada(), dto.fechaSalida())) {
+        if (existeSolapamiento(alojamiento.getId(), dto.fechaEntrada(), dto.fechaSalida(), null)) {
             throw new ValidationException("El alojamiento no está disponible en las fechas seleccionadas");
         }
 
@@ -104,12 +99,71 @@ public class ReservaServicioImpl implements ReservaServicio {
         reserva = reservaRepositorio.save(reserva);
 
         // 10. Enviar emails de confirmación
-        enviarEmailsConfirmacion(reserva, alojamiento, huesped);
+        enviarEmailsSolicitudReserva(reserva, alojamiento, huesped);
     }
 
     @Override
-    public List<ItemReservaDTO> listarReservas(Long id, String estado, String fechaInicio, String fechaFin, int pagina) throws Exception {
-        return null;
+    public void aceptarReserva(Long id) throws Exception {
+
+        // Obtener usuario autenticado
+        User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String idUsuarioAutenticado = usuarioAutenticado.getUsername();
+
+        // Obtener reserva
+        Reserva reserva = reservaRepositorio.findById(id)
+                .orElseThrow(() -> new NoFoundException("Reserva no encontrada"));
+
+        // Verificar que el usuario sea el anfitrión del alojamiento
+        if (!reserva.getAlojamiento().getAnfitrion().getId().equals(idUsuarioAutenticado)) {
+            throw new AccessDeniedException("Solo el anfitrión puede aceptar esta reserva");
+        }
+
+        // Validar que la reserva esté PENDIENTE
+        if (reserva.getEstado() != ReservaEstado.PENDIENTE) {
+            throw new ValidationException("Solo se pueden aceptar reservas pendientes. Estado actual: " + reserva.getEstado());
+        }
+
+        // Validar nuevamente disponibilidad por si hubo cambios
+        if (existeSolapamiento(reserva.getAlojamiento().getId(), reserva.getFechaEntrada(),
+                reserva.getFechaSalida(), reserva.getId())) {
+            throw new ValidationException("El alojamiento ya no está disponible en estas fechas");
+        }
+
+        // Cambiar estado a CONFIRMADA
+        reserva.setEstado(ReservaEstado.CONFIRMADA);
+        reservaRepositorio.save(reserva);
+
+        // Enviar emails de confirmación
+        enviarEmailsConfirmacionReserva(reserva);
+    }
+
+    @Override
+    public void rechazarReserva(Long id) throws Exception {
+
+        // Obtener usuario autenticado
+        User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String idUsuarioAutenticado = usuarioAutenticado.getUsername();
+
+        // Obtener reserva
+        Reserva reserva = reservaRepositorio.findById(id)
+                .orElseThrow(() -> new NoFoundException("Reserva no encontrada"));
+
+        // Verificar que el usuario sea el anfitrión del alojamiento
+        if (!reserva.getAlojamiento().getAnfitrion().getId().equals(idUsuarioAutenticado)) {
+            throw new AccessDeniedException("Solo el anfitrión puede rechazar esta reserva");
+        }
+
+        // Validar que la reserva esté PENDIENTE
+        if (reserva.getEstado() != ReservaEstado.PENDIENTE) {
+            throw new ValidationException("Solo se pueden rechazar reservas pendientes");
+        }
+
+        // Cambiar estado a CANCELADA
+        reserva.setEstado(ReservaEstado.CANCELADA);
+        reservaRepositorio.save(reserva);
+
+        // Enviar emails de rechazo
+        enviarEmailsRechazoReserva(reserva);
     }
 
     @Override
@@ -149,7 +203,6 @@ public class ReservaServicioImpl implements ReservaServicio {
         // Enviar emails de notificación
         enviarEmailsCancelacion(reserva);
     }
-
     /**
      * Valida que las fechas sean coherentes
      */
@@ -177,7 +230,7 @@ public class ReservaServicioImpl implements ReservaServicio {
      * Verifica si hay solapamiento con otras reservas confirmadas o pendientes
      */
     private boolean existeSolapamiento(Long alojamientoId, LocalDate fechaEntrada,
-                                       LocalDate fechaSalida) {
+                                       LocalDate fechaSalida, Long reservaIdExcluir) {
 
         List<Reserva> reservasExistentes = reservaRepositorio
                 .findByAlojamiento_IdAndEstadoIn(
@@ -186,6 +239,10 @@ public class ReservaServicioImpl implements ReservaServicio {
                 );
 
         for (Reserva reserva : reservasExistentes) {
+            // Excluir la reserva actual si se está editando
+            if (reservaIdExcluir != null && reserva.getId().equals(reservaIdExcluir)) {
+                continue;
+            }
 
             // Verificar solapamiento
             boolean haySolapamiento = !(fechaSalida.isBefore(reserva.getFechaEntrada()) ||
@@ -200,21 +257,22 @@ public class ReservaServicioImpl implements ReservaServicio {
     }
 
     /**
-     * Envía emails de confirmación al huésped y al anfitrión
+     * Envía emails de solicitud de reserva al huésped y al anfitrión
      */
-    private void enviarEmailsConfirmacion(Reserva reserva, Alojamiento alojamiento, Usuario huesped) {
+    private void enviarEmailsSolicitudReserva(Reserva reserva, Alojamiento alojamiento, Usuario huesped) {
         // Email al huésped
-        String asuntoHuesped = "Reserva confirmada - " + alojamiento.getTitulo();
+        String asuntoHuesped = "Solicitud de reserva enviada - " + alojamiento.getTitulo();
         String cuerpoHuesped = String.format(
                 "¡Hola %s!\n\n" +
-                        "Tu reserva ha sido confirmada.\n\n" +
+                        "Tu solicitud de reserva ha sido enviada al anfitrión.\n\n" +
                         "Detalles:\n" +
                         "- Alojamiento: %s\n" +
                         "- Check-in: %s\n" +
                         "- Check-out: %s\n" +
                         "- Huéspedes: %d\n" +
                         "- Precio total: $%.2f\n\n" +
-                        "¡Esperamos que disfrutes tu estadía!",
+                        "Estado: PENDIENTE DE APROBACIÓN\n\n" +
+                        "El anfitrión revisará tu solicitud y te notificaremos cuando la acepte o rechace.",
                 huesped.getNombre(),
                 alojamiento.getTitulo(),
                 reserva.getFechaEntrada(),
@@ -226,22 +284,22 @@ public class ReservaServicioImpl implements ReservaServicio {
         try {
             emailServicio.enviarEmail(new EmailDTO(asuntoHuesped, cuerpoHuesped, huesped.getEmail()));
         } catch (Exception e) {
-            // Log error pero no fallar la transacción
             System.err.println("Error enviando email al huésped: " + e.getMessage());
         }
 
         // Email al anfitrión
-        String asuntoAnfitrion = "Nueva reserva en tu alojamiento - " + alojamiento.getTitulo();
+        String asuntoAnfitrion = "Nueva solicitud de reserva - " + alojamiento.getTitulo();
         String cuerpoAnfitrion = String.format(
                 "¡Hola %s!\n\n" +
-                        "Tienes una nueva reserva.\n\n" +
+                        "Tienes una nueva solicitud de reserva que requiere tu aprobación.\n\n" +
                         "Detalles:\n" +
                         "- Alojamiento: %s\n" +
                         "- Huésped: %s\n" +
                         "- Check-in: %s\n" +
                         "- Check-out: %s\n" +
                         "- Número de huéspedes: %d\n" +
-                        "- Precio total: $%.2f",
+                        "- Precio total: $%.2f\n\n" +
+                        "Por favor, revisa la solicitud y acéptala o recházala desde tu panel de anfitrión.",
                 alojamiento.getAnfitrion().getNombre(),
                 alojamiento.getTitulo(),
                 huesped.getNombre(),
@@ -256,6 +314,91 @@ public class ReservaServicioImpl implements ReservaServicio {
                     alojamiento.getAnfitrion().getEmail()));
         } catch (Exception e) {
             System.err.println("Error enviando email al anfitrión: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Envía emails de confirmación cuando el anfitrión acepta la reserva
+     */
+    private void enviarEmailsConfirmacionReserva(Reserva reserva) {
+        // Email al huésped
+        String asuntoHuesped = "¡Reserva confirmada! - " + reserva.getAlojamiento().getTitulo();
+        String cuerpoHuesped = String.format(
+                "¡Hola %s!\n\n" +
+                        "¡Buenas noticias! El anfitrión ha aceptado tu reserva.\n\n" +
+                        "Detalles:\n" +
+                        "- Alojamiento: %s\n" +
+                        "- Check-in: %s\n" +
+                        "- Check-out: %s\n" +
+                        "- Huéspedes: %d\n" +
+                        "- Precio total: $%.2f\n\n" +
+                        "Estado: CONFIRMADA\n\n" +
+                        "¡Esperamos que disfrutes tu estadía!",
+                reserva.getHuesped().getNombre(),
+                reserva.getAlojamiento().getTitulo(),
+                reserva.getFechaEntrada(),
+                reserva.getFechaSalida(),
+                reserva.getCantidadHuespedes(),
+                reserva.getPrecio()
+        );
+
+        try {
+            emailServicio.enviarEmail(new EmailDTO(asuntoHuesped, cuerpoHuesped,
+                    reserva.getHuesped().getEmail()));
+        } catch (Exception e) {
+            System.err.println("Error enviando email de confirmación al huésped: " + e.getMessage());
+        }
+
+        // Email al anfitrión
+        String asuntoAnfitrion = "Reserva confirmada - " + reserva.getAlojamiento().getTitulo();
+        String cuerpoAnfitrion = String.format(
+                "Hola %s,\n\n" +
+                        "Has aceptado la reserva de %s.\n\n" +
+                        "Detalles:\n" +
+                        "- Alojamiento: %s\n" +
+                        "- Check-in: %s\n" +
+                        "- Check-out: %s\n" +
+                        "- Número de huéspedes: %d\n\n" +
+                        "Recuerda preparar todo para la llegada de tu huésped.",
+                reserva.getAlojamiento().getAnfitrion().getNombre(),
+                reserva.getHuesped().getNombre(),
+                reserva.getAlojamiento().getTitulo(),
+                reserva.getFechaEntrada(),
+                reserva.getFechaSalida(),
+                reserva.getCantidadHuespedes()
+        );
+
+        try {
+            emailServicio.enviarEmail(new EmailDTO(asuntoAnfitrion, cuerpoAnfitrion,
+                    reserva.getAlojamiento().getAnfitrion().getEmail()));
+        } catch (Exception e) {
+            System.err.println("Error enviando email de confirmación al anfitrión: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Envía emails de rechazo cuando el anfitrión rechaza la reserva
+     */
+    private void enviarEmailsRechazoReserva(Reserva reserva) {
+        // Email al huésped
+        String asuntoHuesped = "Solicitud de reserva rechazada - " + reserva.getAlojamiento().getTitulo();
+        String cuerpoHuesped = String.format(
+                "Hola %s,\n\n" +
+                        "Lamentablemente, el anfitrión no pudo aceptar tu solicitud de reserva para '%s'.\n\n" +
+                        "Fechas solicitadas: %s al %s\n\n" +
+                        "Te invitamos a buscar otros alojamientos disponibles que se ajusten a tus necesidades.\n\n" +
+                        "¡Gracias por usar ViviGo!",
+                reserva.getHuesped().getNombre(),
+                reserva.getAlojamiento().getTitulo(),
+                reserva.getFechaEntrada(),
+                reserva.getFechaSalida()
+        );
+
+        try {
+            emailServicio.enviarEmail(new EmailDTO(asuntoHuesped, cuerpoHuesped,
+                    reserva.getHuesped().getEmail()));
+        } catch (Exception e) {
+            System.err.println("Error enviando email de rechazo al huésped: " + e.getMessage());
         }
     }
 
@@ -306,6 +449,29 @@ public class ReservaServicioImpl implements ReservaServicio {
                     reserva.getAlojamiento().getAnfitrion().getEmail()));
         } catch (Exception e) {
             System.err.println("Error enviando email al anfitrión: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Envía email al huésped cuando la reserva se completa, invitándolo a dejar reseña
+     */
+    private void enviarEmailReservaCompletada(Reserva reserva) {
+        String asunto = "¡Esperamos que hayas disfrutado tu estadía! - " + reserva.getAlojamiento().getTitulo();
+        String cuerpo = String.format(
+                "Hola %s,\n\n" +
+                        "Tu estadía en '%s' ha finalizado.\n\n" +
+                        "Esperamos que hayas tenido una experiencia maravillosa. " +
+                        "¿Te gustaría compartir tu experiencia dejando una reseña?\n\n" +
+                        "Tu opinión es muy valiosa para otros viajeros y para nuestros anfitriones.\n\n" +
+                        "¡Gracias por usar ViviGo!",
+                reserva.getHuesped().getNombre(),
+                reserva.getAlojamiento().getTitulo()
+        );
+
+        try {
+            emailServicio.enviarEmail(new EmailDTO(asunto, cuerpo, reserva.getHuesped().getEmail()));
+        } catch (Exception e) {
+            System.err.println("Error enviando email de reserva completada: " + e.getMessage());
         }
     }
 }
