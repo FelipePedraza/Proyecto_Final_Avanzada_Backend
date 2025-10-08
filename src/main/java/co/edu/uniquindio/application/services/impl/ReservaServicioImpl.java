@@ -451,27 +451,4 @@ public class ReservaServicioImpl implements ReservaServicio {
             System.err.println("Error enviando email al anfitrión: " + e.getMessage());
         }
     }
-
-    /**
-     * Envía email al huésped cuando la reserva se completa, invitándolo a dejar reseña
-     */
-    private void enviarEmailReservaCompletada(Reserva reserva) {
-        String asunto = "¡Esperamos que hayas disfrutado tu estadía! - " + reserva.getAlojamiento().getTitulo();
-        String cuerpo = String.format(
-                "Hola %s,\n\n" +
-                        "Tu estadía en '%s' ha finalizado.\n\n" +
-                        "Esperamos que hayas tenido una experiencia maravillosa. " +
-                        "¿Te gustaría compartir tu experiencia dejando una reseña?\n\n" +
-                        "Tu opinión es muy valiosa para otros viajeros y para nuestros anfitriones.\n\n" +
-                        "¡Gracias por usar ViviGo!",
-                reserva.getHuesped().getNombre(),
-                reserva.getAlojamiento().getTitulo()
-        );
-
-        try {
-            emailServicio.enviarEmail(new EmailDTO(asunto, cuerpo, reserva.getHuesped().getEmail()));
-        } catch (Exception e) {
-            System.err.println("Error enviando email de reserva completada: " + e.getMessage());
-        }
-    }
 }
