@@ -27,9 +27,4 @@ public class ChatServicioImpl implements ChatServicio {
         // Lógica de negocio a implementar
         return null;
     }
-
-    @Override
-    public void marcarMensajeLeido(Long id) throws Exception {
-        // Lógica de negocio a implementar
-    }
 }

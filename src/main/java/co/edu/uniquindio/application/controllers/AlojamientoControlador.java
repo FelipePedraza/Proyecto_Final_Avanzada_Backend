@@ -2,8 +2,10 @@ package co.edu.uniquindio.application.controllers;
 
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.alojamiento.*;
-import co.edu.uniquindio.application.dtos.usuario.CreacionAnfitrionDTO;
+import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
+import co.edu.uniquindio.application.models.enums.ReservaEstado;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
+import co.edu.uniquindio.application.services.ReservaServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -11,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -19,6 +22,7 @@ import java.util.List;
 public class AlojamientoControlador {
 
     private final AlojamientoServicio alojamientoServicio;
+    private final ReservaServicio reservaServicio;
 
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<RespuestaDTO<String>> crearAlojamiento(@RequestPart("alojamiento") @Valid CreacionAlojamientoDTO dto, @RequestPart(value = "imagenes", required = false) MultipartFile[] imagenes) throws Exception {
@@ -57,5 +61,16 @@ public class AlojamientoControlador {
     @GetMapping
     public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> obtenerAlojamientos(@Valid AlojamientoFiltroDTO filtros, @RequestParam(defaultValue = "0") int pagina) throws Exception {
         return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientoServicio.obtenerAlojamientos(filtros, pagina)));
+    }
+
+    @GetMapping("/{id}/reservas")
+    public ResponseEntity<RespuestaDTO<List<ItemReservaDTO>>> obtenerReservasAlojamiento(
+            @PathVariable(value = "id")  Long id,
+            @RequestParam(required = false) ReservaEstado estado,
+            @RequestParam(required = false) LocalDate fechaEntrada,
+            @RequestParam(required = false) LocalDate fechaSalida ,
+            @RequestParam(required = false, defaultValue = "0") int pagina) throws Exception {
+        List<ItemReservaDTO> reservas = reservaServicio.obtenerReservasAlojamiento(id, estado, fechaEntrada, fechaSalida, pagina);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
 }

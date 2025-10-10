@@ -11,9 +11,11 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReservaRepositorio extends JpaRepository<Reserva, Long> {
+
 
     /**
      * Busca reservas de un alojamiento en estados específicos
@@ -24,8 +26,20 @@ public interface ReservaRepositorio extends JpaRepository<Reserva, Long> {
             + "AND (:estado IS NULL OR r.estado = :estado) "
             + "AND (:fechaEntrada  IS NULL OR r.fechaEntrada >= :fechaEntrada ) "
             + "AND (:fechaSalida IS NULL OR r.fechaEntrada  <= :fechaSalida )")
-    Page<Reserva> buscarConFiltros(
+    Page<Reserva> buscarConFiltrosUsuario(
             String idUsuario,
+            @Param("estado") ReservaEstado estado,
+            @Param("fechaEntrada") LocalDate fechaEntrada,
+            @Param("fechaSalida") LocalDate fechaSalida ,
+            Pageable pageable
+    );
+
+    @Query("SELECT r FROM Reserva r WHERE r.alojamiento.id = :idAlojamiento "
+            + "AND (:estado IS NULL OR r.estado = :estado) "
+            + "AND (:fechaEntrada  IS NULL OR r.fechaEntrada >= :fechaEntrada ) "
+            + "AND (:fechaSalida IS NULL OR r.fechaEntrada  <= :fechaSalida )")
+    Page<Reserva> buscarConFiltrosAlojamiento(
+            Long idAlojamiento,
             @Param("estado") ReservaEstado estado,
             @Param("fechaEntrada") LocalDate fechaEntrada,
             @Param("fechaSalida") LocalDate fechaSalida ,

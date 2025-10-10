@@ -12,4 +12,5 @@ public interface AlojamientoServicio {
     AlojamientoDTO obtenerPorId(Long id) throws Exception;
     MetricasDTO obtenerMetricas(Long id) throws Exception;
     List<ItemAlojamientoDTO> obtenerAlojamientos(AlojamientoFiltroDTO filtros, int pagina) throws Exception;
+    List<ItemAlojamientoDTO> obtenerAlojamientosUsuario(String id, int pagina) throws Exception;
 }

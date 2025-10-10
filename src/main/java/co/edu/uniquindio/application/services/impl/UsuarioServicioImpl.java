@@ -1,36 +1,25 @@
 package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dtos.EmailDTO;
-import co.edu.uniquindio.application.dtos.alojamiento.ItemAlojamientoDTO;
-import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
 import co.edu.uniquindio.application.dtos.usuario.*;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.exceptions.ValueConflictException;
-import co.edu.uniquindio.application.mappers.AlojamientoMapper;
-import co.edu.uniquindio.application.mappers.ReservaMapper;
 import co.edu.uniquindio.application.mappers.UsuarioMapper;
 import co.edu.uniquindio.application.mappers.PerfilAnfitrionMapper;
-import co.edu.uniquindio.application.models.entitys.ContrasenaCodigoReinicio;
 import co.edu.uniquindio.application.models.entitys.PerfilAnfitrion;
 import co.edu.uniquindio.application.models.entitys.Usuario;
 import co.edu.uniquindio.application.models.enums.Estado;
-import co.edu.uniquindio.application.models.enums.ReservaEstado;
 import co.edu.uniquindio.application.models.enums.Rol;
 import co.edu.uniquindio.application.repositories.*;
 import co.edu.uniquindio.application.services.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
+
 import java.util.Map;
 import java.util.Optional;
 
@@ -40,17 +29,14 @@ public class UsuarioServicioImpl implements UsuarioServicio {
 
     private final UsuarioRepositorio usuarioRepositorio;
     private final UsuarioMapper usuarioMapper;
-    private final ContrasenaCodigoReinicioRepositorio contrasenaCodigoReinicioRepositorio;
     private final PasswordEncoder passwordEncoder;
     private final AuthServicio authServicio;
     private final EmailServicio emailServicio;
     private final ImagenServicio imagenServicio;
     private final PerfilAnfitrionRepositorio perfilAnfitrionRepositorio;
     private final PerfilAnfitrionMapper perfilAnfitrionMapper;
-    private final AlojamientoRepositorio alojamientoRepositorio;
-    private final AlojamientoMapper alojamientoMapper;
-    private final ReservaRepositorio reservaRepositorio;
-    private final ReservaMapper reservaMapper;
+
+
 
 
     @Override
@@ -170,31 +156,6 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     }
 
     @Override
-    public void reiniciarContrasena(ReinicioContrasenaDTO reinicioContrasenaDTO) throws Exception {
-
-        Optional<ContrasenaCodigoReinicio> contrasenaCodigoReinicio = contrasenaCodigoReinicioRepositorio.findByUsuario_Email(reinicioContrasenaDTO.email());
-
-        if(contrasenaCodigoReinicio.isEmpty()){
-            throw new NoFoundException("El usuario no existe");
-        }
-
-        ContrasenaCodigoReinicio contrasenaCodigoReinicioActualizado = contrasenaCodigoReinicio.get();
-
-        if(!contrasenaCodigoReinicioActualizado.getCodigo().equals(reinicioContrasenaDTO.codigoVerificacion())){
-            throw new Exception("El codigo no es válido");
-        }
-
-        if ( contrasenaCodigoReinicioActualizado.getCreadoEn().plusMinutes(15).isBefore(LocalDateTime.now())){
-            throw new Exception("El codigo ya vencio, solicite otro");
-        }
-
-        Usuario usuario = contrasenaCodigoReinicioActualizado.getUsuario();
-        usuario.setContrasena(passwordEncoder.encode(reinicioContrasenaDTO.nuevaContrasena()));
-        usuarioRepositorio.save(usuario);
-
-    }
-
-    @Override
     public void crearAnfitrion(CreacionAnfitrionDTO dto) throws Exception {
 
         // Verificar que el usuario autenticado coincide con el id del DTO (permiso)
@@ -227,31 +188,6 @@ public class UsuarioServicioImpl implements UsuarioServicio {
                 "Tu perfil de anfitrión ha sido creado exitosamente. Ahora puedes publicar tus alojamientos y comenzar a recibir reservas.",
                 usuario.getEmail()
         ));
-    }
-
-    @Override
-    public List<ItemAlojamientoDTO> obtenerAlojamientosUsuario(String id, int pagina) throws Exception {
-
-        if(!authServicio.obtnerIdAutenticado(id)){
-            throw new AccessDeniedException("No tiene permisos para ver los alojamientos de este usuario.");
-        }
-
-        Pageable pageable = PageRequest.of(pagina, 5);
-        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.getAlojamientos(id, Estado.ACTIVO ,pageable).map(alojamientoMapper::toItemDTO);
-
-        return alojamientos.toList();
-    }
-
-    @Override
-    public List<ItemReservaDTO> obtenerReservasUsuario(String id, ReservaEstado estado, LocalDate fechaEntrada, LocalDate fechaSalida, int pagina) throws Exception {
-
-        if(!authServicio.obtnerIdAutenticado(id)){
-            throw new AccessDeniedException("No tiene permisos para las reservas de este usuario.");
-        }
-
-        Pageable pageable = PageRequest.of(pagina, 5);
-        Page<ItemReservaDTO> reservas = reservaRepositorio.buscarConFiltros(id, estado, fechaEntrada, fechaSalida, pageable).map(reservaMapper::toItemDTO);
-        return reservas.toList();
     }
 
     public boolean existePorEmail(String email){

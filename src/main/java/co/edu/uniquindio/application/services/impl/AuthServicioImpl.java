@@ -1,7 +1,10 @@
 package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dtos.usuario.*;
+import co.edu.uniquindio.application.exceptions.NoFoundException;
+import co.edu.uniquindio.application.models.entitys.ContrasenaCodigoReinicio;
 import co.edu.uniquindio.application.models.entitys.Usuario;
+import co.edu.uniquindio.application.repositories.ContrasenaCodigoReinicioRepositorio;
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
 import co.edu.uniquindio.application.security.JWTUtils;
 import co.edu.uniquindio.application.services.AuthServicio;
@@ -13,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.authentication.BadCredentialsException;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 
@@ -24,6 +28,7 @@ public class AuthServicioImpl implements AuthServicio {
     private final UsuarioRepositorio usuarioRepositorio;
     private final JWTUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
+    private final ContrasenaCodigoReinicioRepositorio contrasenaCodigoReinicioRepositorio;
 
     @Override
     public TokenDTO login(LoginDTO loginDTO) throws Exception {
@@ -50,6 +55,31 @@ public class AuthServicioImpl implements AuthServicio {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String idUsuarioAutenticado = user.getUsername();
         return idUsuarioAutenticado.equals(idUsuario);
+    }
+
+    @Override
+    public void reiniciarContrasena(ReinicioContrasenaDTO reinicioContrasenaDTO) throws Exception {
+
+        Optional<ContrasenaCodigoReinicio> contrasenaCodigoReinicio = contrasenaCodigoReinicioRepositorio.findByUsuario_Email(reinicioContrasenaDTO.email());
+
+        if(contrasenaCodigoReinicio.isEmpty()){
+            throw new NoFoundException("El usuario no existe");
+        }
+
+        ContrasenaCodigoReinicio contrasenaCodigoReinicioActualizado = contrasenaCodigoReinicio.get();
+
+        if(!contrasenaCodigoReinicioActualizado.getCodigo().equals(reinicioContrasenaDTO.codigoVerificacion())){
+            throw new Exception("El codigo no es válido");
+        }
+
+        if ( contrasenaCodigoReinicioActualizado.getCreadoEn().plusMinutes(15).isBefore(LocalDateTime.now())){
+            throw new Exception("El codigo ya vencio, solicite otro");
+        }
+
+        Usuario usuario = contrasenaCodigoReinicioActualizado.getUsuario();
+        usuario.setContrasena(passwordEncoder.encode(reinicioContrasenaDTO.nuevaContrasena()));
+        usuarioRepositorio.save(usuario);
+
     }
 
     private Map<String, String> crearReclamos(Usuario usuario){

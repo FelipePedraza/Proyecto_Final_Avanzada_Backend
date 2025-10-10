@@ -42,9 +42,4 @@ public class ChatControlador {
         return ResponseEntity.ok(new RespuestaDTO<>(false, conversaciones));
     }
 
-    @PatchMapping("/mensajes/{id}/estado")
-    public ResponseEntity<RespuestaDTO<String>> marcarMensajeLeido(@PathVariable Long id) throws Exception {
-        chatServicio.marcarMensajeLeido(id);
-        return ResponseEntity.ok(new RespuestaDTO<>(false, "Mensaje marcado como leído."));
-    }
 }

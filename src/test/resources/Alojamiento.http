@@ -132,3 +132,7 @@ Content-Type: application/json
 ### 12. Búsqueda completa con paginación
 GET http://localhost:8080/api/alojamientos?ciudad=Calarcá&fechaEntrada=2025-12-01&fechaSalida=2025-12-05&huespedes=4&precioMin=80000&precioMax=250000&pagina=0
 Content-Type: application/json
+
+### Obtener reservas Alojamiento
+GET http://localhost:8080/api/alojamientos/1/reservas
+Authorization: Bearer {{auth_token}}

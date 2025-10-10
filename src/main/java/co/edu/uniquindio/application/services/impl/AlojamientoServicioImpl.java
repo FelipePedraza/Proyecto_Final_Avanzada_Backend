@@ -7,6 +7,7 @@ import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.models.entitys.Alojamiento;
 import co.edu.uniquindio.application.repositories.AlojamientoRepositorio;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
+import co.edu.uniquindio.application.services.AuthServicio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -38,6 +39,7 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     private final UsuarioServicio usuarioServicio;
     private final UsuarioMapper usuarioMapper;
     private final ImagenServicio imagenServicio;
+    private final AuthServicio authServicio;
 
     @Override
     public void crear(CreacionAlojamientoDTO alojamientoDTO, MultipartFile[] imagenes) throws Exception {
@@ -311,6 +313,19 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
                 pageable
         ).map(alojamientoMapper::toItemDTO);
 
+
+        return alojamientos.toList();
+    }
+
+    @Override
+    public List<ItemAlojamientoDTO> obtenerAlojamientosUsuario(String id, int pagina) throws Exception {
+
+        if(!authServicio.obtnerIdAutenticado(id)){
+            throw new AccessDeniedException("No tiene permisos para ver los alojamientos de este usuario.");
+        }
+
+        Pageable pageable = PageRequest.of(pagina, 5);
+        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.getAlojamientos(id, Estado.ACTIVO ,pageable).map(alojamientoMapper::toItemDTO);
 
         return alojamientos.toList();
     }

@@ -6,11 +6,11 @@ import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
 import co.edu.uniquindio.application.dtos.usuario.*;
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.models.enums.ReservaEstado;
+import co.edu.uniquindio.application.services.AlojamientoServicio;
+import co.edu.uniquindio.application.services.ReservaServicio;
 import co.edu.uniquindio.application.services.UsuarioServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +26,8 @@ import java.util.List;
 public class UsuarioControlador {
 
     private final UsuarioServicio usuarioServicio;
+    private final AlojamientoServicio alojamientoServicio;
+    private final ReservaServicio reservaServicio;
 
     @PostMapping("/anfitrion")
     public ResponseEntity<RespuestaDTO<String>> crearAnfitrion(@Valid @RequestBody CreacionAnfitrionDTO dto) throws Exception {
@@ -59,7 +61,7 @@ public class UsuarioControlador {
 
     @GetMapping("/{id}/alojamientos")
     public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> obtenerAlojamientosUsuario(@PathVariable String id, @RequestParam(defaultValue = "0") int pagina) throws Exception {
-        List<ItemAlojamientoDTO> alojamientos = usuarioServicio.obtenerAlojamientosUsuario(id, pagina);
+        List<ItemAlojamientoDTO> alojamientos = alojamientoServicio.obtenerAlojamientosUsuario(id, pagina);
         return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientos));
     }
 
@@ -70,7 +72,7 @@ public class UsuarioControlador {
             @RequestParam(required = false) LocalDate fechaEntrada,
             @RequestParam(required = false) LocalDate fechaSalida ,
             @RequestParam(required = false, defaultValue = "0") int pagina) throws Exception {
-        List<ItemReservaDTO> reservas = usuarioServicio.obtenerReservasUsuario(id, estado, fechaEntrada, fechaSalida, pagina);
+        List<ItemReservaDTO> reservas = reservaServicio.obtenerReservasUsuario(id, estado, fechaEntrada, fechaSalida, pagina);
         return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
 

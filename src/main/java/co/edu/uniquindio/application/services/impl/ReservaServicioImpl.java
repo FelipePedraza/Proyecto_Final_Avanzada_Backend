@@ -2,6 +2,7 @@ package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dtos.EmailDTO;
 import co.edu.uniquindio.application.dtos.reserva.CreacionReservaDTO;
+import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.mappers.ReservaMapper;
@@ -13,9 +14,14 @@ import co.edu.uniquindio.application.models.enums.ReservaEstado;
 import co.edu.uniquindio.application.repositories.AlojamientoRepositorio;
 import co.edu.uniquindio.application.repositories.ReservaRepositorio;
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
+import co.edu.uniquindio.application.services.AuthServicio;
 import co.edu.uniquindio.application.services.EmailServicio;
 import co.edu.uniquindio.application.services.ReservaServicio;
+import co.edu.uniquindio.application.services.UsuarioServicio;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -26,6 +32,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +44,8 @@ public class ReservaServicioImpl implements ReservaServicio {
     private final UsuarioRepositorio usuarioRepositorio;
     private final ReservaMapper reservaMapper;
     private final EmailServicio emailServicio;
+    private final AuthServicio authServicio;
+    private final UsuarioServicio usuarioServicio;
 
     @Override
     public void crear(CreacionReservaDTO dto) throws Exception {
@@ -202,6 +211,43 @@ public class ReservaServicioImpl implements ReservaServicio {
 
         // Enviar emails de notificación
         enviarEmailsCancelacion(reserva);
+    }
+
+    @Override
+    public List<ItemReservaDTO> obtenerReservasUsuario(String id, ReservaEstado estado, LocalDate fechaEntrada, LocalDate fechaSalida, int pagina) throws Exception {
+
+        if(!authServicio.obtnerIdAutenticado(id)){
+            throw new AccessDeniedException("No tiene permisos para las reservas de este usuario.");
+        }
+
+        Pageable pageable = PageRequest.of(pagina, 5);
+        Page<ItemReservaDTO> reservas = reservaRepositorio.buscarConFiltrosUsuario(id, estado, fechaEntrada, fechaSalida, pageable).map(reservaMapper::toItemDTO);
+        return reservas.toList();
+    }
+
+    @Override
+    public List<ItemReservaDTO> obtenerReservasAlojamiento(Long idAlojamiento, ReservaEstado estado, LocalDate fechaEntrada, LocalDate fechaSalida, int pagina) throws Exception {
+
+
+        // Obtener usuario autenticado
+        User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String idUsuarioAutenticado = usuarioAutenticado.getUsername();
+
+        Optional<Alojamiento> alojamientoOptional = alojamientoRepositorio.findById(idAlojamiento);
+
+        if(alojamientoOptional.isEmpty()){
+            throw new NoFoundException("Alojamiento no encontrado");
+        }
+
+        Alojamiento alojamiento = alojamientoOptional.get();
+
+        if(!idUsuarioAutenticado.equals(alojamiento.getAnfitrion().getId())){
+            throw new AccessDeniedException("No tiene permisos para las reservas de este alojamiento.");
+        }
+
+        Pageable pageable = PageRequest.of(pagina, 5);
+        Page<ItemReservaDTO> reservas = reservaRepositorio.buscarConFiltrosAlojamiento(idAlojamiento, estado, fechaEntrada, fechaSalida, pageable).map(reservaMapper::toItemDTO);
+        return reservas.toList();
     }
     /**
      * Valida que las fechas sean coherentes

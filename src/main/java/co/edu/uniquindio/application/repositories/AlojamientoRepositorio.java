@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import co.edu.uniquindio.application.models.enums.Estado;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AlojamientoRepositorio extends JpaRepository<Alojamiento, Long> {
+
+    Optional<Alojamiento> findById(Long id);
 
     Optional<Alojamiento> findByTitulo(String titulo);
 

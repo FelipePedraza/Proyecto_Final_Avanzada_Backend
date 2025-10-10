@@ -9,5 +9,4 @@ public interface ChatServicio {
     ChatDTO obtenerChat(Long id, int pagina, int tamano) throws Exception;
     MensajeDTO enviarMensaje(Long id, String contenido) throws Exception;
     List<ChatDTO> listarConversaciones(Long id) throws Exception;
-    void marcarMensajeLeido(Long id) throws Exception;
 }

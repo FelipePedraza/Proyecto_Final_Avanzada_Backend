@@ -37,7 +37,7 @@ public class AuthControlador {
 
     @PatchMapping("/reset-password")
     public ResponseEntity<RespuestaDTO<String>> restablecerContrasena(@Valid @RequestBody ReinicioContrasenaDTO reinicioContrasenaDTO) throws Exception {
-        usuarioServicio.reiniciarContrasena(reinicioContrasenaDTO);
+        authServicio.reiniciarContrasena(reinicioContrasenaDTO);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Contraseña restablecida correctamente."));
     }
 }
