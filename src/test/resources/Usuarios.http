@@ -8,7 +8,7 @@ DELETE http://localhost:8080/api/usuarios/1
 ### Cambiar contraseña (PATCH) (200) — usa CambioContrasenaDTO
 PATCH http://localhost:8080/api/usuarios/1ccd6ad2-6ab3-4987-996c-99bdffd2905d/contrasena
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRhdmlkLnBvc3NvQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTF9IdWVzcGVkIiwibmFtZSI6IkRhdmlkIFBvc3NvIiwic3ViIjoiMWNjZDZhZDItNmFiMy00OTg3LTk5NmMtOTliZGZmZDI5MDVkIiwiaWF0IjoxNzU5NjIzMzMwLCJleHAiOjE3NTk2MjY5MzB9.3rtGWaRc2AgLU8hHAIb4Not5SOOcLyFrZc-Mtzvryb8
+Authorization: Bearer {{auth_token}}
 
 {
   "contrasenaActual": "Passw0rd1",

@@ -22,4 +22,20 @@ Content-Type: application/json
   "rol": "Huesped"
 }
 
+### Solicitar codigo de recuperación
+POST http://localhost:8080/api/auth/forgot-password
+Content-Type: application/json
 
+{
+  "email" : "felipedraza830@gmail.com"
+}
+
+### Restablecer contraseña
+PATCH http://localhost:8080/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "email": "felipedraza830@gmail.com",
+  "codigoVerificacion": "474113",
+  "nuevaContrasena": "Pass0123"
+}

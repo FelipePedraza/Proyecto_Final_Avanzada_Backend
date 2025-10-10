@@ -360,7 +360,14 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
 
     @Override
     public List<ItemAlojamientoDTO> sugerirAlojamientos(String ciudad){
-        return null;
+        // Crear paginación para obtener los primeros 10 resultados
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // Buscar alojamientos ordenados por calificación
+        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.sugerirPorCiudad(ciudad, Estado.ACTIVO, pageable).map(alojamientoMapper::toItemDTO);
+
+        // Convertir a DTOs
+        return alojamientos.toList();
     }
 
     public boolean existePorTitulo(String titulo){

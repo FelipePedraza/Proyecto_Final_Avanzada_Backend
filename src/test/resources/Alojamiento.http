@@ -164,3 +164,7 @@ Content-Type: application/json
 GET http://localhost:8080/api/alojamientos/1/metricas
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
+
+### Obtener una lista de alojamientos por ciudad ordenado por calificación
+GET http://localhost:8080/api/alojamientos/sugerencias?ciudad=Arme
+Content-Type: application/json

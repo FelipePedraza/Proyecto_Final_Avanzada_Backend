@@ -1,13 +1,18 @@
 package co.edu.uniquindio.application.services.impl;
 
+import co.edu.uniquindio.application.dtos.EmailDTO;
 import co.edu.uniquindio.application.dtos.usuario.*;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
+import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.models.entitys.ContrasenaCodigoReinicio;
+import co.edu.uniquindio.application.models.entitys.Resena;
 import co.edu.uniquindio.application.models.entitys.Usuario;
+import co.edu.uniquindio.application.models.enums.Estado;
 import co.edu.uniquindio.application.repositories.ContrasenaCodigoReinicioRepositorio;
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
 import co.edu.uniquindio.application.security.JWTUtils;
 import co.edu.uniquindio.application.services.AuthServicio;
+import co.edu.uniquindio.application.services.EmailServicio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,6 +34,7 @@ public class AuthServicioImpl implements AuthServicio {
     private final JWTUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
     private final ContrasenaCodigoReinicioRepositorio contrasenaCodigoReinicioRepositorio;
+    private final EmailServicio emailServicio;
 
     @Override
     public TokenDTO login(LoginDTO loginDTO) throws Exception {
@@ -58,7 +64,51 @@ public class AuthServicioImpl implements AuthServicio {
     }
 
     @Override
-    public void solicitarRecuperacion(OlvidoContrasenaDTO olvidoContrasenaDTO) throws Exception{
+    public void solicitarRecuperacion(OlvidoContrasenaDTO olvidoContrasenaDTO) throws Exception {
+
+        // Buscar usuario por email
+        Optional<Usuario> optionalUsuario = usuarioRepositorio.findByEmail(olvidoContrasenaDTO.email());
+
+        if (optionalUsuario.isEmpty()) {
+            throw new NoFoundException("No existe un usuario con ese correo electrónico");
+        }
+
+        Usuario usuario = optionalUsuario.get();
+
+        // Validar que el usuario esté activo
+        if (usuario.getEstado() == Estado.ELIMINADO) {
+            throw new ValidationException("El usuario no está activo");
+        }
+
+        // Generar código de 6 dígitos aleatorio
+        String codigo = generarCodigoRecuperacion();
+
+        // Buscar si ya existe un código para este usuario
+        Optional<ContrasenaCodigoReinicio> codigoExistente =
+                contrasenaCodigoReinicioRepositorio.findByUsuario_Email(olvidoContrasenaDTO.email());
+
+        ContrasenaCodigoReinicio contrasenaCodigoReinicio;
+
+        if (codigoExistente.isPresent()) {
+            // Actualizar código existente
+            contrasenaCodigoReinicio = codigoExistente.get();
+            contrasenaCodigoReinicio.setCodigo(codigo);
+            contrasenaCodigoReinicio.setCreadoEn(LocalDateTime.now());
+        } else {
+            // Crear nuevo registro
+            contrasenaCodigoReinicio = ContrasenaCodigoReinicio.builder()
+                    .codigo(codigo)
+                    .creadoEn(LocalDateTime.now())
+                    .usuario(usuario)
+                    .build();
+        }
+
+        // Guardar código en la base de datos
+        contrasenaCodigoReinicioRepositorio.save(contrasenaCodigoReinicio);
+
+        // Enviar codigo al correo
+        enviarEmailCodigo(codigo, usuario);
+
 
     }
 
@@ -93,6 +143,43 @@ public class AuthServicioImpl implements AuthServicio {
                 "name", usuario.getNombre(),
                 "role", "ROL_"+usuario.getRol().name()
         );
+    }
+
+    /**
+     * Genera un código aleatorio de 6 dígitos para recuperación de contraseña
+     */
+    private String generarCodigoRecuperacion() {
+        int codigo = (int) (Math.random() * 900000) + 100000;
+        return String.valueOf(codigo);
+    }
+
+    /**
+     * Enviar correo con el codigo
+     */
+    private void enviarEmailCodigo(String codigo, Usuario usuario) {
+
+        String asunto = "Código de recuperación de contraseña - ViviGo";
+        String cuerpo = String.format(
+                "Hola %s,\n\n" +
+                        "Has solicitado recuperar tu contraseña.\n\n" +
+                        "Tu código de verificación es: %s\n\n" +
+                        "Este código expirará en 15 minutos.\n\n" +
+                        "Si no solicitaste este cambio, por favor ignora este correo.\n\n" +
+                        "Saludos,\n" +
+                        "Equipo ViviGo",
+                usuario.getNombre(),
+                codigo
+        );
+
+        try {
+            emailServicio.enviarEmail(new EmailDTO(
+                    asunto,
+                    cuerpo,
+                    usuario.getEmail()
+            ));
+        } catch (Exception e) {
+            System.err.println("Error enviando email de respuesta a reseña: " + e.getMessage());
+        }
     }
 
 }

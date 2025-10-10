@@ -3,6 +3,7 @@ package co.edu.uniquindio.application.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -49,5 +50,11 @@ public class RestExceptionHandler {
     public ResponseEntity<RespuestaDTO<String>> accessDeniedExceptionHandler(AccessDeniedException ex){
         // 403 Prohibido: usuario autenticado pero sin permisos suficientes
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body( new RespuestaDTO<>(true, ex.getMessage()) );
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<RespuestaDTO<String>> badCredentialsExceptionHandler(BadCredentialsException ex){
+        // 401
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body( new RespuestaDTO<>(true, ex.getMessage()) );
     }
 }
