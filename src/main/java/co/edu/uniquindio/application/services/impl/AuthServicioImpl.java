@@ -58,6 +58,11 @@ public class AuthServicioImpl implements AuthServicio {
     }
 
     @Override
+    public void solicitarRecuperacion(OlvidoContrasenaDTO olvidoContrasenaDTO) throws Exception{
+
+    }
+
+    @Override
     public void reiniciarContrasena(ReinicioContrasenaDTO reinicioContrasenaDTO) throws Exception {
 
         Optional<ContrasenaCodigoReinicio> contrasenaCodigoReinicio = contrasenaCodigoReinicioRepositorio.findByUsuario_Email(reinicioContrasenaDTO.email());

@@ -32,6 +32,7 @@ public class AuthControlador {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<RespuestaDTO<String>> solicitarRecuperacion(@Valid @RequestBody OlvidoContrasenaDTO olvidoContrasenaDTO) throws Exception {
+        authServicio.solicitarRecuperacion(olvidoContrasenaDTO);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Código de recuperación enviado al correo."));
     }
 

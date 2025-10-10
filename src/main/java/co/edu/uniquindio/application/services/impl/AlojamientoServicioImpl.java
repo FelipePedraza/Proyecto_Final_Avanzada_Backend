@@ -358,6 +358,11 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
         return alojamientos.toList();
     }
 
+    @Override
+    public List<ItemAlojamientoDTO> sugerirAlojamientos(String ciudad){
+        return null;
+    }
+
     public boolean existePorTitulo(String titulo){
 
         Optional<Alojamiento> optionalAlojamiento = alojamientoRepositorio.findByTitulo(titulo);
