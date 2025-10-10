@@ -49,4 +49,7 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    
+    // Configuración para evitar warnings de Mockito en JDK 21
+    jvmArgs '-XX:+EnableDynamicAgentLoading'
 }
