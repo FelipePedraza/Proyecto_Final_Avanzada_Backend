@@ -1,0 +1,150 @@
+### ===========================================
+### CHAT EN TIEMPO REAL - VIVIGO
+### ===========================================
+
+### 1. INICIAR CHAT CON USUARIO
+POST http://localhost:8080/api/chat/iniciar?destinatarioId=usuario123
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+### 2. ENVIAR MENSAJE A USUARIO
+POST http://localhost:8080/api/chat/enviar?destinatarioId=usuario123
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+"Hola, ¿tienes disponibilidad para el fin de semana?"
+
+### 3. OBTENER CHAT ESPECÍFICO (con paginación)
+GET http://localhost:8080/api/chat/1?pagina=0&tamano=20
+Accept: application/json
+Authorization: Bearer {{auth_token}}
+
+### 4. LISTAR CONVERSACIONES DEL USUARIO
+GET http://localhost:8080/api/chat/usuario/797d814a-5fd0-4953-810d-f593ff73928f/conversaciones
+Accept: application/json
+Authorization: Bearer {{auth_token}}
+
+### 5. OBTENER MENSAJES NO LEÍDOS
+GET http://localhost:8080/api/chat/usuario/797d814a-5fd0-4953-810d-f593ff73928f/mensajes-no-leidos
+Accept: application/json
+Authorization: Bearer {{auth_token}}
+
+### 6. MARCAR CHAT COMO LEÍDO
+PUT http://localhost:8080/api/chat/1/marcar-leido?usuarioId=797d814a-5fd0-4953-810d-f593ff73928f
+Authorization: Bearer {{auth_token}}
+
+### ===========================================
+### PRUEBAS DE VALIDACIÓN
+### ===========================================
+
+### 7. ENVIAR MENSAJE VACÍO (debe fallar)
+POST http://localhost:8080/api/chat/enviar?destinatarioId=usuario123
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+""
+
+### 8. ENVIAR MENSAJE MUY LARGO (debe fallar)
+POST http://localhost:8080/api/chat/enviar?destinatarioId=usuario123
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+"Este es un mensaje muy largo que excede los 1000 caracteres permitidos. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrud exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
+
+### 9. ENVIAR MENSAJE A SÍ MISMO (debe fallar)
+POST http://localhost:8080/api/chat/enviar?destinatarioId=797d814a-5fd0-4953-810d-f593ff73928f
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+"No puedo enviarme mensajes a mí mismo"
+
+### 10. INICIAR CHAT CON USUARIO INEXISTENTE (debe fallar)
+POST http://localhost:8080/api/chat/iniciar?destinatarioId=usuario-inexistente
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+### ===========================================
+### PRUEBAS DE SEGURIDAD
+### ===========================================
+
+### 11. ACCEDER A CHAT SIN AUTENTICACIÓN (debe fallar)
+GET http://localhost:8080/api/chat/1?pagina=0&tamano=20
+Accept: application/json
+
+### 12. ACCEDER A CHAT DE OTRO USUARIO (debe fallar)
+GET http://localhost:8080/api/chat/999?pagina=0&tamano=20
+Accept: application/json
+Authorization: Bearer {{auth_token}}
+
+### 13. ENVIAR MENSAJE SIN AUTENTICACIÓN (debe fallar)
+POST http://localhost:8080/api/chat/enviar?destinatarioId=usuario123
+Content-Type: application/json
+
+"Mensaje sin autenticación"
+
+### ===========================================
+### PRUEBAS DE CONVERSACIÓN COMPLETA
+### ===========================================
+
+### 14. MENSAJE 1: Saludo inicial
+POST http://localhost:8080/api/chat/enviar?destinatarioId=usuario123
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+"¡Hola! Vi tu alojamiento y me interesa mucho. ¿Está disponible para el próximo fin de semana?"
+
+### 15. MENSAJE 2: Pregunta sobre servicios
+POST http://localhost:8080/api/chat/enviar?destinatarioId=usuario123
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+"¿Tienes WiFi y estacionamiento incluido?"
+
+### 16. MENSAJE 3: Consulta sobre precio
+POST http://localhost:8080/api/chat/enviar?destinatarioId=usuario123
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+"¿El precio que veo en la plataforma es final o hay cargos adicionales?"
+
+### 17. MENSAJE 4: Coordinación de llegada
+POST http://localhost:8080/api/chat/enviar?destinatarioId=usuario123
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+"Perfecto, entonces llegaría el viernes a las 3 PM. ¿Cómo coordinamos el check-in?"
+
+### 18. MENSAJE 5: Confirmación final
+POST http://localhost:8080/api/chat/enviar?destinatarioId=usuario123
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+"¡Excelente! Muchas gracias por toda la información. Procedo a hacer la reserva."
+
+### ===========================================
+### NOTAS DE USO
+### ===========================================
+### 
+### IMPORTANTE:
+### 1. Reemplaza "usuario123" con un ID de usuario real de tu base de datos
+### 2. Reemplaza "797d814a-5fd0-4953-810d-f593ff73928f" con tu ID de usuario real
+### 3. Asegúrate de estar autenticado (usar el token de Auth.http)
+### 4. Los IDs de chat se generan automáticamente al crear conversaciones
+### 5. Para WebSocket, usa herramientas como Postman WebSocket o implementa en frontend
+### 
+### FLUJO TÍPICO:
+### 1. Login (Auth.http)
+### 2. Iniciar chat con usuario
+### 3. Enviar mensajes
+### 4. Obtener conversaciones
+### 5. Marcar como leído
+### 
+### WEBSOCKET ENDPOINTS:
+### - ws://localhost:8080/ws
+### - /app/chat.sendMessage
+### - /app/chat.join
+### - /app/chat.leave
+### - /user/queue/private
+### - /user/queue/errors
+### - /user/queue/status
+###
