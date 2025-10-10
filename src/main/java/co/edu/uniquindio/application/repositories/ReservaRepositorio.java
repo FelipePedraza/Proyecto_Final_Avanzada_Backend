@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ReservaRepositorio extends JpaRepository<Reserva, Long> {
@@ -21,6 +20,11 @@ public interface ReservaRepositorio extends JpaRepository<Reserva, Long> {
      * Busca reservas de un alojamiento en estados específicos
      */
     List<Reserva> findByAlojamiento_IdAndEstadoIn(Long alojamientoId, List<ReservaEstado> estados);
+
+    /**
+     * Busca reservas del usuario en el alojamiento
+     */
+    Reserva findByHuesped_IdAndAlojamiento_IdAndEstadoIn(String huesped_id, Long alojamiento_id, List<ReservaEstado> estado);
 
     @Query("SELECT r FROM Reserva r WHERE r.huesped.id = :idUsuario "
             + "AND (:estado IS NULL OR r.estado = :estado) "
@@ -45,4 +49,9 @@ public interface ReservaRepositorio extends JpaRepository<Reserva, Long> {
             @Param("fechaSalida") LocalDate fechaSalida ,
             Pageable pageable
     );
+
+    /**
+     * Cuenta reservas confirmadas y completadas de un alojamiento para metricas
+     */
+    long countByAlojamiento_IdAndEstadoIn(Long alojamientoId, List<ReservaEstado> estados);
 }

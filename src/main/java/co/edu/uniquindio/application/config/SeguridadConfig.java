@@ -40,6 +40,7 @@ public class SeguridadConfig {
                 .authorizeHttpRequests(req -> req
                         .requestMatchers("/api/auth/**","/swagger-ui/**", "/v3/api-docs/**", "/api/imagenes/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/**", "/api/alojamientos/**").permitAll()
+                        .requestMatchers("/api/alojamientos/{id}/metricas").authenticated()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new JWTAuthenticationEntryPoint()))

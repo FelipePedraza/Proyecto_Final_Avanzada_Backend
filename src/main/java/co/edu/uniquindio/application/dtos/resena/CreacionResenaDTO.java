@@ -10,8 +10,6 @@ public record CreacionResenaDTO(
         @NotNull @Min(1) @Max(5)
         Float calificacion,
         @NotBlank @Length(max = 500)
-        String comentario,
-        @NotNull
-        Long reservaId
+        String comentario
 ) {
 }

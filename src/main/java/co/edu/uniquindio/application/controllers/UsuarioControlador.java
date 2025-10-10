@@ -66,12 +66,7 @@ public class UsuarioControlador {
     }
 
     @GetMapping("/{id}/reservas")
-    public ResponseEntity<RespuestaDTO<List<ItemReservaDTO>>> obtenerReservasUsuario(
-            @PathVariable  String id,
-            @RequestParam(required = false) ReservaEstado estado,
-            @RequestParam(required = false) LocalDate fechaEntrada,
-            @RequestParam(required = false) LocalDate fechaSalida ,
-            @RequestParam(required = false, defaultValue = "0") int pagina) throws Exception {
+    public ResponseEntity<RespuestaDTO<List<ItemReservaDTO>>> obtenerReservasUsuario(@PathVariable  String id, @RequestParam(required = false) ReservaEstado estado, @RequestParam(required = false) LocalDate fechaEntrada, @RequestParam(required = false) LocalDate fechaSalida , @RequestParam(required = false, defaultValue = "0") int pagina) throws Exception {
         List<ItemReservaDTO> reservas = reservaServicio.obtenerReservasUsuario(id, estado, fechaEntrada, fechaSalida, pagina);
         return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }

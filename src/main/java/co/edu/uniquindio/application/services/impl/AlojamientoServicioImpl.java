@@ -5,7 +5,9 @@ import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.models.entitys.Alojamiento;
+import co.edu.uniquindio.application.models.enums.ReservaEstado;
 import co.edu.uniquindio.application.repositories.AlojamientoRepositorio;
+import co.edu.uniquindio.application.repositories.ReservaRepositorio;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
 import co.edu.uniquindio.application.services.AuthServicio;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +42,7 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     private final UsuarioMapper usuarioMapper;
     private final ImagenServicio imagenServicio;
     private final AuthServicio authServicio;
+    private final ReservaRepositorio reservaRepositorio;
 
     @Override
     public void crear(CreacionAlojamientoDTO alojamientoDTO, MultipartFile[] imagenes) throws Exception {
@@ -271,7 +274,32 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
 
     @Override
     public MetricasDTO obtenerMetricas(Long id) throws Exception {
-        return null;
+
+        // Obtener usuario autenticado
+        User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String idUsuarioAutenticado = usuarioAutenticado.getUsername();
+
+        // Obtener alojamiento
+        Alojamiento alojamiento = obtenerAlojamientoId(id);
+
+        // Verificar que el usuario autenticado sea el anfitrión del alojamiento
+        if (!alojamiento.getAnfitrion().getId().equals(idUsuarioAutenticado)) {
+            throw new AccessDeniedException("No tienes permiso para ver las métricas de este alojamiento");
+        }
+
+        // Obtener métricas de reseñas
+        Integer totalResenas = alojamiento.getNumeroCalificaciones() != null ?
+                alojamiento.getNumeroCalificaciones() : 0;
+
+        Double promedioCalificaciones = alojamiento.getPromedioCalificaciones() != null ?
+                alojamiento.getPromedioCalificaciones() : 0.0;
+
+        long totalReservas = reservaRepositorio.countByAlojamiento_IdAndEstadoIn(
+                id,
+                List.of(ReservaEstado.CONFIRMADA, ReservaEstado.COMPLETADA)
+        );
+
+        return new MetricasDTO(totalResenas, promedioCalificaciones, totalReservas);
     }
 
     @Override

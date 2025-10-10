@@ -18,7 +18,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AlojamientoRepositorio extends JpaRepository<Alojamiento, Long> {
 
-    Optional<Alojamiento> findById(Long id);
 
     Optional<Alojamiento> findByTitulo(String titulo);
 

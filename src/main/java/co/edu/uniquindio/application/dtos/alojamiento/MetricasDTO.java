@@ -3,6 +3,6 @@ package co.edu.uniquindio.application.dtos.alojamiento;
 public record MetricasDTO(
         Integer totalResenas,
         Double promedioCalificaciones,
-        int totalReservas
+        Long totalReservas
 ) {
 }

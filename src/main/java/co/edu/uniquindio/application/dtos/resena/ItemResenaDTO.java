@@ -1,6 +1,7 @@
 package co.edu.uniquindio.application.dtos.resena;
 
 import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
+import co.edu.uniquindio.application.models.vo.Respuesta;
 
 import java.time.LocalDateTime;
 
@@ -10,6 +11,6 @@ public record ItemResenaDTO(
         String comentario,
         LocalDateTime creadoEn,
         UsuarioDTO usuario,
-        String respuesta
+        Respuesta respuesta
 ) {
 }

@@ -136,3 +136,31 @@ Content-Type: application/json
 ### Obtener reservas Alojamiento
 GET http://localhost:8080/api/alojamientos/1/reservas
 Authorization: Bearer {{auth_token}}
+
+### Crer una reseña en alojamiento
+POST http://localhost:8080/api/alojamientos/1/resenas
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "calificacion": 5,
+  "comentario": "Un buen alojamiento"
+}
+
+### Obtener reseñas de un alojamiento
+GET http://localhost:8080/api/alojamientos/1/resenas
+Content-Type: application/json
+
+### Responder a reseña
+POST http://localhost:8080/api/alojamientos/1/resenas/1/respuesta
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "mensaje": "Gracias por tu reseña"
+}
+
+### Obtener metricas de un alojamiento
+GET http://localhost:8080/api/alojamientos/1/metricas
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}

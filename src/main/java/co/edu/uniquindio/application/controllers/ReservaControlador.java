@@ -36,17 +36,13 @@ public class ReservaControlador {
     }
 
     @PatchMapping("/{id}/aceptar")
-    public ResponseEntity<RespuestaDTO<String>> aceptarReserva(
-            @PathVariable Long id) throws Exception {
-
+    public ResponseEntity<RespuestaDTO<String>> aceptarReserva(@PathVariable Long id) throws Exception {
         reservaServicio.aceptarReserva(id);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Reserva aceptada y confirmada"));
     }
 
     @PatchMapping("/{id}/rechazar")
-    public ResponseEntity<RespuestaDTO<String>> rechazarReserva(
-            @PathVariable Long id) throws Exception {
-
+    public ResponseEntity<RespuestaDTO<String>> rechazarReserva(@PathVariable Long id) throws Exception {
         reservaServicio.rechazarReserva(id);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Reserva rechazada"));
     }

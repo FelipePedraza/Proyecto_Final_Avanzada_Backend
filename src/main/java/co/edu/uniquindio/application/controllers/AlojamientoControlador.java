@@ -2,9 +2,13 @@ package co.edu.uniquindio.application.controllers;
 
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.alojamiento.*;
+import co.edu.uniquindio.application.dtos.resena.CreacionResenaDTO;
+import co.edu.uniquindio.application.dtos.resena.CreacionRespuestaDTO;
+import co.edu.uniquindio.application.dtos.resena.ItemResenaDTO;
 import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
 import co.edu.uniquindio.application.models.enums.ReservaEstado;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
+import co.edu.uniquindio.application.services.ResenaServicio;
 import co.edu.uniquindio.application.services.ReservaServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +27,7 @@ public class AlojamientoControlador {
 
     private final AlojamientoServicio alojamientoServicio;
     private final ReservaServicio reservaServicio;
+    private final ResenaServicio resenaServicio;
 
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<RespuestaDTO<String>> crearAlojamiento(@RequestPart("alojamiento") @Valid CreacionAlojamientoDTO dto, @RequestPart(value = "imagenes", required = false) MultipartFile[] imagenes) throws Exception {
@@ -54,8 +59,8 @@ public class AlojamientoControlador {
 
     @GetMapping("/{id}/metricas")
     public ResponseEntity<RespuestaDTO<MetricasDTO>> obtenerMetricas(@PathVariable Long id) throws Exception {
-
-        return ResponseEntity.ok(new RespuestaDTO<>(false, null));
+        MetricasDTO metricas = alojamientoServicio.obtenerMetricas(id);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, metricas));
     }
 
     @GetMapping
@@ -64,13 +69,28 @@ public class AlojamientoControlador {
     }
 
     @GetMapping("/{id}/reservas")
-    public ResponseEntity<RespuestaDTO<List<ItemReservaDTO>>> obtenerReservasAlojamiento(
-            @PathVariable(value = "id")  Long id,
-            @RequestParam(required = false) ReservaEstado estado,
-            @RequestParam(required = false) LocalDate fechaEntrada,
-            @RequestParam(required = false) LocalDate fechaSalida ,
-            @RequestParam(required = false, defaultValue = "0") int pagina) throws Exception {
+    public ResponseEntity<RespuestaDTO<List<ItemReservaDTO>>> obtenerReservasAlojamiento(@PathVariable(value = "id")  Long id, @RequestParam(required = false) ReservaEstado estado, @RequestParam(required = false) LocalDate fechaEntrada, @RequestParam(required = false) LocalDate fechaSalida , @RequestParam(required = false, defaultValue = "0") int pagina) throws Exception {
         List<ItemReservaDTO> reservas = reservaServicio.obtenerReservasAlojamiento(id, estado, fechaEntrada, fechaSalida, pagina);
         return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
+
+    @GetMapping("/{id}/resenas")
+    public ResponseEntity<RespuestaDTO<List<ItemResenaDTO>>> obtenerResenasAlojamiento(@PathVariable(value = "id")  Long id, @RequestParam(defaultValue = "0") int pagina) throws Exception {
+        List<ItemResenaDTO> resenas = resenaServicio.obtenerResenasAlojamiento(id, pagina);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, resenas));
+    }
+
+    @PostMapping("/{id}/resenas")
+    public ResponseEntity<RespuestaDTO<String>> crearResena(@PathVariable(value = "id")  Long id, @RequestBody @Valid CreacionResenaDTO dto) throws Exception {
+        resenaServicio.crear(id, dto);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, "Se creo correctamente el resena al alojamiento"));
+    }
+
+    @PostMapping("/{id}/resenas/{idResena}/respuesta")
+    public ResponseEntity<RespuestaDTO<String>> crearRespuesta(@PathVariable(value = "idResena")  Long id, @RequestBody @Valid CreacionRespuestaDTO dto) throws Exception {
+        resenaServicio.responder(id, dto);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, "Se creo correctamente la respuesta a la reseña"));
+    }
+
+
 }

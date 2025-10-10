@@ -16,9 +16,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Respuesta {
 
-    @Column(nullable = false, length = 2000)
+    @Column(length = 2000)
     private String mensaje;
 
-    @Column(nullable = false)
     private LocalDateTime respondidoEn;
 }

@@ -6,8 +6,8 @@ Authorization: Bearer {{auth_token}}
 {
   "alojamientoId": 1,
   "usuarioId": "6fdc6cce-508b-433d-9069-638a4283252d",
-  "fechaEntrada": "2025-11-01",
-  "fechaSalida": "2025-11-05",
+  "fechaEntrada": "2025-10-08",
+  "fechaSalida": "2025-10-09",
   "cantidadHuespedes": 2
 }
 
