@@ -3,12 +3,12 @@
 ### ===========================================
 
 ### 1. INICIAR CHAT CON USUARIO
-POST http://localhost:8080/api/chat/iniciar?destinatarioId=usuario123
+POST http://localhost:8080/api/chat/iniciar?destinatarioId=6fdc6cce-508b-433d-9069-638a4283252d
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 ### 2. ENVIAR MENSAJE A USUARIO
-POST http://localhost:8080/api/chat/enviar?destinatarioId=usuario123
+POST http://localhost:8080/api/chat/enviar?destinatarioId=6fdc6cce-508b-433d-9069-638a4283252d
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
@@ -20,17 +20,17 @@ Accept: application/json
 Authorization: Bearer {{auth_token}}
 
 ### 4. LISTAR CONVERSACIONES DEL USUARIO
-GET http://localhost:8080/api/chat/usuario/797d814a-5fd0-4953-810d-f593ff73928f/conversaciones
+GET http://localhost:8080/api/chat/usuario/4c4e2933-899e-469a-b883-7ab9fe75a641/conversaciones
 Accept: application/json
 Authorization: Bearer {{auth_token}}
 
 ### 5. OBTENER MENSAJES NO LEÍDOS
-GET http://localhost:8080/api/chat/usuario/797d814a-5fd0-4953-810d-f593ff73928f/mensajes-no-leidos
+GET http://localhost:8080/api/chat/usuario/4c4e2933-899e-469a-b883-7ab9fe75a641/mensajes-no-leidos
 Accept: application/json
 Authorization: Bearer {{auth_token}}
 
 ### 6. MARCAR CHAT COMO LEÍDO
-PUT http://localhost:8080/api/chat/1/marcar-leido?usuarioId=797d814a-5fd0-4953-810d-f593ff73928f
+PUT http://localhost:8080/api/chat/1/marcar-leido?usuarioId=4c4e2933-899e-469a-b883-7ab9fe75a641
 Authorization: Bearer {{auth_token}}
 
 ### ===========================================
@@ -45,14 +45,14 @@ Authorization: Bearer {{auth_token}}
 ""
 
 ### 8. ENVIAR MENSAJE MUY LARGO (debe fallar)
-POST http://localhost:8080/api/chat/enviar?destinatarioId=usuario123
+POST http://localhost:8080/api/chat/enviar?destinatarioId=6fdc6cce-508b-433d-9069-638a4283252d
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 "Este es un mensaje muy largo que excede los 1000 caracteres permitidos. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrud exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
 
 ### 9. ENVIAR MENSAJE A SÍ MISMO (debe fallar)
-POST http://localhost:8080/api/chat/enviar?destinatarioId=797d814a-5fd0-4953-810d-f593ff73928f
+POST http://localhost:8080/api/chat/enviar?destinatarioId=4c4e2933-899e-469a-b883-7ab9fe75a641
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
@@ -124,13 +124,7 @@ Authorization: Bearer {{auth_token}}
 ### ===========================================
 ### NOTAS DE USO
 ### ===========================================
-### 
-### IMPORTANTE:
-### 1. Reemplaza "usuario123" con un ID de usuario real de tu base de datos
-### 2. Reemplaza "797d814a-5fd0-4953-810d-f593ff73928f" con tu ID de usuario real
-### 3. Asegúrate de estar autenticado (usar el token de Auth.http)
-### 4. Los IDs de chat se generan automáticamente al crear conversaciones
-### 5. Para WebSocket, usa herramientas como Postman WebSocket o implementa en frontend
+###
 ### 
 ### FLUJO TÍPICO:
 ### 1. Login (Auth.http)

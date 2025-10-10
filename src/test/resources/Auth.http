@@ -4,7 +4,7 @@ Content-Type: application/json
 
 {
   "email": "felipedraza830@gmail.com",
-  "contrasena": "Contrasena123"
+  "contrasena": "Pass0123"
 }
 
 > {% client.global.set("auth_token", response.body.data.token); %}
