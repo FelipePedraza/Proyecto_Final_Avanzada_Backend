@@ -6,6 +6,7 @@ import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.models.entitys.Alojamiento;
 import co.edu.uniquindio.application.models.enums.ReservaEstado;
+import co.edu.uniquindio.application.models.enums.Servicio;
 import co.edu.uniquindio.application.repositories.AlojamientoRepositorio;
 import co.edu.uniquindio.application.repositories.ReservaRepositorio;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
@@ -326,6 +327,12 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
             throw new ValidationException("El número de huéspedes debe ser al menos 1");
         }
 
+        // Procesar servicios
+        List<Servicio> servicios = filtros.servicios();
+        Long cantidadServicios = (servicios != null && !servicios.isEmpty())
+                ? (long) servicios.size()
+                : 0L;
+
         // Crear paginación
         Pageable pageable = PageRequest.of(pagina, 10);
 
@@ -337,6 +344,8 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
                 filtros.huespedes(),
                 filtros.precioMin(),
                 filtros.precioMax(),
+                servicios,
+                cantidadServicios,
                 Estado.ACTIVO,
                 pageable
         ).map(alojamientoMapper::toItemDTO);

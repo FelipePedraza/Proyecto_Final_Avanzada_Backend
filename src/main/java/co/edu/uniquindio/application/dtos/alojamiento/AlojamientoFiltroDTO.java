@@ -1,9 +1,11 @@
 package co.edu.uniquindio.application.dtos.alojamiento;
 
+import co.edu.uniquindio.application.models.enums.Servicio;
 import jakarta.validation.constraints.Min;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public record AlojamientoFiltroDTO (
 
@@ -26,7 +28,9 @@ public record AlojamientoFiltroDTO (
         Float precioMin,
 
         @Min(value = 0, message = "El precio máximo no puede ser negativo")
-        Float precioMax
+        Float precioMax,
+
+        List<Servicio> servicios
 ) {
 
 }
