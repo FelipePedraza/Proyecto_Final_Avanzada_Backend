@@ -11,6 +11,7 @@ public record UsuarioDTO(
         String telefono,
         Rol rol,
         LocalDate fechaNacimiento,
-        String foto
+        String foto,
+        Boolean esAnfitrion
 ) {
 }
