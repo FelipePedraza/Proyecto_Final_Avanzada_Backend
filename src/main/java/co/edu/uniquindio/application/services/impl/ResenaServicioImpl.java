@@ -64,7 +64,7 @@ public class ResenaServicioImpl implements ResenaServicio {
         }
 
         // 2. Obtener alojamiento
-        Reserva reserva = reservaRepositorio.findByHuesped_IdAndAlojamiento_IdAndEstadoIn(idUsuarioAutenticado, idAlojamiento, List.of(ReservaEstado.CONFIRMADA));
+        Reserva reserva = reservaRepositorio.findByHuesped_IdAndAlojamiento_IdAndEstadoIn(idUsuarioAutenticado, idAlojamiento, List.of(ReservaEstado.COMPLETADA));
 
         // 3. Validar que el usuario ya se hubiera quedado en el alojamiento
         if (reserva == null) {
