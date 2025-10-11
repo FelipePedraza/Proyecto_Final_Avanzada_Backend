@@ -34,7 +34,7 @@ public interface AlojamientoRepositorio extends JpaRepository<Alojamiento, Long>
     AND (:precioMin IS NULL OR a.precioPorNoche >= :precioMin)
     AND (:precioMax IS NULL OR a.precioPorNoche <= :precioMax)
     AND (
-        :servicios IS NULL OR :servicios IS EMPTY OR
+        :servicios IS NULL OR
         (SELECT COUNT(DISTINCT s) FROM a.servicios s WHERE s IN :servicios) = :cantidadServicios
     )
     AND (
@@ -56,7 +56,7 @@ public interface AlojamientoRepositorio extends JpaRepository<Alojamiento, Long>
             @Param("huespedes") Integer huespedes,
             @Param("precioMin") Float precioMin,
             @Param("precioMax") Float precioMax,
-            @Param("servicios") List<Servicio> servicios,  // Enum type
+            @Param("servicios") List<Servicio> servicios,
             @Param("cantidadServicios") Long cantidadServicios,
             @Param("estado") Estado estado,
             Pageable pageable
