@@ -4,6 +4,8 @@ Accept: application/json
 
 ### Eliminar usuario (DELETE) (204)
 DELETE http://localhost:8080/api/usuarios/1
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
 
 ### Cambiar contraseña (PATCH) (200) — usa CambioContrasenaDTO
 PATCH http://localhost:8080/api/usuarios/1ccd6ad2-6ab3-4987-996c-99bdffd2905d/contrasena

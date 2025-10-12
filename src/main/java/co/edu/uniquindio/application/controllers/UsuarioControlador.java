@@ -50,7 +50,7 @@ public class UsuarioControlador {
     @DeleteMapping("/{id}")
     public ResponseEntity<RespuestaDTO<String>> eliminar(@PathVariable String id) throws Exception {
         usuarioServicio.eliminar(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new RespuestaDTO<>(false, "El usuario ha sido eliminado"));
     }
 
     @PatchMapping("/{id}/contrasena")
