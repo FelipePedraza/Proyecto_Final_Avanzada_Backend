@@ -6,6 +6,8 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import java.util.List;
+
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
@@ -23,7 +25,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // Endpoint para conectar WebSocket con CORS configurado
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")
-                .setAllowedOrigins("*")
+                .setAllowedOrigins("http://localhost:63342", "http://localhost:4200")
                 .withSockJS();
     }
 }

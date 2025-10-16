@@ -40,6 +40,7 @@ public class SeguridadConfig {
                 .authorizeHttpRequests(req -> req
                         .requestMatchers("/api/auth/**","/swagger-ui/**", "/v3/api-docs/**", "/api/imagenes/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/**", "/api/alojamientos/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/alojamientos/{id}/metricas").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -53,7 +54,7 @@ public class SeguridadConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         // Configura las políticas de CORS para permitir solicitudes desde el frontend
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("*"));
+        config.setAllowedOrigins(List.of("http://localhost:63342", "http://localhost:4200"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
