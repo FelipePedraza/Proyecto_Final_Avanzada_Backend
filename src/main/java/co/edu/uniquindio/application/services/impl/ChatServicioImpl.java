@@ -15,7 +15,9 @@ import co.edu.uniquindio.application.repositories.MensajeRepositorio;
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
 import co.edu.uniquindio.application.services.AuthServicio;
 import co.edu.uniquindio.application.services.ChatServicio;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -69,19 +71,19 @@ public class ChatServicioImpl implements ChatServicio {
     }
 
     @Override
-    public MensajeDTO enviarMensaje(String destinatarioId, String contenido) throws Exception {
+    // 1. Añadir 'String remitenteId' a la firma del método
+    public MensajeDTO enviarMensaje(String remitenteId, String destinatarioId, String contenido) throws Exception {
         // Validar contenido
         if (contenido == null || contenido.trim().isEmpty()) {
             throw new ValidationException("El contenido del mensaje no puede estar vacío");
         }
-        
+
         if (contenido.length() > 1000) {
             throw new ValidationException("El mensaje no puede exceder los 1000 caracteres");
         }
 
-        // Obtener usuario autenticado
-        User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String idUsuarioAutenticado = usuarioAutenticado.getUsername();
+        // 2. Usar el remitenteId que recibimos como parámetro
+        String idUsuarioAutenticado = remitenteId;
 
         // Validar que no se envíe mensaje a sí mismo
         if (idUsuarioAutenticado.equals(destinatarioId)) {

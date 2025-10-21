@@ -15,8 +15,7 @@ public record MensajeDTO(
         String destinatarioId,
         @NotNull
         Long chatId,
-        @NotBlank @Length(max = 1000)
-        String contenido,
+        @NotBlank @Length(max = 1000) String contenido,
         LocalDateTime fechaEnvio,
         boolean leido
 ) {

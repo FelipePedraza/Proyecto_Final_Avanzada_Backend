@@ -113,7 +113,10 @@
             <label for="userId">Tu ID de Usuario:</label>
             <input type="text" id="userId" value="4c4e2933-899e-469a-b883-7ab9fe75a641" placeholder="Tu ID de usuario">
         </div>
-
+        <div class="input-group">
+            <label for="jwtToken">Tu Token JWT (para Auth):</label>
+            <input type="text" id="jwtToken" value="" placeholder="Pega tu token JWT aquí">
+        </div>
         <div class="input-group">
             <label for="destinatarioId">ID del Destinatario:</label>
             <input type="text" id="destinatarioId" value="6fdc6cce-508b-433d-9069-638a4283252d" placeholder="ID del destinatario">
@@ -179,15 +182,16 @@
 
     function connect() {
         const userId = document.getElementById('userId').value;
+        const token = document.getElementById('jwtToken').value;
 
-        if (!userId) {
+        if (!token) {
             alert('❌ Por favor ingresa tu ID de usuario');
             return;
         }
 
         try {
             // Crear conexión SockJS con el ID del usuario en la URL
-            const wsUrl = `http://localhost:8080/ws`;
+            const wsUrl = `http://localhost:8080/ws?token=${token}`;
             socket = new SockJS(wsUrl);
             stompClient = Stomp.over(socket);
 
@@ -238,7 +242,7 @@
                 addLog('✅ Suscripciones configuradas correctamente');
 
                 // Enviar mensaje de join (opcional)
-                stompClient.send("/app/chat.join", {}, userId);
+                stompClient.send("/app/chat.join", {});
                 addLog('📤 Mensaje de join enviado');
 
             }, function(error) {
@@ -264,7 +268,7 @@
 
             // Enviar mensaje de leave antes de desconectar
             try {
-                stompClient.send("/app/chat.leave", {}, userId);
+                stompClient.send("/app/chat.leave", {});
                 addLog('📤 Mensaje de leave enviado');
             } catch (e) {
                 addLog('⚠️ No se pudo enviar mensaje de leave: ' + e);

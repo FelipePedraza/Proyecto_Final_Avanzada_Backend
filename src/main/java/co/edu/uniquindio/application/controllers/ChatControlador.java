@@ -30,9 +30,10 @@ public class ChatControlador {
 
     @PostMapping("/enviar")
     public ResponseEntity<RespuestaDTO<MensajeDTO>> enviarMensaje(
+            @RequestParam String remitenteId,
             @RequestParam String destinatarioId,
             @Valid @RequestBody String contenido) throws Exception {
-        MensajeDTO mensaje = chatServicio.enviarMensaje(destinatarioId, contenido);
+        MensajeDTO mensaje = chatServicio.enviarMensaje(remitenteId, destinatarioId, contenido);
         return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, mensaje));
     }
 

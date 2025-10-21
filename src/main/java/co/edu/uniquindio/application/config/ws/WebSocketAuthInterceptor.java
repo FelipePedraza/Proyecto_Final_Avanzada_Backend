@@ -1,6 +1,9 @@
 package co.edu.uniquindio.application.config.ws;
 
 import co.edu.uniquindio.application.security.JWTUtils;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import lombok.extern.slf4j.Slf4j;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +18,7 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
     private final JWTUtils jwtUtil;
@@ -30,15 +34,13 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             String idUsuario = getToken(httpServletRequest);
 
             if (idUsuario != null) {
-                try {
-                    attributes.put("user", new StompPrincipal(idUsuario)); // Guardamos el principal en atributos
-                } catch (Exception e) {
-                    // Token inválido, rechazar la conexión
-                    return false;
-                }
+                attributes.put("user", new StompPrincipal(idUsuario)); // Guardamos el principal en atributos
+                return true;
             }
         }
-        return true;
+        // 3. Si no hay token o no es válido, rechazar la conexión
+        log.warn("Rechazando handshake de WebSocket: Token no válido o ausente.");
+        return false;
     }
 
     @Override
@@ -59,13 +61,31 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
     private String getToken(HttpServletRequest request) {
         String query = request.getQueryString();
-        if (query != null && query.contains("id=")) {
-            for (String param : query.split("&")) {
-                if (param.startsWith("id=")) {
-                    return param.substring(3); // Quita "token="
-                }
+        if (query == null || !query.contains("token=")) {
+            return null; // No hay parámetro "token"
+        }
+
+        String token = null;
+        for (String param : query.split("&")) {
+            if (param.startsWith("token=")) {
+                token = param.substring(6); // Quita "token="
+                break;
             }
         }
-        return null;
+
+        if (token == null) {
+            return null;
+        }
+
+        try {
+            // Validar y decodificar el token usando tu JWTUtils
+            Jws<Claims> payload = jwtUtil.decodificarJwt(token);
+            // Extraer el "subject", que debe ser tu ID de usuario
+            return payload.getPayload().getSubject();
+        } catch (Exception e) {
+            // El token es inválido, expiró, etc.
+            log.error("Error al validar token de WebSocket: {}", e.getMessage());
+            return null;
+        }
     }
 }
