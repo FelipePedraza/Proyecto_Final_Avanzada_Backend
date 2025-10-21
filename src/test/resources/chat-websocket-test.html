@@ -120,12 +120,6 @@
         </div>
     </div>
 
-    <div class="input-group">
-        <label for="authToken">Token JWT (sin "Bearer"):</label>
-        <input type="text" id="authToken" placeholder="Pega aquí tu token JWT" style="width: 100%;">
-        <small style="color: #666;">⚠️ Importante: Solo el token, sin la palabra "Bearer"</small>
-    </div>
-
     <!-- Botones de Control -->
     <div class="two-column">
         <button id="connectBtn" onclick="connect()">🔌 Conectar</button>
@@ -185,36 +179,28 @@
 
     function connect() {
         const userId = document.getElementById('userId').value;
-        const token = document.getElementById('authToken').value;
 
         if (!userId) {
             alert('❌ Por favor ingresa tu ID de usuario');
             return;
         }
 
-        if (!token) {
-            alert('❌ Por favor ingresa tu token JWT');
-            return;
-        }
-
         try {
-            // Crear conexión SockJS
-            socket = new SockJS('http://localhost:8080/ws');
+            // Crear conexión SockJS con el ID del usuario en la URL
+            const wsUrl = `http://localhost:8080/ws`;
+            socket = new SockJS(wsUrl);
             stompClient = Stomp.over(socket);
 
-            // Opcional: Deshabilitar logging de STOMP
-            // stompClient.debug = null;
-
-            updateStatus('🔄 Conectando...', 'connecting');
-            addLog('Iniciando conexión WebSocket...');
-
-            // Headers de conexión con JWT
-            const headers = {
-                'Authorization': 'Bearer ' + token
+            // Opcional: Habilitar logging de STOMP para debug
+            stompClient.debug = function(str) {
+                addLog('🔧 STOMP: ' + str);
             };
 
-            // Conectar
-            stompClient.connect(headers, function(frame) {
+            updateStatus('🔄 Conectando...', 'connecting');
+            addLog(`Iniciando conexión WebSocket para usuario: ${userId}`);
+
+            // Conectar (sin headers adicionales, la autenticación va en la URL)
+            stompClient.connect({}, function(frame) {
                 isConnected = true;
                 updateStatus('✅ Conectado', 'connected');
                 addLog('✅ Conectado exitosamente');
@@ -233,6 +219,7 @@
                         addLog(`📨 Mensaje recibido de ${mensaje.remitenteId}`);
                     } catch (e) {
                         addLog('❌ Error al parsear mensaje: ' + e);
+                        addMessage(`📨 ${message.body}`, 'received');
                     }
                 });
 
@@ -250,10 +237,14 @@
 
                 addLog('✅ Suscripciones configuradas correctamente');
 
+                // Enviar mensaje de join (opcional)
+                stompClient.send("/app/chat.join", {}, userId);
+                addLog('📤 Mensaje de join enviado');
+
             }, function(error) {
                 updateStatus('❌ Error de conexión', 'disconnected');
-                addLog('❌ Error de conexión: ' + error);
-                addMessage('❌ No se pudo conectar. Verifica tu token JWT', 'error');
+                addLog('❌ Error de conexión: ' + JSON.stringify(error));
+                addMessage('❌ No se pudo conectar. Verifica tu ID de usuario', 'error');
                 isConnected = false;
 
                 // Rehabilitar botón de conexión
@@ -269,6 +260,16 @@
 
     function disconnect() {
         if (stompClient && isConnected) {
+            const userId = document.getElementById('userId').value;
+
+            // Enviar mensaje de leave antes de desconectar
+            try {
+                stompClient.send("/app/chat.leave", {}, userId);
+                addLog('📤 Mensaje de leave enviado');
+            } catch (e) {
+                addLog('⚠️ No se pudo enviar mensaje de leave: ' + e);
+            }
+
             stompClient.disconnect(function() {
                 isConnected = false;
                 updateStatus('❌ Desconectado', 'disconnected');
@@ -303,7 +304,7 @@
             return;
         }
 
-        // Crear mensaje según el formato esperado por tu backend
+        // Crear mensaje según MensajeDTO
         const mensaje = {
             remitenteId: userId,
             destinatarioId: destinatarioId,
@@ -333,9 +334,16 @@
         }
     });
 
+    // Desconectar al cerrar la ventana
+    window.addEventListener('beforeunload', function() {
+        if (isConnected) {
+            disconnect();
+        }
+    });
+
     // Mensaje inicial
     addLog('📱 Página cargada. Listo para conectar.');
-    addMessage('👋 Bienvenido al chat de ViviGo. Ingresa tus datos y conecta.', 'system');
+    addMessage('👋 Bienvenido al chat de ViviGo. Ingresa tu ID de usuario y conecta.', 'system');
 </script>
 </body>
 </html>
