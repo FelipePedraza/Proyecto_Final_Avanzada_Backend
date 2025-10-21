@@ -82,11 +82,8 @@ public class ChatServicioImpl implements ChatServicio {
             throw new ValidationException("El mensaje no puede exceder los 1000 caracteres");
         }
 
-        // 2. Usar el remitenteId que recibimos como parámetro
-        String idUsuarioAutenticado = remitenteId;
-
         // Validar que no se envíe mensaje a sí mismo
-        if (idUsuarioAutenticado.equals(destinatarioId)) {
+        if (remitenteId.equals(destinatarioId)) {
             throw new ValidationException("No puedes enviarte mensajes a ti mismo");
         }
 
@@ -99,11 +96,11 @@ public class ChatServicioImpl implements ChatServicio {
         }
 
         // Obtener remitente
-        Usuario remitente = usuarioRepositorio.findById(idUsuarioAutenticado)
+        Usuario remitente = usuarioRepositorio.findById(remitenteId)
                 .orElseThrow(() -> new NoFoundException("Usuario remitente no encontrado"));
 
         // Buscar o crear chat entre los usuarios
-        Chat chat = buscarOCrearChatEntreUsuarios(idUsuarioAutenticado, destinatarioId);
+        Chat chat = buscarOCrearChatEntreUsuarios(remitenteId, destinatarioId);
 
         // Crear mensaje
         Mensaje mensaje = Mensaje.builder()

@@ -111,15 +111,15 @@
     <div class="two-column">
         <div class="input-group">
             <label for="userId">Tu ID de Usuario:</label>
-            <input type="text" id="userId" value="4c4e2933-899e-469a-b883-7ab9fe75a641" placeholder="Tu ID de usuario">
+            <input type="text" id="userId"  placeholder="Tu ID de usuario">
         </div>
         <div class="input-group">
             <label for="jwtToken">Tu Token JWT (para Auth):</label>
-            <input type="text" id="jwtToken" value="" placeholder="Pega tu token JWT aquí">
+            <input type="text" id="jwtToken" placeholder="Pega tu token JWT aquí">
         </div>
         <div class="input-group">
             <label for="destinatarioId">ID del Destinatario:</label>
-            <input type="text" id="destinatarioId" value="6fdc6cce-508b-433d-9069-638a4283252d" placeholder="ID del destinatario">
+            <input type="text" id="destinatarioId" placeholder="ID del destinatario">
         </div>
     </div>
 
@@ -185,7 +185,7 @@
         const token = document.getElementById('jwtToken').value;
 
         if (!token) {
-            alert('❌ Por favor ingresa tu ID de usuario');
+            alert('❌ Por favor ingresa el token');
             return;
         }
 

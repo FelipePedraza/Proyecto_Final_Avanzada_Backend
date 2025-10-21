@@ -14,12 +14,11 @@ POST http://localhost:8080/api/auth/registro
 Content-Type: application/json
 
 {
-  "nombre": "David Posso",
-  "email": "David@example.com",
+  "nombre": "Felipe Pedraza",
+  "email": "felipedraza830@gmail.com",
   "contrasena": "Contrasena123",
   "telefono": "3102399644",
-  "fechaNacimiento": "2002-08-30",
-  "rol": "Huesped"
+  "fechaNacimiento": "2002-08-30"
 }
 
 ### Solicitar codigo de recuperación
