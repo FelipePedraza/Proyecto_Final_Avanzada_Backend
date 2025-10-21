@@ -3,7 +3,7 @@ GET http://localhost:8080/api/usuarios/797d814a-5fd0-4953-810d-f593ff73928f
 Accept: application/json
 
 ### Eliminar usuario (DELETE) (204)
-DELETE http://localhost:8080/api/usuarios/1
+DELETE http://localhost:8080/api/usuarios/797d814a-5fd0-4953-810d-f593ff73928f
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 

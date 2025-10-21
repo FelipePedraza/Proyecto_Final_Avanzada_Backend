@@ -3,8 +3,8 @@ POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "felipedraza830@gmail.com",
-  "contrasena": "Pass0123"
+  "email": "David@example.com",
+  "contrasena": "Contrasena123"
 }
 
 > {% client.global.set("auth_token", response.body.data.token); %}
@@ -15,9 +15,9 @@ Content-Type: application/json
 
 {
   "nombre": "David Posso",
-  "email": "Davidp@example.com",
+  "email": "David@example.com",
   "contrasena": "Contrasena123",
-  "telefono": "3234533356",
+  "telefono": "3102399644",
   "fechaNacimiento": "2002-08-30",
   "rol": "Huesped"
 }
@@ -36,6 +36,6 @@ Content-Type: application/json
 
 {
   "email": "felipedraza830@gmail.com",
-  "codigoVerificacion": "474113",
+  "codigoVerificacion": "182371",
   "nuevaContrasena": "Pass0123"
 }

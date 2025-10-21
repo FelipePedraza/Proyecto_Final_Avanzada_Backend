@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f5f5f5;
@@ -27,7 +27,7 @@
         .connected { background-color: #d4edda; color: #155724; }
         .disconnected { background-color: #f8d7da; color: #721c24; }
         .connecting { background-color: #fff3cd; color: #856404; }
-        
+
         .input-group {
             margin: 10px 0;
         }
@@ -58,7 +58,7 @@
             background-color: #6c757d;
             cursor: not-allowed;
         }
-        
+
         .messages {
             height: 300px;
             overflow-y: auto;
@@ -91,225 +91,251 @@
             background-color: #dc3545;
             color: white;
         }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 ViviGo Chat - Prueba WebSocket</h1>
-        
-        <!-- Estado de Conexión -->
-        <div id="status" class="status disconnected">
-            Desconectado
-        </div>
-        
-        <!-- Configuración -->
-        <div class="input-group">
-            <label for="serverUrl">URL del Servidor:</label>
-            <input type="text" id="serverUrl" value="http://localhost:8080/ws" placeholder="http://localhost:8080/ws">
-        </div>
-        
+<div class="container">
+    <h1>🚀 ViviGo Chat - Prueba WebSocket</h1>
+
+    <!-- Estado de Conexión -->
+    <div id="status" class="status disconnected">
+        ❌ Desconectado
+    </div>
+
+    <!-- Configuración -->
+    <div class="two-column">
         <div class="input-group">
             <label for="userId">Tu ID de Usuario:</label>
             <input type="text" id="userId" value="4c4e2933-899e-469a-b883-7ab9fe75a641" placeholder="Tu ID de usuario">
         </div>
-        
+
         <div class="input-group">
-            <label for="authToken">Token JWT:</label>
-            <input type="text" id="authToken" placeholder="Bearer token para autenticación" style="width: 100%;">
+            <label for="destinatarioId">ID del Destinatario:</label>
+            <input type="text" id="destinatarioId" value="6fdc6cce-508b-433d-9069-638a4283252d" placeholder="ID del destinatario">
         </div>
-        
-        <!-- Botones de Control -->
-        <button id="connectBtn" onclick="connect()">Conectar</button>
-        <button id="disconnectBtn" onclick="disconnect()" disabled>Desconectar</button>
-        <button id="joinBtn" onclick="joinChat()" disabled>Unirse al Chat</button>
-        <button id="leaveBtn" onclick="leaveChat()" disabled>Salir del Chat</button>
-        
-        <!-- Mensajes -->
-        <div class="input-group">
-            <label for="messageInput">Mensaje:</label>
-            <textarea id="messageInput" placeholder="Escribe tu mensaje aquí..." rows="3"></textarea>
-        </div>
-        
-        <button id="sendBtn" onclick="sendMessage()" disabled>Enviar Mensaje</button>
-        
-        <!-- Área de Mensajes -->
-        <h3>Mensajes:</h3>
-        <div id="messages" class="messages"></div>
-        
-        <!-- Log de Eventos -->
-        <h3>Log de Eventos:</h3>
-        <div id="log" class="messages" style="height: 150px;"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-    
-    <script>
-        let stompClient = null;
-        let socket = null;
-        let isConnected = false;
-        
-        function updateStatus(message, className) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = `status ${className}`;
+    <div class="input-group">
+        <label for="authToken">Token JWT (sin "Bearer"):</label>
+        <input type="text" id="authToken" placeholder="Pega aquí tu token JWT" style="width: 100%;">
+        <small style="color: #666;">⚠️ Importante: Solo el token, sin la palabra "Bearer"</small>
+    </div>
+
+    <!-- Botones de Control -->
+    <div class="two-column">
+        <button id="connectBtn" onclick="connect()">🔌 Conectar</button>
+        <button id="disconnectBtn" onclick="disconnect()" disabled>🔌 Desconectar</button>
+    </div>
+
+    <!-- Mensajes -->
+    <div class="input-group">
+        <label for="messageInput">Mensaje:</label>
+        <textarea id="messageInput" placeholder="Escribe tu mensaje aquí..." rows="3"></textarea>
+    </div>
+
+    <button id="sendBtn" onclick="sendMessage()" disabled>📤 Enviar Mensaje</button>
+
+    <!-- Área de Mensajes -->
+    <h3>💬 Mensajes:</h3>
+    <div id="messages" class="messages"></div>
+
+    <!-- Log de Eventos -->
+    <h3>📋 Log de Eventos:</h3>
+    <div id="log" class="messages" style="height: 150px;"></div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+<script>
+    let stompClient = null;
+    let socket = null;
+    let isConnected = false;
+
+    function updateStatus(message, className) {
+        const status = document.getElementById('status');
+        status.textContent = message;
+        status.className = `status ${className}`;
+    }
+
+    function addLog(message) {
+        const log = document.getElementById('log');
+        const timestamp = new Date().toLocaleTimeString();
+        log.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function addMessage(content, type = 'system') {
+        const messages = document.getElementById('messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+
+        const timestamp = new Date().toLocaleTimeString();
+        messageDiv.innerHTML = `<small>[${timestamp}]</small><br>${content}`;
+
+        messages.appendChild(messageDiv);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function connect() {
+        const userId = document.getElementById('userId').value;
+        const token = document.getElementById('authToken').value;
+
+        if (!userId) {
+            alert('❌ Por favor ingresa tu ID de usuario');
+            return;
         }
-        
-        function addLog(message) {
-            const log = document.getElementById('log');
-            const timestamp = new Date().toLocaleTimeString();
-            log.innerHTML += `<div>[${timestamp}] ${message}</div>`;
-            log.scrollTop = log.scrollHeight;
+
+        if (!token) {
+            alert('❌ Por favor ingresa tu token JWT');
+            return;
         }
-        
-        function addMessage(content, type = 'system') {
-            const messages = document.getElementById('messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-            messageDiv.textContent = content;
-            messages.appendChild(messageDiv);
-            messages.scrollTop = messages.scrollHeight;
-        }
-        
-        function connect() {
-            const serverUrl = document.getElementById('serverUrl').value;
-            const userId = document.getElementById('userId').value;
-            
-            if (!userId) {
-                alert('Por favor ingresa tu ID de usuario');
-                return;
-            }
-            
-            try {
-                socket = new SockJS(serverUrl);
-                stompClient = Stomp.over(socket);
-                
-                updateStatus('Conectando...', 'connecting');
-                addLog('Iniciando conexión WebSocket...');
-                
-                // Configurar headers de autenticación si se proporciona token
-                const headers = {};
-                const token = document.getElementById('authToken').value;
-                if (token) {
-                    headers.Authorization = token.startsWith('Bearer ') ? token : 'Bearer ' + token;
-                }
-                
-                stompClient.connect(headers, function(frame) {
-                    isConnected = true;
-                    updateStatus('Conectado', 'connected');
-                    addLog('Conectado exitosamente: ' + frame);
-                    
-                    // Habilitar botones
-                    document.getElementById('connectBtn').disabled = true;
-                    document.getElementById('disconnectBtn').disabled = false;
-                    document.getElementById('joinBtn').disabled = false;
-                    document.getElementById('leaveBtn').disabled = false;
-                    document.getElementById('sendBtn').disabled = false;
-                    
-                    // Suscribirse a mensajes privados
-                    stompClient.subscribe('/user/queue/private', function(message) {
+
+        try {
+            // Crear conexión SockJS
+            socket = new SockJS('http://localhost:8080/ws');
+            stompClient = Stomp.over(socket);
+
+            // Opcional: Deshabilitar logging de STOMP
+            // stompClient.debug = null;
+
+            updateStatus('🔄 Conectando...', 'connecting');
+            addLog('Iniciando conexión WebSocket...');
+
+            // Headers de conexión con JWT
+            const headers = {
+                'Authorization': 'Bearer ' + token
+            };
+
+            // Conectar
+            stompClient.connect(headers, function(frame) {
+                isConnected = true;
+                updateStatus('✅ Conectado', 'connected');
+                addLog('✅ Conectado exitosamente');
+                addMessage('🎉 Conexión establecida correctamente', 'system');
+
+                // Habilitar botones
+                document.getElementById('connectBtn').disabled = true;
+                document.getElementById('disconnectBtn').disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+
+                // Suscribirse a mensajes privados
+                stompClient.subscribe('/user/queue/private', function(message) {
+                    try {
                         const mensaje = JSON.parse(message.body);
-                        addMessage(`📨 ${mensaje.contenido}`, 'received');
-                        addLog(`Mensaje recibido: ${mensaje.contenido}`);
-                    });
-                    
-                    // Suscribirse a errores
-                    stompClient.subscribe('/user/queue/errors', function(error) {
-                        addMessage(`❌ Error: ${error.body}`, 'error');
-                        addLog(`Error recibido: ${error.body}`);
-                    });
-                    
-                    // Suscribirse a estado de conexión
-                    stompClient.subscribe('/user/queue/status', function(status) {
-                        addMessage(`ℹ️ ${status.body}`, 'system');
-                        addLog(`Estado: ${status.body}`);
-                    });
-                    
-                }, function(error) {
-                    updateStatus('Error de conexión', 'disconnected');
-                    addLog('Error de conexión: ' + error);
-                    isConnected = false;
+                        addMessage(`📨 De: ${mensaje.remitenteId}<br>${mensaje.contenido}`, 'received');
+                        addLog(`📨 Mensaje recibido de ${mensaje.remitenteId}`);
+                    } catch (e) {
+                        addLog('❌ Error al parsear mensaje: ' + e);
+                    }
                 });
-                
-            } catch (error) {
-                updateStatus('Error', 'disconnected');
-                addLog('Error al crear conexión: ' + error);
-            }
-        }
-        
-        function disconnect() {
-            if (stompClient && isConnected) {
-                stompClient.disconnect();
+
+                // Suscribirse a errores
+                stompClient.subscribe('/user/queue/errors', function(error) {
+                    addMessage(`❌ Error: ${error.body}`, 'error');
+                    addLog(`❌ Error recibido: ${error.body}`);
+                });
+
+                // Suscribirse a estado
+                stompClient.subscribe('/user/queue/status', function(status) {
+                    addMessage(`ℹ️ ${status.body}`, 'system');
+                    addLog(`ℹ️ Estado: ${status.body}`);
+                });
+
+                addLog('✅ Suscripciones configuradas correctamente');
+
+            }, function(error) {
+                updateStatus('❌ Error de conexión', 'disconnected');
+                addLog('❌ Error de conexión: ' + error);
+                addMessage('❌ No se pudo conectar. Verifica tu token JWT', 'error');
                 isConnected = false;
-                updateStatus('Desconectado', 'disconnected');
-                addLog('Desconectado del servidor');
-                
+
+                // Rehabilitar botón de conexión
+                document.getElementById('connectBtn').disabled = false;
+            });
+
+        } catch (error) {
+            updateStatus('❌ Error', 'disconnected');
+            addLog('❌ Error al crear conexión: ' + error);
+            addMessage('❌ Error crítico al conectar', 'error');
+        }
+    }
+
+    function disconnect() {
+        if (stompClient && isConnected) {
+            stompClient.disconnect(function() {
+                isConnected = false;
+                updateStatus('❌ Desconectado', 'disconnected');
+                addLog('✅ Desconectado del servidor');
+                addMessage('👋 Desconectado correctamente', 'system');
+
                 // Deshabilitar botones
                 document.getElementById('connectBtn').disabled = false;
                 document.getElementById('disconnectBtn').disabled = true;
-                document.getElementById('joinBtn').disabled = true;
-                document.getElementById('leaveBtn').disabled = true;
                 document.getElementById('sendBtn').disabled = true;
-            }
+            });
         }
-        
-        function joinChat() {
-            if (stompClient && isConnected) {
-                const userId = document.getElementById('userId').value;
-                stompClient.send("/app/chat.join", {}, userId);
-                addLog(`Uniéndose al chat como usuario: ${userId}`);
-            }
+    }
+
+    function sendMessage() {
+        if (!stompClient || !isConnected) {
+            alert('❌ No estás conectado. Por favor conecta primero.');
+            return;
         }
-        
-        function leaveChat() {
-            if (stompClient && isConnected) {
-                const userId = document.getElementById('userId').value;
-                stompClient.send("/app/chat.leave", {}, userId);
-                addLog(`Saliendo del chat como usuario: ${userId}`);
-            }
+
+        const userId = document.getElementById('userId').value;
+        const destinatarioId = document.getElementById('destinatarioId').value;
+        const contenido = document.getElementById('messageInput').value;
+
+        if (!destinatarioId) {
+            alert('❌ Por favor ingresa el ID del destinatario');
+            return;
         }
-        
-        function sendMessage() {
-            if (stompClient && isConnected) {
-                const userId = document.getElementById('userId').value;
-                const destinatarioId = document.getElementById('destinatarioId').value;
-                const contenido = document.getElementById('messageInput').value;
-                
-                if (!destinatarioId) {
-                    alert('Por favor ingresa el ID del destinatario');
-                    return;
-                }
-                
-                if (!contenido.trim()) {
-                    alert('Por favor escribe un mensaje');
-                    return;
-                }
-                
-                const mensaje = {
-                    destinatarioId: destinatarioId,
-                    contenido: contenido,
-                    remitenteId: userId
-                };
-                
-                stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(mensaje));
-                addMessage(`📤 ${contenido}`, 'sent');
-                addLog(`Mensaje enviado a ${destinatarioId}: ${contenido}`);
-                
-                // Limpiar input
-                document.getElementById('messageInput').value = '';
-            }
+
+        if (!contenido.trim()) {
+            alert('❌ Por favor escribe un mensaje');
+            return;
         }
-        
-        // Permitir enviar mensaje con Enter
-        document.getElementById('messageInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-        
-        // Cargar página
-        addLog('Página cargada. Listo para conectar.');
-    </script>
+
+        // Crear mensaje según el formato esperado por tu backend
+        const mensaje = {
+            remitenteId: userId,
+            destinatarioId: destinatarioId,
+            contenido: contenido.trim()
+        };
+
+        try {
+            // Enviar mensaje al endpoint /app/chat.sendMessage
+            stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(mensaje));
+
+            addMessage(`📤 Para: ${destinatarioId}<br>${contenido}`, 'sent');
+            addLog(`📤 Mensaje enviado a ${destinatarioId}`);
+
+            // Limpiar input
+            document.getElementById('messageInput').value = '';
+        } catch (error) {
+            addLog('❌ Error al enviar mensaje: ' + error);
+            addMessage('❌ Error al enviar el mensaje', 'error');
+        }
+    }
+
+    // Permitir enviar mensaje con Enter (sin Shift)
+    document.getElementById('messageInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // Mensaje inicial
+    addLog('📱 Página cargada. Listo para conectar.');
+    addMessage('👋 Bienvenido al chat de ViviGo. Ingresa tus datos y conecta.', 'system');
+</script>
 </body>
 </html>
