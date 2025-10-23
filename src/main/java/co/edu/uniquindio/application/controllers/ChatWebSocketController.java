@@ -1,5 +1,6 @@
 package co.edu.uniquindio.application.controllers;
 
+import co.edu.uniquindio.application.dtos.chat.ChatDTO;
 import co.edu.uniquindio.application.dtos.chat.MensajeDTO;
 import co.edu.uniquindio.application.services.ChatServicio;
 import lombok.RequiredArgsConstructor;
@@ -7,7 +8,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import java.security.Principal; // <-- Importar
+import java.security.Principal;
 
 @Controller
 @RequiredArgsConstructor
@@ -57,14 +58,15 @@ public class ChatWebSocketController {
 
     @MessageMapping("/chat.join")
     // 4. Cambiar @Payload por Principal
-    public void joinChat(Principal principal) {
+    public void joinChat(Principal principal, String destinatarioId) {
         String usuarioId = principal.getName(); // Obtener ID del Principal
         try {
+            ChatDTO chat = chatServicio.iniciarChatConUsuario(usuarioId, destinatarioId);
             // Notificar que el usuario se ha conectado
             messagingTemplate.convertAndSendToUser(
                     usuarioId,
                     "/queue/status", // <-- CORRECCIÓN: Usar /queue
-                    "Conectado al chat"
+                    "Conectado al chat" + chat
             );
         } catch (Exception e) {
             // Manejar errores de conexión

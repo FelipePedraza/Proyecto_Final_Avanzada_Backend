@@ -2,20 +2,8 @@
 ### CHAT EN TIEMPO REAL - VIVIGO
 ### ===========================================
 
-### 1. INICIAR CHAT CON USUARIO
-POST http://localhost:8080/api/chat/iniciar?destinatarioId=6fdc6cce-508b-433d-9069-638a4283252d
-Content-Type: application/json
-Authorization: Bearer {{auth_token}}
-
-### 2. ENVIAR MENSAJE A USUARIO
-POST http://localhost:8080/api/chat/enviar?destinatarioId=6fdc6cce-508b-433d-9069-638a4283252d
-Content-Type: application/json
-Authorization: Bearer {{auth_token}}
-
-"Hola, ¿tienes disponibilidad para el fin de semana?"
-
 ### 3. OBTENER CHAT ESPECÍFICO (con paginación)
-GET http://localhost:8080/api/chat/1?pagina=0&tamano=20
+GET http://localhost:8080/api/chat/2?pagina=0&tamano=20
 Accept: application/json
 Authorization: Bearer {{auth_token}}
 

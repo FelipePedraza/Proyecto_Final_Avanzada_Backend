@@ -132,13 +132,10 @@ public class ChatServicioImpl implements ChatServicio {
     }
 
     @Override
-    public ChatDTO iniciarChatConUsuario(String destinatarioId) throws Exception {
-        // Obtener usuario autenticado
-        User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String idUsuarioAutenticado = usuarioAutenticado.getUsername();
+    public ChatDTO iniciarChatConUsuario(String remitenteId, String destinatarioId) throws Exception {
 
         // Validar que no se inicie chat consigo mismo
-        if (idUsuarioAutenticado.equals(destinatarioId)) {
+        if (remitenteId.equals(destinatarioId)) {
             throw new ValidationException("No puedes iniciar un chat contigo mismo");
         }
 
@@ -151,7 +148,7 @@ public class ChatServicioImpl implements ChatServicio {
         }
 
         // Buscar o crear chat
-        Chat chat = buscarOCrearChatEntreUsuarios(idUsuarioAutenticado, destinatarioId);
+        Chat chat = buscarOCrearChatEntreUsuarios(remitenteId, destinatarioId);
 
         return chatMapper.toDTO(chat);
     }

@@ -319,7 +319,7 @@
             // Enviar mensaje al endpoint /app/chat.sendMessage
             stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(mensaje));
 
-            addMessage(`📤 Para: ${destinatarioId}<br>${contenido}`, 'sent');
+            //addMessage(`📤 Para: ${destinatarioId}<br>${contenido}`, 'sent');
             addLog(`📤 Mensaje enviado a ${destinatarioId}`);
 
             // Limpiar input

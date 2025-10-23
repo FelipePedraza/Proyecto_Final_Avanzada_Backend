@@ -27,16 +27,7 @@ public class ChatControlador {
         ChatDTO chat = chatServicio.obtenerChat(chatId, pagina, tamano);
         return ResponseEntity.ok(new RespuestaDTO<>(false, chat));
     }
-
-    @PostMapping("/enviar")
-    public ResponseEntity<RespuestaDTO<MensajeDTO>> enviarMensaje(
-            @RequestParam String remitenteId,
-            @RequestParam String destinatarioId,
-            @Valid @RequestBody String contenido) throws Exception {
-        MensajeDTO mensaje = chatServicio.enviarMensaje(remitenteId, destinatarioId, contenido);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, mensaje));
-    }
-
+    
     @GetMapping("/usuario/{id}/conversaciones")
     public ResponseEntity<RespuestaDTO<List<ChatDTO>>> listarConversaciones(@PathVariable String id) throws Exception {
         List<ChatDTO> conversaciones = chatServicio.listarConversaciones(id);
@@ -55,12 +46,5 @@ public class ChatControlador {
             @RequestParam String usuarioId) throws Exception {
         chatServicio.marcarChatComoLeido(chatId, usuarioId);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Chat marcado como leído"));
-    }
-
-    @PostMapping("/iniciar")
-    public ResponseEntity<RespuestaDTO<ChatDTO>> iniciarChatConUsuario(
-            @RequestParam String destinatarioId) throws Exception {
-        ChatDTO chat = chatServicio.iniciarChatConUsuario(destinatarioId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, chat));
     }
 }
