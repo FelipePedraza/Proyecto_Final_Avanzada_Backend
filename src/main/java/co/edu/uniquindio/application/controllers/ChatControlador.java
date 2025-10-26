@@ -2,11 +2,8 @@ package co.edu.uniquindio.application.controllers;
 
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.chat.ChatDTO;
-import co.edu.uniquindio.application.dtos.chat.MensajeDTO;
 import co.edu.uniquindio.application.services.ChatServicio;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

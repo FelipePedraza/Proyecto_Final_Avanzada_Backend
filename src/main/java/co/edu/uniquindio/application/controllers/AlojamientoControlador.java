@@ -53,7 +53,7 @@ public class AlojamientoControlador {
     }
 
     @GetMapping("/sugerencias")
-    public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> sugerirCiudades(@RequestParam String ciudad) throws Exception {
+    public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> sugerirCiudades(@RequestParam String ciudad) {
         List<ItemAlojamientoDTO> alojamientos = alojamientoServicio.sugerirAlojamientos(ciudad);
         return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientos));
     }

@@ -2,19 +2,13 @@ package co.edu.uniquindio.application.controllers;
 
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.reserva.CreacionReservaDTO;
-import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
-import co.edu.uniquindio.application.dtos.reserva.ReservaDTO;
 import co.edu.uniquindio.application.services.ReservaServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/reservas")
