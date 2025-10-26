@@ -13,8 +13,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.bind.annotation.RequestPart;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -35,9 +33,9 @@ public class UsuarioControlador {
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Se ha creado el anfitrion"));
     }
 
-    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
-    public ResponseEntity<RespuestaDTO<String>> editar(@PathVariable String id, @RequestPart("usuario") @Valid EdicionUsuarioDTO edicionUsuarioDTO, @RequestPart(value = "foto", required = false) MultipartFile file) throws Exception {
-        usuarioServicio.editar(id, edicionUsuarioDTO, file);
+    @PutMapping(value = "/{id}")
+    public ResponseEntity<RespuestaDTO<String>> editar(@PathVariable String id, @RequestBody @Valid EdicionUsuarioDTO edicionUsuarioDTO) throws Exception {
+        usuarioServicio.editar(id, edicionUsuarioDTO);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "El usuario ha sido actualizado"));
     }
 

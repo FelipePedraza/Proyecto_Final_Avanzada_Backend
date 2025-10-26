@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,9 +28,10 @@ public class AlojamientoControlador {
     private final ReservaServicio reservaServicio;
     private final ResenaServicio resenaServicio;
 
-    @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<RespuestaDTO<String>> crearAlojamiento(@RequestPart("alojamiento") @Valid CreacionAlojamientoDTO dto, @RequestPart(value = "imagenes", required = false) MultipartFile[] imagenes) throws Exception {
-        alojamientoServicio.crear(dto, imagenes);
+
+    @PostMapping
+    public ResponseEntity<RespuestaDTO<String>> crearAlojamiento(@RequestBody @Valid CreacionAlojamientoDTO dto) throws Exception {
+        alojamientoServicio.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, "Alojamiento creado con exito"));
     }
 
@@ -40,9 +40,9 @@ public class AlojamientoControlador {
         return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientoServicio.obtenerPorId(id)));
     }
 
-    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
-    public ResponseEntity<RespuestaDTO<String>> editarAlojamiento(@PathVariable Long id, @RequestPart("alojamiento") @Valid EdicionAlojamientoDTO dto, @RequestPart(value = "imagenes", required = false) MultipartFile[] imagenes) throws Exception {
-        alojamientoServicio.editar(id, dto, imagenes);
+    @PutMapping(value = "/{id}")
+    public ResponseEntity<RespuestaDTO<String>> editarAlojamiento(@PathVariable Long id, @RequestBody @Valid EdicionAlojamientoDTO dto) throws Exception {
+        alojamientoServicio.editar(id, dto);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Se actualizo correctamente el alojamiento"));
     }
 
