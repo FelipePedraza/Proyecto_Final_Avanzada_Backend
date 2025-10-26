@@ -51,30 +51,27 @@ public class UsuarioServicioImpl implements UsuarioServicio {
     }
 
     @Override
-    public void editar(String id, EdicionUsuarioDTO usuarioDTO) throws Exception {
+    public void editar(String id, EdicionUsuarioDTO usuarioDTO) {
 
         if(!authServicio.obtnerIdAutenticado(id)){
             throw new AccessDeniedException("No tiene permisos para editar de este usuario.");
         }
 
-        // 2. Se elimina toda la lógica de 'actualizadaPublicId' y 'viejaPublicId' inicial
-        // Se elimina el try-catch de rollback
-
         // Obtener el usuario actual
         Usuario usuario = obtenerUsuarioId(id);
 
-        // 3. Guardar la URL de la foto *antigua* ANTES de mapear
+        // Guardar la URL de la foto *antigua* ANTES de mapear
         String urlFotoActual = usuario.getFoto();
         String urlFotoNueva = usuarioDTO.foto(); // URL que envía el front
 
-        // 4. Aplicar los cambios del DTO al 'usuario'
+        // Aplicar los cambios del DTO al 'usuario'
         // Esto incluye la nueva URL de la foto
         usuarioMapper.updateUsuarioFromDTO(usuarioDTO, usuario);
 
-        // 5. Guardar el usuario en la BD
+        // Guardar el usuario en la BD
         usuarioRepositorio.save(usuario);
 
-        // 6. Lógica de limpieza (POST-guardado)
+        // Lógica de limpieza (POST-guardado)
         // Si la foto cambió Y había una foto antigua, eliminar la antigua de Cloudinary
         boolean fotoCambio = (urlFotoActual != null && !urlFotoActual.equals(urlFotoNueva)) ||
                 (urlFotoActual == null && urlFotoNueva != null); // Caso: no tenía foto y ahora sí
@@ -91,7 +88,6 @@ public class UsuarioServicioImpl implements UsuarioServicio {
             }
         }
 
-        // 7. Se elimina toda la lógica anterior de subida, clonado de DTO y rollback.
     }
 
     @Override
@@ -174,7 +170,7 @@ public class UsuarioServicioImpl implements UsuarioServicio {
         return optionalUsuario.isPresent();
     }
 
-    private Usuario obtenerUsuarioId(String id) throws Exception {
+    private Usuario obtenerUsuarioId(String id) {
         Optional<Usuario> optionalUsuario =  usuarioRepositorio.findById(id);
 
         if(optionalUsuario.isEmpty()){
