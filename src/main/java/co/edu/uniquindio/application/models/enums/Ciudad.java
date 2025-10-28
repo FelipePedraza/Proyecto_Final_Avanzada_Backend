@@ -5,5 +5,6 @@ public enum Ciudad {
     MEDELLIN,
     ARMENIA,
     CALI,
-    VILLAVICIENCIO
+    VILLAVICIENCIO,
+    OTRA
 }

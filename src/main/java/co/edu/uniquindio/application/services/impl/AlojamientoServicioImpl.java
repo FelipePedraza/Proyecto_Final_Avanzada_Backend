@@ -189,17 +189,9 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     @Override
     public MetricasDTO obtenerMetricas(Long id) throws Exception {
 
-        // Obtener usuario autenticado
-        User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String idUsuarioAutenticado = usuarioAutenticado.getUsername();
-
         // Obtener alojamiento
         Alojamiento alojamiento = obtenerAlojamientoId(id);
 
-        // Verificar que el usuario autenticado sea el anfitrión del alojamiento
-        if (!alojamiento.getAnfitrion().getId().equals(idUsuarioAutenticado)) {
-            throw new AccessDeniedException("No tienes permiso para ver las métricas de este alojamiento");
-        }
 
         // Obtener métricas de reseñas
         Integer totalResenas = alojamiento.getNumeroCalificaciones() != null ?

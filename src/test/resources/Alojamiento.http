@@ -1,18 +1,14 @@
 ### Crear Alojamiento
 POST http://localhost:8080/api/alojamientos
+content-Type: application/json
 Authorization: Bearer {{auth_token}}
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="alojamiento"
-Content-Type: application/json
 
 {
   "titulo": "Hotel 777 2",
   "descripcion": "Un hotel parchado 2",
   "maxHuespedes": 4,
   "direccion": {
-    "ciudad": "Armenia",
+    "ciudad": "ARMENIA",
     "direccion": "cra 14",
     "localizacion": {
       "latitud": 30,
@@ -23,22 +19,14 @@ Content-Type: application/json
   "servicios": [
     "PISCINA",
     "DESAYUNO"
+  ],
+  "imagenes": [
+    "https://res.cloudinary.com/dxvvp4ote/image/upload/v1760232255/Vivi_Go/Alojamientos/okjqzbqo5mqumuh9md1w.jpg",
+    "https://res.cloudinary.com/dxvvp4ote/image/upload/v1760232254/Vivi_Go/Alojamientos/yfvwggbml2gbrzs1kbai.jpg"
   ]
 }
 
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="imagenes"; filename="438485075.jpg"
-Content-Type: image/jpeg
 
-< C:\Users\FELIPE\Downloads\438485075.jpg
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="imagenes"; filename="729357497.jpg"
-Content-Type: image/jpeg
-
-< C:\Users\FELIPE\Downloads\729357497.jpg
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW--
 ### Actualizar Alojamiento
 PUT http://localhost:8080/api/alojamientos/1
 Authorization: Bearer {{auth_token}}

@@ -141,7 +141,7 @@ public class AuthServicioImpl implements AuthServicio {
         return Map.of(
                 "email", usuario.getEmail(),
                 "name", usuario.getNombre(),
-                "role", "ROL_"+usuario.getRol().name()
+                "rol", "ROL_"+usuario.getRol().name()
         );
     }
 

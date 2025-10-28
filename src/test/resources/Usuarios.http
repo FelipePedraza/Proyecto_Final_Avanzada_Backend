@@ -46,7 +46,7 @@ Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
-  "usuarioId": "6fdc6cce-508b-433d-9069-638a4283252d",
+  "usuarioId": "967754cc-2266-4aa7-a1cb-c6044cca47d4",
   "sobreMi": "Me gusta el baloncesto",
   "documentoLegal": "documento.pdf"
 }
