@@ -46,9 +46,9 @@ Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
-  "usuarioId": "967754cc-2266-4aa7-a1cb-c6044cca47d4",
-  "sobreMi": "Me gusta el baloncesto",
-  "documentoLegal": "documento.pdf"
+  "usuarioId": "f92090e2-4b35-4971-a656-ab73545fac73",
+  "sobreMi": "Me gusta el futbol",
+  "documentoLegal": "documento123.pdf"
 }
 
 ### Obtener Alojamiento del Usuario

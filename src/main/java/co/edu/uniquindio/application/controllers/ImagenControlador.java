@@ -23,8 +23,8 @@ public class ImagenControlador {
     }
 
     @DeleteMapping
-    public ResponseEntity<RespuestaDTO<String>> eliminar(@RequestParam("id") String id) throws Exception{
-        imagenServicio.eliminar(id);
+    public ResponseEntity<RespuestaDTO<String>> eliminar(@RequestParam("url") String url) throws Exception{
+        imagenServicio.eliminar(url);
         return ResponseEntity.ok( new RespuestaDTO<>(false, "Imagen eliminada exitosamente") );
     }
 }

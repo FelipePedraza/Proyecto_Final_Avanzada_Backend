@@ -31,7 +31,8 @@ public class ImagenServicioImpl implements ImagenServicio {
     }
 
     @Override
-    public Map eliminar(String imagenId) throws Exception {        
+    public Map eliminar(String url) throws Exception {
+        String imagenId = extraerPublicIdDelUrl(url);
         return cloudinary.uploader().destroy(imagenId, ObjectUtils.emptyMap());
     }
 
