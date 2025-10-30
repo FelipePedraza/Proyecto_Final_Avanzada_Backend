@@ -67,11 +67,11 @@ public interface AlojamientoRepositorio extends JpaRepository<Alojamiento, Long>
      * Para sugerencias basadas en la ciudad
      */
     @Query("""
-    SELECT a FROM Alojamiento a 
-    WHERE a.estado = :estado 
-    AND LOWER(a.direccion.ciudad) LIKE LOWER(CONCAT('%', :ciudad, '%'))
-    ORDER BY a.promedioCalificaciones DESC NULLS LAST
-    """)
+            SELECT a FROM Alojamiento a 
+            WHERE a.estado = :estado 
+            AND LOWER(a.direccion.ciudad) LIKE LOWER(CONCAT('%', :ciudad, '%'))
+            ORDER BY a.promedioCalificaciones DESC NULLS LAST
+            """)
     Page<Alojamiento> sugerirPorCiudad(
             @Param("ciudad") String ciudad,
             @Param("estado") Estado estado,
