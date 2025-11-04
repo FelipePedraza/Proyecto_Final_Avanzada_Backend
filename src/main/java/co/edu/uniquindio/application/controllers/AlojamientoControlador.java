@@ -6,6 +6,7 @@ import co.edu.uniquindio.application.dtos.resena.CreacionResenaDTO;
 import co.edu.uniquindio.application.dtos.resena.CreacionRespuestaDTO;
 import co.edu.uniquindio.application.dtos.resena.ItemResenaDTO;
 import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
+import co.edu.uniquindio.application.dtos.reserva.ReservaDTO;
 import co.edu.uniquindio.application.models.enums.ReservaEstado;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
 import co.edu.uniquindio.application.services.ResenaServicio;
@@ -70,8 +71,8 @@ public class AlojamientoControlador {
     }
 
     @GetMapping("/{id}/reservas")
-    public ResponseEntity<RespuestaDTO<List<ItemReservaDTO>>> obtenerReservasAlojamiento(@PathVariable(value = "id")  Long id, @RequestParam(required = false) ReservaEstado estado, @RequestParam(required = false) LocalDate fechaEntrada, @RequestParam(required = false) LocalDate fechaSalida , @RequestParam(required = false, defaultValue = "0") int pagina) throws Exception {
-        List<ItemReservaDTO> reservas = reservaServicio.obtenerReservasAlojamiento(id, estado, fechaEntrada, fechaSalida, pagina);
+    public ResponseEntity<RespuestaDTO<List<ReservaDTO>>> obtenerReservasAlojamiento(@PathVariable(value = "id")  Long id, @RequestParam(required = false) ReservaEstado estado, @RequestParam(required = false) LocalDate fechaEntrada, @RequestParam(required = false) LocalDate fechaSalida , @RequestParam(required = false, defaultValue = "0") int pagina) throws Exception {
+        List<ReservaDTO> reservas = reservaServicio.obtenerReservasAlojamiento(id, estado, fechaEntrada, fechaSalida, pagina);
         return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
 

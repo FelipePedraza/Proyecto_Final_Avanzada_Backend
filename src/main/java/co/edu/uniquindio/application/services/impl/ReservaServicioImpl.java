@@ -3,6 +3,7 @@ package co.edu.uniquindio.application.services.impl;
 import co.edu.uniquindio.application.dtos.EmailDTO;
 import co.edu.uniquindio.application.dtos.reserva.CreacionReservaDTO;
 import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
+import co.edu.uniquindio.application.dtos.reserva.ReservaDTO;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.mappers.ReservaMapper;
@@ -45,7 +46,6 @@ public class ReservaServicioImpl implements ReservaServicio {
     private final ReservaMapper reservaMapper;
     private final EmailServicio emailServicio;
     private final AuthServicio authServicio;
-    private final UsuarioServicio usuarioServicio;
 
     @Override
     public void crear(CreacionReservaDTO dto) throws Exception {
@@ -226,7 +226,7 @@ public class ReservaServicioImpl implements ReservaServicio {
     }
 
     @Override
-    public List<ItemReservaDTO> obtenerReservasAlojamiento(Long idAlojamiento, ReservaEstado estado, LocalDate fechaEntrada, LocalDate fechaSalida, int pagina) throws Exception {
+    public List<ReservaDTO> obtenerReservasAlojamiento(Long idAlojamiento, ReservaEstado estado, LocalDate fechaEntrada, LocalDate fechaSalida, int pagina) throws Exception {
 
         Optional<Alojamiento> alojamientoOptional = alojamientoRepositorio.findById(idAlojamiento);
 
@@ -235,7 +235,7 @@ public class ReservaServicioImpl implements ReservaServicio {
         }
 
         Pageable pageable = PageRequest.of(pagina, 5);
-        Page<ItemReservaDTO> reservas = reservaRepositorio.buscarConFiltrosAlojamiento(idAlojamiento, estado, fechaEntrada, fechaSalida, pageable).map(reservaMapper::toItemDTO);
+        Page<ReservaDTO> reservas = reservaRepositorio.buscarConFiltrosAlojamiento(idAlojamiento, estado, fechaEntrada, fechaSalida, pageable).map(reservaMapper::toDTO);
         return reservas.toList();
     }
     /**

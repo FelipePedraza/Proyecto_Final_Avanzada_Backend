@@ -14,5 +14,5 @@ public interface ReservaServicio {
     void rechazarReserva(Long id) throws Exception;
     void cancelarReserva(Long id) throws Exception;
     List<ItemReservaDTO> obtenerReservasUsuario(String id, ReservaEstado estado, LocalDate fechaEntrada, LocalDate fechaSalida, int pagina) throws Exception;
-    List<ItemReservaDTO> obtenerReservasAlojamiento(Long id, ReservaEstado estado, LocalDate fechaEntrada, LocalDate fechaSalida, int pagina) throws Exception;
+    List<ReservaDTO> obtenerReservasAlojamiento(Long id, ReservaEstado estado, LocalDate fechaEntrada, LocalDate fechaSalida, int pagina) throws Exception;
 }
