@@ -38,6 +38,6 @@ public class ReservaControlador {
     @PatchMapping("/{id}/rechazar")
     public ResponseEntity<RespuestaDTO<String>> rechazarReserva(@PathVariable Long id) throws Exception {
         reservaServicio.rechazarReserva(id);
-        return ResponseEntity.ok(new RespuestaDTO<>(false, "Reserva rechazada"));
+        return ResponseEntity.ok(new RespuestaDTO<>(false, "Reserva ha sido rechazada"));
     }
 }

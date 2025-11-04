@@ -228,21 +228,10 @@ public class ReservaServicioImpl implements ReservaServicio {
     @Override
     public List<ItemReservaDTO> obtenerReservasAlojamiento(Long idAlojamiento, ReservaEstado estado, LocalDate fechaEntrada, LocalDate fechaSalida, int pagina) throws Exception {
 
-
-        // Obtener usuario autenticado
-        User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String idUsuarioAutenticado = usuarioAutenticado.getUsername();
-
         Optional<Alojamiento> alojamientoOptional = alojamientoRepositorio.findById(idAlojamiento);
 
         if(alojamientoOptional.isEmpty()){
             throw new NoFoundException("Alojamiento no encontrado");
-        }
-
-        Alojamiento alojamiento = alojamientoOptional.get();
-
-        if(!idUsuarioAutenticado.equals(alojamiento.getAnfitrion().getId())){
-            throw new AccessDeniedException("No tiene permisos para las reservas de este alojamiento.");
         }
 
         Pageable pageable = PageRequest.of(pagina, 5);

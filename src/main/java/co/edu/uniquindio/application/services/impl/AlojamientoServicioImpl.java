@@ -294,7 +294,7 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     public Alojamiento obtenerAlojamientoId(Long id) throws Exception {
         Optional<Alojamiento> optionalAlojamiento = alojamientoRepositorio.findById(id);
 
-        if(optionalAlojamiento.isEmpty()){
+        if(optionalAlojamiento.isEmpty() ||  optionalAlojamiento.get().getEstado().equals(Estado.ELIMINADO)) {
             throw new NoFoundException("No se encontro el alojamiento con el id: " + id);
         }
 
