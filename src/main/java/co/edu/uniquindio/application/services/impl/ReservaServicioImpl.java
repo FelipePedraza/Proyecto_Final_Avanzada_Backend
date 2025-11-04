@@ -281,7 +281,7 @@ public class ReservaServicioImpl implements ReservaServicio {
 
             // Verificar solapamiento
             boolean haySolapamiento = !(fechaSalida.isBefore(reserva.getFechaEntrada()) ||
-                    fechaEntrada.isAfter(reserva.getFechaEntrada()));
+                    fechaEntrada.isAfter(reserva.getFechaSalida()));
 
             if (haySolapamiento) {
                 return true;
