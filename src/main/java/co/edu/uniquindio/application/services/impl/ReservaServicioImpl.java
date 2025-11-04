@@ -234,7 +234,7 @@ public class ReservaServicioImpl implements ReservaServicio {
             throw new NoFoundException("Alojamiento no encontrado");
         }
 
-        Pageable pageable = PageRequest.of(pagina, 5);
+        Pageable pageable = PageRequest.of(pagina, 10);
         Page<ReservaDTO> reservas = reservaRepositorio.buscarConFiltrosAlojamiento(idAlojamiento, estado, fechaEntrada, fechaSalida, pageable).map(reservaMapper::toDTO);
         return reservas.toList();
     }
