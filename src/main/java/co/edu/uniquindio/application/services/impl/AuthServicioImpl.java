@@ -47,6 +47,10 @@ public class AuthServicioImpl implements AuthServicio {
 
         Usuario usuario = optionalUsuario.get();
 
+        if(usuario.getEstado().equals(Estado.ELIMINADO)){
+            throw new NoFoundException("Usuario no encontrado");
+        }
+
         // Verificar si la contraseña es correcta usando el PasswordEncoder
         if(!passwordEncoder.matches(loginDTO.contrasena(), usuario.getContrasena())){
             throw new BadCredentialsException("Credenciales inválidas");
