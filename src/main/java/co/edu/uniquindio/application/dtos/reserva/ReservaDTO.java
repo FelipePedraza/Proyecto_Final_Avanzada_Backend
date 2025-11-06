@@ -13,6 +13,7 @@ public record ReservaDTO(
         LocalDate fechaEntrada,
         LocalDate fechaSalida,
         Integer cantidadHuespedes,
+        Double precio,
         ReservaEstado estado
 ) {
 }

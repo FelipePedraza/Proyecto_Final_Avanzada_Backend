@@ -10,6 +10,7 @@ public record ItemReservaDTO(
         AlojamientoDTO alojamiento,
         LocalDate fechaEntrada,
         LocalDate fechaSalida,
+        Double precio,
         ReservaEstado estado
 ) {
 }
