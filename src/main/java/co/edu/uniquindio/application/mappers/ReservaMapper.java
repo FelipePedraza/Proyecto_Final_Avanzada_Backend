@@ -13,10 +13,11 @@ public interface ReservaMapper {
 
     @Mapping(target = "estado", constant = "PENDIENTE")
     @Mapping(target = "creadoEn", expression = "java(java.time.LocalDateTime.now())")
-
     Reserva toEntity(CreacionReservaDTO reservaDTO);
 
+    @Mapping(target = "alojamiento.nombreAnfitrion", expression = "java(alojamiento.getAnfitrion().getNombre())")
     ItemReservaDTO toItemDTO(Reserva reserva);
+
 
     Reserva toEntity(ReservaDTO reservaDTO);
 

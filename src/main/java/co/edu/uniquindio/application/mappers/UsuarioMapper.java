@@ -16,7 +16,6 @@ public interface UsuarioMapper {
     @Mapping(target = "estado", constant = "ACTIVO")
     @Mapping(target = "creadoEn", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "rol", constant = "Huesped")
-
     Usuario toEntity(CreacionUsuarioDTO usuarioDTO);
 
     Usuario toEntity(UsuarioDTO usuarioDTO);
