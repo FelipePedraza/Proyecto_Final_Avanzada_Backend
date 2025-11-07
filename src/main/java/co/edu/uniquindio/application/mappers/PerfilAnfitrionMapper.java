@@ -1,4 +1,5 @@
 package co.edu.uniquindio.application.mappers;
+import co.edu.uniquindio.application.dtos.usuario.AnfitrionPerfilDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 
@@ -10,6 +11,6 @@ public interface PerfilAnfitrionMapper {
 
     PerfilAnfitrion toEntity(CreacionAnfitrionDTO creacionAnfitrionDTO);
 
-    CreacionAnfitrionDTO toPerfilAnfitrionDTO(PerfilAnfitrion perfilAnfitrion);
+    AnfitrionPerfilDTO toAnfitrionPerfilDTO(PerfilAnfitrion perfilAnfitrion);
 
 }

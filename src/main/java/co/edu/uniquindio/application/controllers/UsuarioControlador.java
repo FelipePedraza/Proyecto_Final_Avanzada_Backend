@@ -69,4 +69,10 @@ public class UsuarioControlador {
         return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
 
+    @GetMapping("/{id}/anfitrion")
+    public ResponseEntity<RespuestaDTO<AnfitrionPerfilDTO>> obtenerAnfitrion(@PathVariable String id) throws Exception {
+        AnfitrionPerfilDTO anfitrionPerfilDTO = usuarioServicio.obtenerAnfitrion(id);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, anfitrionPerfilDTO));
+    }
+
 }

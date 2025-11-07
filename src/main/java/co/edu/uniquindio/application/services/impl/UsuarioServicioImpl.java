@@ -163,6 +163,12 @@ public class UsuarioServicioImpl implements UsuarioServicio {
         ));
     }
 
+    @Override
+    public AnfitrionPerfilDTO obtenerAnfitrion(String id) throws Exception {
+        Usuario usuario = obtenerUsuarioId(id);
+        return perfilAnfitrionMapper.toAnfitrionPerfilDTO(usuario.getPerfilAnfitrion());
+    }
+
     public boolean existePorEmail(String email){
 
         Optional<Usuario> optionalUsuario = usuarioRepositorio.findByEmail(email);

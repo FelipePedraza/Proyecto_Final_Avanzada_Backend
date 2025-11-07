@@ -28,11 +28,11 @@ public class ReservaScheduler {
     private final EmailServicio emailServicio;
 
     /**
-     * Se ejecuta todos los días a las 2:00 AM
+     * Se ejecuta todos los días a las 12:00 AM
      * Actualiza las reservas confirmadas cuya fecha de salida ya pasó a COMPLETADA
      * y envía un email al huésped invitándolo a dejar una reseña
      */
-    @Scheduled(cron = "0 0 2 * * *")  // Todos los días a las 2:00 AM
+    @Scheduled(cron = "0 00 00 * * *")  // Todos los días a las 12:00 AM
     @Transactional
     public void actualizarReservasCompletadas() {
         log.info("Iniciando tarea de actualización de reservas completadas...");

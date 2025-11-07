@@ -60,3 +60,7 @@ Authorization: Bearer {{auth_token}}
 GET http://localhost:8080/api/usuarios/6fdc6cce-508b-433d-9069-638a4283252d/reservas?pagina=0
 Authorization: Bearer {{auth_token}}
 
+### Obtener Perfil anfitrion del Usuario
+GET http://localhost:8080/api/usuarios/967754cc-2266-4aa7-a1cb-c6044cca47d4/anfitrion
+Authorization: Bearer {{auth_token}}
+
