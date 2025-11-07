@@ -8,7 +8,7 @@ Accept: application/json
 Authorization: Bearer {{auth_token}}
 
 ### 4. LISTAR CONVERSACIONES DEL USUARIO
-GET http://localhost:8080/api/chat/usuario/4c4e2933-899e-469a-b883-7ab9fe75a641/conversaciones
+GET http://localhost:8080/api/chat/usuario/f92090e2-4b35-4971-a656-ab73545fac73/conversaciones
 Accept: application/json
 Authorization: Bearer {{auth_token}}
 

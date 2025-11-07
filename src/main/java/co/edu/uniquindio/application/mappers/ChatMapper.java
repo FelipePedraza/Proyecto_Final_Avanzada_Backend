@@ -22,6 +22,11 @@ public interface ChatMapper {
     @Mapping(target = "activo", source = "activo")
     ChatDTO toDTO(Chat chat);
 
+    @Mapping(target = "remitenteId", source = "remitente.id")
+    @Mapping(target = "destinatarioId", source = "destinatario.id")
+    @Mapping(target = "chatId", source = "chat.id")
+    MensajeDTO mensajeToMensajeDTO(Mensaje mensaje);
+
     default MensajeDTO getUltimoMensaje(List<Mensaje> mensajes) {
         if (mensajes == null || mensajes.isEmpty()) {
             return null;
