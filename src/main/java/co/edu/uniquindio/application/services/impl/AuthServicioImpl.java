@@ -5,7 +5,6 @@ import co.edu.uniquindio.application.dtos.usuario.*;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.models.entitys.ContrasenaCodigoReinicio;
-import co.edu.uniquindio.application.models.entitys.Resena;
 import co.edu.uniquindio.application.models.entitys.Usuario;
 import co.edu.uniquindio.application.models.enums.Estado;
 import co.edu.uniquindio.application.repositories.ContrasenaCodigoReinicioRepositorio;
@@ -13,6 +12,8 @@ import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
 import co.edu.uniquindio.application.security.JWTUtils;
 import co.edu.uniquindio.application.services.AuthServicio;
 import co.edu.uniquindio.application.services.EmailServicio;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -56,8 +57,47 @@ public class AuthServicioImpl implements AuthServicio {
             throw new BadCredentialsException("Credenciales inválidas");
         }
 
-        String token = jwtUtils.generarToken(usuario.getId(), crearReclamos(usuario));
-        return new TokenDTO(token);
+        Map<String, String> claims = crearReclamos(usuario);
+        String token = jwtUtils.generarToken(usuario.getId(), claims);
+        String refreshToken = jwtUtils.generarRefreshToken(usuario.getId(), claims);
+        return new TokenDTO(token, refreshToken);
+    }
+
+    @Override
+    public TokenDTO refrescarToken(RefreshTokenDTO refreshTokenDTO) throws Exception {
+
+        String refreshToken = refreshTokenDTO.refreshToken();
+
+        try {
+            // 1. Decodificar el refresh token
+            Jws<Claims> jws = jwtUtils.decodificarJwt(refreshToken);
+
+            // 2. Obtener el subject (ID de Usuario)
+            String idUsuario = jws.getPayload().getSubject();
+
+            // 3. Buscar al usuario
+            Usuario usuario = usuarioRepositorio.findById(idUsuario)
+                    .orElseThrow(() -> new NoFoundException("Usuario no encontrado: "));
+            // 4. Validar estado del usuario
+            if (usuario.getEstado() == Estado.ELIMINADO) {
+                throw new NoFoundException("Usuario no encontrado");
+            }
+
+            Map<String, String> claims = crearReclamos(usuario);
+            // 6. Generar nuevos tokens
+            String Token = jwtUtils.generarToken(usuario.getEmail(), claims);
+
+            // (Opcional pero recomendado: rotar el refresh token)
+            String nuevoRefreshToken = jwtUtils.generarRefreshToken(usuario.getEmail(), claims);
+
+            // 7. Devolver el DTO con los nuevos tokens
+            return new TokenDTO(Token, nuevoRefreshToken);
+
+        } catch (Exception e) {
+            // Si el refresh token es inválido o expiró, lanzamos BadCredentials
+            // El RestExceptionHandler lo convertirá en 401
+            throw new BadCredentialsException("Refresh token inválido o expirado");
+        }
     }
 
     @Override

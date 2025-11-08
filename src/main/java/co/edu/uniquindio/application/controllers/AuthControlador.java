@@ -41,4 +41,10 @@ public class AuthControlador {
         authServicio.reiniciarContrasena(reinicioContrasenaDTO);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Contraseña restablecida correctamente."));
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<RespuestaDTO<TokenDTO>> refresh(@Valid @RequestBody RefreshTokenDTO refreshTokenDTO) throws Exception {
+        TokenDTO token = authServicio.refrescarToken(refreshTokenDTO);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, token));
+    }
 }

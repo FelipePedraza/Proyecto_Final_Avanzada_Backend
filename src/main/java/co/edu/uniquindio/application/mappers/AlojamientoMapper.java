@@ -24,6 +24,7 @@ public interface AlojamientoMapper {
     ItemAlojamientoDTO toItemDTO(Alojamiento alojamiento);
 
     @Mapping(target = "nombreAnfitrion", expression = "java(alojamiento.getAnfitrion().getNombre())")
+    @Mapping(target = "anfitrionId", expression = "java(alojamiento.getAnfitrion().getId())")
     AlojamientoDTO toDTO(Alojamiento alojamiento);
 
     void updateAlojamientoFromDto(EdicionAlojamientoDTO edicionAlojamientoDTO, @MappingTarget Alojamiento alojamiento);

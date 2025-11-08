@@ -16,6 +16,7 @@ public interface ReservaMapper {
     Reserva toEntity(CreacionReservaDTO reservaDTO);
 
     @Mapping(target = "alojamiento.nombreAnfitrion", expression = "java(alojamiento.getAnfitrion().getNombre())")
+    @Mapping(target = "alojamiento.anfitrionId", expression = "java(alojamiento.getAnfitrion().getId())")
     ItemReservaDTO toItemDTO(Reserva reserva);
 
 

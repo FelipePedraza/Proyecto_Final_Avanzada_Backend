@@ -23,7 +23,19 @@ public class JWTUtils {
                 .claims(claims)
                 .subject(id)
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plus(1L, ChronoUnit.HOURS)))
+                .expiration(Date.from(now.plus(1L, ChronoUnit.MINUTES)))
+                .signWith(obtenerKey())
+                .compact();
+    }
+
+    public String generarRefreshToken(String id, Map<String, String> claims) {
+        Instant now = Instant.now();
+
+        return Jwts.builder()
+                .claims(claims)
+                .subject(id)
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plus(7L, ChronoUnit.DAYS))) // 7 Días
                 .signWith(obtenerKey())
                 .compact();
     }
@@ -39,7 +51,7 @@ public class JWTUtils {
         return Keys.hmacShaKeyFor(secretKeyBytes);
     }
 
-    
+
     public boolean validarToken(String token, UserDetails userDetails) {
         try {
             String username = decodificarJwt(token).getPayload().getSubject();

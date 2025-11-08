@@ -19,7 +19,7 @@ public class JWTAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         RespuestaDTO<String> dto = new RespuestaDTO<>(true, "No tienes permisos para acceder a este recurso");
         response.setContentType("application/json");
-        response.setStatus(403);
+        response.setStatus(401);
         response.getWriter().write(new ObjectMapper().writeValueAsString(dto));
         response.getWriter().flush();
         response.getWriter().close();

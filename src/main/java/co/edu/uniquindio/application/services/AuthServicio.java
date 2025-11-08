@@ -7,4 +7,5 @@ public interface AuthServicio {
     Boolean obtnerIdAutenticado(String idUsuario); 
     void solicitarRecuperacion(OlvidoContrasenaDTO olvidoContrasenaDTO) throws Exception;
     void reiniciarContrasena(ReinicioContrasenaDTO dto) throws Exception;
+    TokenDTO refrescarToken(RefreshTokenDTO refreshTokenDTO) throws Exception;
 }

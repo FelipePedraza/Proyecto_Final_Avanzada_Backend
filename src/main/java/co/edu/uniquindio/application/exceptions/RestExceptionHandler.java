@@ -23,7 +23,7 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<RespuestaDTO<String>> noResourceFoundExceptionHandler(NoResourceFoundException ex){
-        return ResponseEntity.status(404).body( new RespuestaDTO<>(true, "El recurso solicitado no existe") );
+        return ResponseEntity.status(404).body( new RespuestaDTO<>(true, ex.getMessage()) );
     }
 
     @ExceptionHandler(Exception.class)
@@ -54,7 +54,7 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<RespuestaDTO<String>> badCredentialsExceptionHandler(BadCredentialsException ex){
-        // 401
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body( new RespuestaDTO<>(true, ex.getMessage()) );
+        // 400
+        return ResponseEntity.status(400).body( new RespuestaDTO<>(true, ex.getMessage()) );
     }
 }
