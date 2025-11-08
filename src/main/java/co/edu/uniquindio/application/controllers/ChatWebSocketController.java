@@ -35,14 +35,14 @@ public class ChatWebSocketController {
             // Enviar al destinatario específico
             messagingTemplate.convertAndSendToUser(
                     mensaje.destinatarioId(),
-                    "/queue/private", // <-- CORRECCIÓN: Usar /queue para coincidir con el cliente
+                    "/queue/private",
                     mensajeEnviado
             );
 
             // Enviar confirmación al remitente
             messagingTemplate.convertAndSendToUser(
                     remitenteId, // <-- Usar el ID del Principal
-                    "/queue/private", // <-- CORRECCIÓN: Usar /queue
+                    "/queue/private",
                     mensajeEnviado
             );
 
@@ -60,22 +60,25 @@ public class ChatWebSocketController {
     // 4. Cambiar @Payload por Principal
     public void joinChat(Principal principal, String destinatarioId) {
         String usuarioId = principal.getName(); // Obtener ID del Principal
-        try {
-            ChatDTO chat = chatServicio.iniciarChatConUsuario(usuarioId, destinatarioId);
-            // Notificar que el usuario se ha conectado
-            messagingTemplate.convertAndSendToUser(
-                    usuarioId,
-                    "/queue/status", // <-- CORRECCIÓN: Usar /queue
-                    "Conectado al chat" + chat
-            );
-        } catch (Exception e) {
-            // Manejar errores de conexión
-            messagingTemplate.convertAndSendToUser(
-                    usuarioId,
-                    "/queue/errors", // <-- CORRECCIÓN: Usar /queue
-                    "Error al unirse al chat: " + e.getMessage()
-            );
+        if(destinatarioId.isEmpty()) {
+            try {
+                ChatDTO chat = chatServicio.iniciarChatConUsuario(usuarioId, destinatarioId);
+                // Notificar que el usuario se ha conectado
+                messagingTemplate.convertAndSendToUser(
+                        usuarioId,
+                        "/queue/status",
+                        "Conectado al chat" + chat
+                );
+            } catch (Exception e) {
+                // Manejar errores de conexión
+                messagingTemplate.convertAndSendToUser(
+                        usuarioId,
+                        "/queue/errors",
+                        "Error al unirse al chat: " + e.getMessage()
+                );
+            }
         }
+
     }
 
     @MessageMapping("/chat.leave")
@@ -86,14 +89,14 @@ public class ChatWebSocketController {
             // Notificar que el usuario se ha desconectado
             messagingTemplate.convertAndSendToUser(
                     usuarioId,
-                    "/queue/status", // <-- CORRECCIÓN: Usar /queue
+                    "/queue/status",
                     "Desconectado del chat"
             );
         } catch (Exception e) {
             // Manejar errores de desconexión
             messagingTemplate.convertAndSendToUser(
                     usuarioId,
-                    "/queue/errors", // <-- CORRECCIÓN: Usar /queue
+                    "/queue/errors",
                     "Error al desconectarse del chat: " + e.getMessage()
             );
         }
