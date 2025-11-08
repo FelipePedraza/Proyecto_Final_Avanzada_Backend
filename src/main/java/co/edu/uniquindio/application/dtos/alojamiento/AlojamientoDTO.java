@@ -22,6 +22,8 @@ public record AlojamientoDTO(
 
         List<String> imagenes,
 
-        String nombreAnfitrion
+        String nombreAnfitrion,
+
+        String anfitrionId
 ) {
 }
