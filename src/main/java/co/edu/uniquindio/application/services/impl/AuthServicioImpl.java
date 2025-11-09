@@ -65,41 +65,30 @@ public class AuthServicioImpl implements AuthServicio {
 
     @Override
     public TokenDTO refrescarToken(RefreshTokenDTO refreshTokenDTO) throws Exception {
-
         String refreshToken = refreshTokenDTO.refreshToken();
 
         try {
-            // 1. Decodificar el refresh token
             Jws<Claims> jws = jwtUtils.decodificarJwt(refreshToken);
-
-            // 2. Obtener el subject (ID de Usuario)
             String idUsuario = jws.getPayload().getSubject();
 
-            // 3. Buscar al usuario
             Usuario usuario = usuarioRepositorio.findById(idUsuario)
-                    .orElseThrow(() -> new NoFoundException("Usuario no encontrado: "));
-            // 4. Validar estado del usuario
+                    .orElseThrow(() -> new NoFoundException("Usuario no encontrado"));
+
             if (usuario.getEstado() == Estado.ELIMINADO) {
                 throw new NoFoundException("Usuario no encontrado");
             }
 
             Map<String, String> claims = crearReclamos(usuario);
-            // 6. Generar nuevos tokens
-            String Token = jwtUtils.generarToken(usuario.getEmail(), claims);
 
-            // (Opcional pero recomendado: rotar el refresh token)
-            String nuevoRefreshToken = jwtUtils.generarRefreshToken(usuario.getEmail(), claims);
+            String nuevoToken = jwtUtils.generarToken(usuario.getId(), claims);
+            String nuevoRefreshToken = jwtUtils.generarRefreshToken(usuario.getId(), claims);
 
-            // 7. Devolver el DTO con los nuevos tokens
-            return new TokenDTO(Token, nuevoRefreshToken);
+            return new TokenDTO(nuevoToken, nuevoRefreshToken);
 
         } catch (Exception e) {
-            // Si el refresh token es inválido o expiró, lanzamos BadCredentials
-            // El RestExceptionHandler lo convertirá en 401
             throw new BadCredentialsException("Refresh token inválido o expirado");
         }
     }
-
     @Override
     public Boolean obtnerIdAutenticado(String idUsuario) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
