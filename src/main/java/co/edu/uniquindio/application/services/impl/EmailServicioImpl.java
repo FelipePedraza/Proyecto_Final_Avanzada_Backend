@@ -2,40 +2,47 @@ package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dtos.EmailDTO;
 import co.edu.uniquindio.application.services.EmailServicio;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import sibApi.TransactionalEmailsApi;
+import sibModel.SendSmtpEmail;
+import sibModel.SendSmtpEmailSender;
+import sibModel.SendSmtpEmailTo;
+
+import java.util.Collections;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class EmailServicioImpl implements EmailServicio {
 
-    private final JavaMailSender javaMailSender;
+    @Value("${BREVO_API_KEY}")
+    private String brevoApiKey;
 
-    @Value("${spring.mail.username}")
-    private String fromEmail;
+    @Value("${BREVO_FROM_EMAIL}")
+    private String brevoFromEmail;
+
+    @Value("${BREVO_FROM_NAME}")
+    private String brevoFromName;
 
     @Override
     @Async
     public void enviarEmail(EmailDTO emailDTO) throws Exception {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(emailDTO.destinatario());
-            message.setSubject(emailDTO.sujeto());
-            message.setText(emailDTO.cuerpo());
+        TransactionalEmailsApi api = new TransactionalEmailsApi();
+        api.getApiClient().setApiKey(brevoApiKey);
 
-            javaMailSender.send(message);
+        SendSmtpEmailSender sender = new SendSmtpEmailSender();
+        sender.setEmail(brevoFromEmail); // Tu email verificado en Brevo
+        sender.setName(brevoFromName);
 
-            log.info("Email enviado exitosamente a: {}", emailDTO.destinatario());
-        } catch (Exception e) {
-            log.error("Error al enviar email a {}: {}", emailDTO.destinatario(), e.getMessage());
-            throw new Exception("Error al enviar el email: " + e.getMessage());
-        }
+        SendSmtpEmailTo to = new SendSmtpEmailTo();
+        to.setEmail(emailDTO.destinatario());
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.setSender(sender);
+        sendSmtpEmail.setTo(Collections.singletonList(to));
+        sendSmtpEmail.setSubject(emailDTO.sujeto());
+        sendSmtpEmail.setTextContent(emailDTO.cuerpo());
+
+        api.sendTransacEmail(sendSmtpEmail);
     }
 }
