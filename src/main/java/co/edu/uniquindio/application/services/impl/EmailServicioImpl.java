@@ -39,7 +39,7 @@ public class EmailServicioImpl implements EmailServicio {
 
         try (Mailer mailer = MailerBuilder
                 .withSMTPServer(smtpHost, smtpPort, smtpUsername, smtpPassword)
-                .withTransportStrategy(TransportStrategy.SMTPS)
+                .withTransportStrategy(TransportStrategy.SMTP_TLS)
                 .withDebugLogging(false)
                 .buildMailer()) {
 
