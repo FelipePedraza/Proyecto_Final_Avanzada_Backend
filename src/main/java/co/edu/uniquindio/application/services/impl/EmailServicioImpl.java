@@ -2,48 +2,40 @@ package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dtos.EmailDTO;
 import co.edu.uniquindio.application.services.EmailServicio;
-import org.simplejavamail.api.email.Email;
-import org.simplejavamail.api.mailer.Mailer;
-import org.simplejavamail.api.mailer.config.TransportStrategy;
-import org.simplejavamail.email.EmailBuilder;
-import org.simplejavamail.mailer.MailerBuilder;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class EmailServicioImpl implements EmailServicio {
 
-    @Value("${smtp.host}")
-    private String smtpHost;
+    private final JavaMailSender javaMailSender;
 
-    @Value("${smtp.port}")
-    private int smtpPort;
-
-    @Value("${smtp.username}")
-    private String smtpUsername;
-
-    @Value("${smtp.password}")
-    private String smtpPassword;
+    @Value("${spring.mail.username}")
+    private String fromEmail;
 
     @Override
     @Async
     public void enviarEmail(EmailDTO emailDTO) throws Exception {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(emailDTO.destinatario());
+            message.setSubject(emailDTO.sujeto());
+            message.setText(emailDTO.cuerpo());
 
-        Email email = EmailBuilder.startingBlank()
-                .from(smtpUsername)
-                .to(emailDTO.destinatario())
-                .withSubject(emailDTO.sujeto())
-                .withPlainText(emailDTO.cuerpo())
-                .buildEmail();
+            javaMailSender.send(message);
 
-        try (Mailer mailer = MailerBuilder
-                .withSMTPServer(smtpHost, smtpPort, smtpUsername, smtpPassword)
-                .withTransportStrategy(TransportStrategy.SMTP_TLS)
-                .withDebugLogging(false)
-                .buildMailer()) {
-
-            mailer.sendMail(email);
+            log.info("Email enviado exitosamente a: {}", emailDTO.destinatario());
+        } catch (Exception e) {
+            log.error("Error al enviar email a {}: {}", emailDTO.destinatario(), e.getMessage());
+            throw new Exception("Error al enviar el email: " + e.getMessage());
         }
     }
 }
