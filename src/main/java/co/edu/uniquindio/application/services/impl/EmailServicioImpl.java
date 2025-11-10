@@ -39,8 +39,8 @@ public class EmailServicioImpl implements EmailServicio {
 
         try (Mailer mailer = MailerBuilder
                 .withSMTPServer(smtpHost, smtpPort, smtpUsername, smtpPassword)
-                .withTransportStrategy(TransportStrategy.SMTP_TLS)
-                .withDebugLogging(true)
+                .withTransportStrategy(TransportStrategy.SMTPS)
+                .withDebugLogging(false)
                 .buildMailer()) {
 
             mailer.sendMail(email);
