@@ -28,7 +28,6 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RespuestaDTO<String>> generalExceptionHandler (Exception e){
-        e.printStackTrace();
         return ResponseEntity.internalServerError().body( new RespuestaDTO<>(true, e.getMessage()) );
     }
 

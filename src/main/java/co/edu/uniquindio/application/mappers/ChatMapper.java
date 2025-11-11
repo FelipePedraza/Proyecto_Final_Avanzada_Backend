@@ -8,6 +8,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
@@ -33,13 +34,9 @@ public interface ChatMapper {
         }
         
         Mensaje ultimoMensaje = mensajes.stream()
-            .max((m1, m2) -> m1.getFechaEnvio().compareTo(m2.getFechaEnvio()))
+            .max(Comparator.comparing(Mensaje::getFechaEnvio))
             .orElse(null);
-            
-        if (ultimoMensaje == null) {
-            return null;
-        }
-        
+
         return new MensajeDTO(
             ultimoMensaje.getId(),
             ultimoMensaje.getRemitente().getId(),
