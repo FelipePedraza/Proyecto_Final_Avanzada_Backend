@@ -3,6 +3,7 @@ package co.edu.uniquindio.application.services.impl;
 import co.edu.uniquindio.application.services.ImagenServicio;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
@@ -16,11 +17,20 @@ public class ImagenServicioImpl implements ImagenServicio {
 
     private final Cloudinary cloudinary;
 
+    @Value("${cloud.name}")
+    private String cloud_name;
+
+    @Value("${cloud.api.key}")
+    private String api_key;
+
+    @Value("${cloud.api.key.secret}")
+    private String api_secret;
+
     public ImagenServicioImpl(){
         Map<String, String> config = new HashMap<>();
-        config.put("cloud_name", "dxvvp4ote");
-        config.put("api_key", "938831583477113");
-        config.put("api_secret", "dGq2cGN1LhLybhLy0EK0FpX-BQ0");
+        config.put("cloud_name", cloud_name);
+        config.put("api_key", api_key);
+        config.put("api_secret", api_secret);
         cloudinary = new Cloudinary(config);
     }
 
