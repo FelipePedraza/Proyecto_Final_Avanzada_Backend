@@ -46,12 +46,12 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     @Override
     public void crear(CreacionAlojamientoDTO alojamientoDTO) throws Exception {
 
-        //Se verifica que no se repita el titulo
+        //Se verifica que no se repita el título
         if(existePorTitulo(alojamientoDTO.titulo())){
             throw new Exception("El titulo ya existe");
         }
 
-        //Se obtiene la informacion del usuario autenticado
+        //Se obtiene la información del usuario autenticado
         User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String idUsuarioAutenticado = usuarioAutenticado.getUsername();
         UsuarioDTO usuarioDTO = usuarioServicio.obtener(idUsuarioAutenticado);
@@ -175,9 +175,18 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
         if (alojamiento.getAnfitrion() == null || !alojamiento.getAnfitrion().getId().equals(usuario.getId())) {
             throw new AccessDeniedException("No tiene permiso para eliminar este alojamiento");
         }
-        // La eliminación es lógica
-        alojamiento.setEstado(Estado.ELIMINADO);
-        alojamientoRepositorio.save(alojamiento);
+
+        if (alojamiento.getReservas().isEmpty()) {
+            // La eliminación es lógica
+            alojamiento.setEstado(Estado.ELIMINADO);
+            alojamientoRepositorio.save(alojamiento);
+        } else if (reservaRepositorio.countByAlojamiento_IdAndEstadoIn(id, List.of(ReservaEstado.CONFIRMADA, ReservaEstado.PENDIENTE)) == 0) {
+            // La eliminación es lógica
+            alojamiento.setEstado(Estado.ELIMINADO);
+            alojamientoRepositorio.save(alojamiento);
+        } else{
+            throw new ValidationException("No puede eliminar un alojamiento con reservas");
+        }
     }
 
     @Override

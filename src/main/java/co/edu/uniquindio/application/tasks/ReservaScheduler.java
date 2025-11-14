@@ -28,7 +28,7 @@ public class ReservaScheduler {
     private final EmailServicio emailServicio;
 
     /**
-     * Se ejecuta todos los días a las 12:00 AM
+     * Se ejecuta todos los días a las 6
      * Actualiza las reservas confirmadas cuya fecha de salida ya pasó a COMPLETADA
      * y envía un email al huésped invitándolo a dejar una reseña
      */
