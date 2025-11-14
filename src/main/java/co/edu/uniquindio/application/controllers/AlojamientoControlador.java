@@ -5,7 +5,6 @@ import co.edu.uniquindio.application.dtos.alojamiento.*;
 import co.edu.uniquindio.application.dtos.resena.CreacionResenaDTO;
 import co.edu.uniquindio.application.dtos.resena.CreacionRespuestaDTO;
 import co.edu.uniquindio.application.dtos.resena.ItemResenaDTO;
-import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
 import co.edu.uniquindio.application.dtos.reserva.ReservaDTO;
 import co.edu.uniquindio.application.models.enums.ReservaEstado;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
