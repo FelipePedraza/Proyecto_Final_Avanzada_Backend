@@ -24,7 +24,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .addEndpoint("/ws")
                 .setHandshakeHandler(new CustomHandshakeHandler())
                 .addInterceptors(webSocketAuthInterceptor)
-                .setAllowedOrigins("http://localhost:4200", "http://localhost:8080", "http://localhost:63342", "https://awsamplify.dq1aquhzceds4.amplifyapp.com", "https://d2nwu7cgdnp7ru.cloudfront.net") // Punto final del WebSocket
+                .setAllowedOrigins("http://localhost:4200", "http://localhost:8080", "http://localhost:63342", "https://awsamplify.dq1aquhzceds4.amplifyapp.com") // Punto final del WebSocket
                 .withSockJS();
     }
 
