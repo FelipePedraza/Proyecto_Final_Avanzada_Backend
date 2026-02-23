@@ -18,7 +18,7 @@ Authorization: Bearer {{auth_token}}
 }
 
 ### Editar usuario (PUT) (200)
-PUT http://localhost:8080/api/usuarios/4c4e2933-899e-469a-b883-7ab9fe75a641
+PUT http://localhost:8080/api/usuarios/b5198e43-3139-4883-b51e-36fb1cf5d624
 Content-Type: multipart/form-data; boundary=simpleboundary
 Authorization: Bearer {{auth_token}}
 
@@ -63,4 +63,16 @@ Authorization: Bearer {{auth_token}}
 ### Obtener Perfil anfitrion del Usuario
 GET http://localhost:8080/api/usuarios/967754cc-2266-4aa7-a1cb-c6044cca47d4/anfitrion
 Authorization: Bearer {{auth_token}}
+
+### Publicar imagen
+POST http://localhost:8080/api/imagenes
+Authorization: Bearer {{auth_token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="file"; filename="Alucard16x16.png"
+Content-Type: image/png
+
+< C:\Users\FELIPE\OneDrive\Imágenes\Alucard16x16.png
+------WebKitFormBoundary--
 
