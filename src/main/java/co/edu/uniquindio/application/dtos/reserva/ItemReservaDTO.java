@@ -1,6 +1,7 @@
 package co.edu.uniquindio.application.dtos.reserva;
 
 import co.edu.uniquindio.application.dtos.alojamiento.AlojamientoDTO;
+import co.edu.uniquindio.application.models.enums.PagoEstado;
 import co.edu.uniquindio.application.models.enums.ReservaEstado;
 
 import java.time.LocalDate;
@@ -11,6 +12,7 @@ public record ItemReservaDTO(
         LocalDate fechaEntrada,
         LocalDate fechaSalida,
         Double precio,
-        ReservaEstado estado
+        ReservaEstado estado,
+        PagoEstado pagoEstado
 ) {
 }
