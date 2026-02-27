@@ -1,7 +1,9 @@
 package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dtos.EmailDTO;
+import co.edu.uniquindio.application.dtos.pago.PagoIntentDTO;
 import co.edu.uniquindio.application.dtos.reserva.CreacionReservaDTO;
+import co.edu.uniquindio.application.dtos.reserva.CreacionReservaRespuestaDTO;
 import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
 import co.edu.uniquindio.application.dtos.reserva.ReservaDTO;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
@@ -11,14 +13,12 @@ import co.edu.uniquindio.application.models.entitys.Alojamiento;
 import co.edu.uniquindio.application.models.entitys.Reserva;
 import co.edu.uniquindio.application.models.entitys.Usuario;
 import co.edu.uniquindio.application.models.enums.Estado;
+import co.edu.uniquindio.application.models.enums.PagoEstado;
 import co.edu.uniquindio.application.models.enums.ReservaEstado;
 import co.edu.uniquindio.application.repositories.AlojamientoRepositorio;
 import co.edu.uniquindio.application.repositories.ReservaRepositorio;
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
-import co.edu.uniquindio.application.services.AuthServicio;
-import co.edu.uniquindio.application.services.EmailServicio;
-import co.edu.uniquindio.application.services.ReservaServicio;
-import co.edu.uniquindio.application.services.UsuarioServicio;
+import co.edu.uniquindio.application.services.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -46,28 +46,28 @@ public class ReservaServicioImpl implements ReservaServicio {
     private final ReservaMapper reservaMapper;
     private final EmailServicio emailServicio;
     private final AuthServicio authServicio;
+    private final PagoServicio pagoServicio;
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CREAR RESERVA - Ahora retorna el client_secret de Stripe
+    // ═══════════════════════════════════════════════════════════════════════════
     @Override
-    public void crear(CreacionReservaDTO dto) throws Exception {
+    public CreacionReservaRespuestaDTO crear(CreacionReservaDTO dto) throws Exception {
 
-        // 1. Obtener usuario autenticado
         User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String idUsuarioAutenticado = usuarioAutenticado.getUsername();
 
-        // Verificar que el usuario autenticado sea el mismo que está haciendo la reserva
         if (!idUsuarioAutenticado.equals(dto.usuarioId())) {
             throw new AccessDeniedException("No puedes hacer reservas en nombre de otro usuario");
         }
 
-        // 2. Obtener y validar usuario
-        Usuario huesped = usuarioRepositorio.findById(String.valueOf(dto.usuarioId()))
+        Usuario huesped = usuarioRepositorio.findById(dto.usuarioId())
                 .orElseThrow(() -> new NoFoundException("Usuario no encontrado"));
 
         if (huesped.getEstado() == Estado.ELIMINADO) {
             throw new ValidationException("El usuario está inactivo");
         }
 
-        // 3. Obtener y validar alojamiento
         Alojamiento alojamiento = alojamientoRepositorio.findById(dto.alojamientoId())
                 .orElseThrow(() -> new NoFoundException("Alojamiento no encontrado"));
 
@@ -75,15 +75,12 @@ public class ReservaServicioImpl implements ReservaServicio {
             throw new ValidationException("El alojamiento no está disponible");
         }
 
-        // 4. Validar que el usuario no sea el anfitrión del alojamiento
         if (alojamiento.getAnfitrion().getId().equals(idUsuarioAutenticado)) {
             throw new ValidationException("No puedes reservar tu propio alojamiento");
         }
 
-        // 5. Validar fechas
         validarFechas(dto.fechaEntrada(), dto.fechaSalida());
 
-        // 6. Validar capacidad
         if (dto.cantidadHuespedes() > alojamiento.getMaxHuespedes()) {
             throw new ValidationException(
                     "El número de huéspedes (" + dto.cantidadHuespedes() +
@@ -91,113 +88,157 @@ public class ReservaServicioImpl implements ReservaServicio {
             );
         }
 
-        // 7. Validar disponibilidad (no hay solapamiento con otras reservas)
         if (existeSolapamiento(alojamiento.getId(), dto.fechaEntrada(), dto.fechaSalida(), null)) {
             throw new ValidationException("El alojamiento no está disponible en las fechas seleccionadas");
         }
 
-        // 8. Calcular precio total
+        // 1. Calcular precio total
         long numeroNoches = ChronoUnit.DAYS.between(dto.fechaEntrada(), dto.fechaSalida());
         double precioTotal = numeroNoches * alojamiento.getPrecioPorNoche();
 
-        // 9. Crear reserva
+        // 2. Convertir a centavos para Stripe
+        // Si la moneda es USD: multiplicar por 100
+        // Si la moneda es COP: Stripe acepta pesos colombianos en centavos (x100)
+        long precioEnCentavos = Math.round(precioTotal * 100);
+
+        // 3. Crear la reserva en BD con estado PENDIENTE_PAGO
         Reserva reserva = reservaMapper.toEntity(dto);
         reserva.setPrecio(precioTotal);
         reserva.setAlojamiento(alojamiento);
         reserva.setHuesped(huesped);
+        // Estado inicial: el usuario no ha pagado aún
+        reserva.setEstado(ReservaEstado.PENDIENTE);
+        reserva.setPagoEstado(PagoEstado.PENDIENTE);
         reserva = reservaRepositorio.save(reserva);
 
-        // 10. Enviar emails de confirmación
+        // 4. Crear el PaymentIntent en Stripe con captura manual
+        PagoIntentDTO pagoIntent;
+        try {
+            pagoIntent = pagoServicio.crearIntentPago(
+                    precioEnCentavos,
+                    reserva.getId(),
+                    huesped.getEmail()
+            );
+        } catch (Exception e) {
+            // Si Stripe falla, eliminar la reserva para no dejar datos huérfanos
+            reservaRepositorio.delete(reserva);
+            throw new Exception("No se pudo inicializar el pago. Intenta de nuevo.", e);
+        }
+
+        // 5. Guardar el paymentIntentId en la reserva
+        reserva.setStripePaymentIntentId(pagoIntent.paymentIntentId());
+        reserva.setStripePrecioEnCentavos(precioEnCentavos);
+        reservaRepositorio.save(reserva);
+
+        // 6. Notificar al anfitrión (se notifica cuando el pago se confirme via webhook,
+        //    pero enviamos el email de solicitud ahora para que el anfitrión esté al tanto)
         enviarEmailsSolicitudReserva(reserva, alojamiento, huesped);
+
+        // 7. Retornar el client_secret para que el frontend complete el pago
+        return new CreacionReservaRespuestaDTO(
+                reserva.getId(),
+                precioTotal,
+                pagoIntent
+        );
     }
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACEPTAR RESERVA - Captura el pago cuando el anfitrión acepta
+    // ═══════════════════════════════════════════════════════════════════════════
     @Override
     public void aceptarReserva(Long id) throws Exception {
 
-        // Obtener usuario autenticado
         User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String idUsuarioAutenticado = usuarioAutenticado.getUsername();
 
-        // Obtener reserva
         Reserva reserva = reservaRepositorio.findById(id)
                 .orElseThrow(() -> new NoFoundException("Reserva no encontrada"));
 
-        // Verificar que el usuario sea el anfitrión del alojamiento
         if (!reserva.getAlojamiento().getAnfitrion().getId().equals(idUsuarioAutenticado)) {
             throw new AccessDeniedException("Solo el anfitrión puede aceptar esta reserva");
         }
 
-        // Validar que la reserva esté PENDIENTE
         if (reserva.getEstado() != ReservaEstado.PENDIENTE) {
             throw new ValidationException("Solo se pueden aceptar reservas pendientes. Estado actual: " + reserva.getEstado());
         }
 
-        // Validar nuevamente disponibilidad por si hubo cambios
+        // IMPORTANTE: Solo aceptar si el pago fue autorizado por el usuario
+        if (reserva.getPagoEstado() != PagoEstado.AUTORIZADO) {
+            throw new ValidationException(
+                    "No se puede aceptar la reserva porque el huésped aún no ha completado el pago. " +
+                            "Estado del pago: " + reserva.getPagoEstado()
+            );
+        }
+
         if (existeSolapamiento(reserva.getAlojamiento().getId(), reserva.getFechaEntrada(),
                 reserva.getFechaSalida(), reserva.getId())) {
             throw new ValidationException("El alojamiento ya no está disponible en estas fechas");
         }
 
-        // Cambiar estado a CONFIRMADA
+        // 1. Capturar el pago (cobra la tarjeta del usuario)
+        pagoServicio.capturarPago(reserva.getStripePaymentIntentId());
+
+        // 2. Actualizar estados
         reserva.setEstado(ReservaEstado.CONFIRMADA);
+        reserva.setPagoEstado(PagoEstado.CAPTURADO);
         reservaRepositorio.save(reserva);
 
-        // Enviar emails de confirmación
         enviarEmailsConfirmacionReserva(reserva);
     }
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // RECHAZAR RESERVA - Cancela el pago (no se cobra nada)
+    // ═══════════════════════════════════════════════════════════════════════════
     @Override
     public void rechazarReserva(Long id) throws Exception {
 
-        // Obtener usuario autenticado
         User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String idUsuarioAutenticado = usuarioAutenticado.getUsername();
 
-        // Obtener reserva
         Reserva reserva = reservaRepositorio.findById(id)
                 .orElseThrow(() -> new NoFoundException("Reserva no encontrada"));
 
-        // Verificar que el usuario sea el anfitrión del alojamiento
         if (!reserva.getAlojamiento().getAnfitrion().getId().equals(idUsuarioAutenticado)) {
             throw new AccessDeniedException("Solo el anfitrión puede rechazar esta reserva");
         }
 
-        // Validar que la reserva esté PENDIENTE
         if (reserva.getEstado() != ReservaEstado.PENDIENTE) {
             throw new ValidationException("Solo se pueden rechazar reservas pendientes");
         }
 
-        // Cambiar estado a CANCELADA
+        // Cancelar el PaymentIntent (no se cobra nada al usuario)
+        if (reserva.getStripePaymentIntentId() != null) {
+            pagoServicio.cancelarPago(reserva.getStripePaymentIntentId());
+        }
+
         reserva.setEstado(ReservaEstado.CANCELADA);
+        reserva.setPagoEstado(PagoEstado.CANCELADO);
         reservaRepositorio.save(reserva);
 
-        // Enviar emails de rechazo
         enviarEmailsRechazoReserva(reserva);
     }
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CANCELAR RESERVA - Reembolso si ya fue cobrado, cancelación si no
+    // ═══════════════════════════════════════════════════════════════════════════
     @Override
     public void cancelarReserva(Long id) throws Exception {
 
-        // Obtener usuario autenticado
         User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String idUsuarioAutenticado = usuarioAutenticado.getUsername();
 
-        // Obtener reserva
         Reserva reserva = reservaRepositorio.findById(id)
                 .orElseThrow(() -> new NoFoundException("Reserva no encontrada"));
 
-        // Verificar que el usuario sea el dueño de la reserva
         if (!reserva.getHuesped().getId().equals(idUsuarioAutenticado)) {
             throw new AccessDeniedException("No tienes permiso para cancelar esta reserva");
         }
 
-        // Validar que la reserva esté en estado CONFIRMADA o PENDIENTE
         if (reserva.getEstado() != ReservaEstado.CONFIRMADA &&
                 reserva.getEstado() != ReservaEstado.PENDIENTE) {
             throw new ValidationException("Solo se pueden cancelar reservas confirmadas o pendientes");
         }
 
-        // Validar que falten al menos 48 horas para el check-in
         LocalDateTime fechaLimite = reserva.getFechaEntrada().atStartOfDay().minusHours(48);
         if (LocalDateTime.now().isAfter(fechaLimite)) {
             throw new ValidationException(
@@ -205,11 +246,23 @@ public class ReservaServicioImpl implements ReservaServicio {
             );
         }
 
-        // Cambiar estado a CANCELADA
+        // Decidir qué hacer con el pago según su estado actual
+        if (reserva.getStripePaymentIntentId() != null) {
+            if (reserva.getPagoEstado() == PagoEstado.CAPTURADO) {
+                // Ya fue cobrado → reembolsar
+                pagoServicio.reembolsarPago(reserva.getStripePaymentIntentId());
+                reserva.setPagoEstado(PagoEstado.REEMBOLSADO);
+            } else if (reserva.getPagoEstado() == PagoEstado.AUTORIZADO) {
+                // Autorizado pero no cobrado → solo cancelar (no se cobra nada)
+                pagoServicio.cancelarPago(reserva.getStripePaymentIntentId());
+                reserva.setPagoEstado(PagoEstado.CANCELADO);
+            }
+            // Si aún está PENDIENTE (no autorizó), no hay nada que hacer con Stripe
+        }
+
         reserva.setEstado(ReservaEstado.CANCELADA);
         reservaRepositorio.save(reserva);
 
-        // Enviar emails de notificación
         enviarEmailsCancelacion(reserva);
     }
 

@@ -1,5 +1,6 @@
 package co.edu.uniquindio.application.models.entitys;
 
+import co.edu.uniquindio.application.models.enums.PagoEstado;
 import co.edu.uniquindio.application.models.enums.ReservaEstado;
 import jakarta.persistence.*;
 import lombok.*;
@@ -45,5 +46,32 @@ public class Reserva {
     @ManyToOne
     @JoinColumn(name = "huesped_id", nullable = false)
     private Usuario huesped;
+
+    // =============================================
+    // CAMPOS DE STRIPE - NUEVOS
+    // =============================================
+
+    /**
+     * ID del PaymentIntent de Stripe.
+     * Se crea al crear la reserva y se usa para capturar o cancelar el pago.
+     * Ejemplo: "pi_3NxXXXXXXXXXXXXX"
+     */
+    @Column(length = 100)
+    private String stripePaymentIntentId;
+
+    /**
+     * Estado del pago en Stripe.
+     * Refleja el estado real del PaymentIntent.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private PagoEstado pagoEstado = PagoEstado.PENDIENTE;
+
+    /**
+     * Precio en centavos tal como lo registró Stripe (para auditoría).
+     * Stripe trabaja en la unidad menor de la moneda (centavos para USD/COP).
+     */
+    private Long stripePrecioEnCentavos;
 
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReservaRepositorio extends JpaRepository<Reserva, Long> {
@@ -54,4 +55,6 @@ public interface ReservaRepositorio extends JpaRepository<Reserva, Long> {
      * Cuenta reservas confirmadas y completadas de un alojamiento para metricas
      */
     long countByAlojamiento_IdAndEstadoIn(Long alojamientoId, List<ReservaEstado> estados);
+
+    Optional<Reserva> findByStripePaymentIntentId(String stripePaymentIntentId);
 }
