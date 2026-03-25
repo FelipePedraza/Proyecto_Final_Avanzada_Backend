@@ -1,6 +1,7 @@
 package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dtos.EmailDTO;
+import co.edu.uniquindio.application.dtos.PageResponseDTO;
 import co.edu.uniquindio.application.dtos.resena.CreacionResenaDTO;
 import co.edu.uniquindio.application.dtos.resena.CreacionRespuestaDTO;
 import co.edu.uniquindio.application.dtos.resena.ItemResenaDTO;
@@ -23,7 +24,6 @@ import co.edu.uniquindio.application.services.EmailServicio;
 import co.edu.uniquindio.application.services.ResenaServicio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -126,17 +126,17 @@ public class ResenaServicioImpl implements ResenaServicio {
     }
 
     @Override
-    public List<ItemResenaDTO> obtenerResenasAlojamiento(Long alojamientoId, int pagina) throws Exception{
+    public PageResponseDTO<ItemResenaDTO> obtenerResenasAlojamiento(Long alojamientoId, Pageable pageable) throws Exception {
 
         // Validar que el alojamiento existe
         if (!alojamientoRepositorio.existsById(alojamientoId)) {
             throw new NoFoundException("Alojamiento no encontrado");
         }
 
-        Pageable pageable = PageRequest.of(pagina, 5);
-        Page<ItemResenaDTO> resenas = resenaRepositorio.findByAlojamiento_IdOrderByCreadoEnDesc(alojamientoId, pageable).map(resenaMapper::toItemDTO);
+        Page<ItemResenaDTO> resenas = resenaRepositorio.findByAlojamiento_IdOrderByCreadoEnDesc(alojamientoId, pageable)
+                .map(resenaMapper::toItemDTO);
 
-        return resenas.toList();
+        return PageResponseDTO.fromPage(resenas);
     }
 
     /**

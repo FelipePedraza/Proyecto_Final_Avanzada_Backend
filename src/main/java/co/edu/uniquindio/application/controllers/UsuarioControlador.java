@@ -1,6 +1,7 @@
 package co.edu.uniquindio.application.controllers;
 
 
+import co.edu.uniquindio.application.dtos.PageResponseDTO;
 import co.edu.uniquindio.application.dtos.alojamiento.ItemAlojamientoDTO;
 import co.edu.uniquindio.application.dtos.reserva.ItemReservaDTO;
 import co.edu.uniquindio.application.dtos.usuario.*;
@@ -11,11 +12,13 @@ import co.edu.uniquindio.application.services.ReservaServicio;
 import co.edu.uniquindio.application.services.UsuarioServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 
 @RestController
@@ -58,14 +61,49 @@ public class UsuarioControlador {
     }
 
     @GetMapping("/{id}/alojamientos")
-    public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> obtenerAlojamientosUsuario(@PathVariable String id, @RequestParam(defaultValue = "0") int pagina) throws Exception {
-        List<ItemAlojamientoDTO> alojamientos = alojamientoServicio.obtenerAlojamientosUsuario(id, pagina);
+    public ResponseEntity<RespuestaDTO<PageResponseDTO<ItemAlojamientoDTO>>> obtenerAlojamientosUsuario(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "creadoEn,desc") String[] sort) throws Exception {
+
+        Sort sorting = Sort.by("creadoEn").descending();
+        if (sort != null && sort.length > 0 && sort[0].contains(",")) {
+            String[] sortParts = sort[0].split(",");
+            String sortField = sortParts[0];
+            String sortDirection = sortParts.length > 1 ? sortParts[1] : "desc";
+            sorting = sortDirection.equalsIgnoreCase("asc")
+                    ? Sort.by(sortField).ascending()
+                    : Sort.by(sortField).descending();
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sorting);
+        PageResponseDTO<ItemAlojamientoDTO> alojamientos = alojamientoServicio.obtenerAlojamientosUsuario(id, pageable);
         return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientos));
     }
 
     @GetMapping("/{id}/reservas")
-    public ResponseEntity<RespuestaDTO<List<ItemReservaDTO>>> obtenerReservasUsuario(@PathVariable  String id, @RequestParam(required = false) ReservaEstado estado, @RequestParam(required = false) LocalDate fechaEntrada, @RequestParam(required = false) LocalDate fechaSalida , @RequestParam(required = false, defaultValue = "0") int pagina) throws Exception {
-        List<ItemReservaDTO> reservas = reservaServicio.obtenerReservasUsuario(id, estado, fechaEntrada, fechaSalida, pagina);
+    public ResponseEntity<RespuestaDTO<PageResponseDTO<ItemReservaDTO>>> obtenerReservasUsuario(
+            @PathVariable String id,
+            @RequestParam(required = false) ReservaEstado estado,
+            @RequestParam(required = false) LocalDate fechaEntrada,
+            @RequestParam(required = false) LocalDate fechaSalida,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "fechaEntrada,desc") String[] sort) throws Exception {
+
+        Sort sorting = Sort.by("fechaEntrada").descending();
+        if (sort != null && sort.length > 0 && sort[0].contains(",")) {
+            String[] sortParts = sort[0].split(",");
+            String sortField = sortParts[0];
+            String sortDirection = sortParts.length > 1 ? sortParts[1] : "desc";
+            sorting = sortDirection.equalsIgnoreCase("asc")
+                    ? Sort.by(sortField).ascending()
+                    : Sort.by(sortField).descending();
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sorting);
+        PageResponseDTO<ItemReservaDTO> reservas = reservaServicio.obtenerReservasUsuario(id, estado, fechaEntrada, fechaSalida, pageable);
         return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
 

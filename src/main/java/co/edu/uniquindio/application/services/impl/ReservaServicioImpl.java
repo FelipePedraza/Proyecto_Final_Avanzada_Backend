@@ -1,6 +1,7 @@
 package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dtos.EmailDTO;
+import co.edu.uniquindio.application.dtos.PageResponseDTO;
 import co.edu.uniquindio.application.dtos.pago.PagoIntentDTO;
 import co.edu.uniquindio.application.dtos.reserva.CreacionReservaDTO;
 import co.edu.uniquindio.application.dtos.reserva.CreacionReservaRespuestaDTO;
@@ -21,7 +22,6 @@ import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
 import co.edu.uniquindio.application.services.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -267,29 +267,31 @@ public class ReservaServicioImpl implements ReservaServicio {
     }
 
     @Override
-    public List<ItemReservaDTO> obtenerReservasUsuario(String id, ReservaEstado estado, LocalDate fechaEntrada, LocalDate fechaSalida, int pagina) throws Exception {
+    public PageResponseDTO<ItemReservaDTO> obtenerReservasUsuario(String id, ReservaEstado estado, LocalDate fechaEntrada, LocalDate fechaSalida, Pageable pageable) throws Exception {
 
-        if(!authServicio.obtnerIdAutenticado(id)){
+        if (!authServicio.obtnerIdAutenticado(id)) {
             throw new AccessDeniedException("No tiene permisos para las reservas de este usuario.");
         }
 
-        Pageable pageable = PageRequest.of(pagina, 5);
-        Page<ItemReservaDTO> reservas = reservaRepositorio.buscarConFiltrosUsuario(id, estado, fechaEntrada, fechaSalida, pageable).map(reservaMapper::toItemDTO);
-        return reservas.toList();
+        Page<ItemReservaDTO> reservas = reservaRepositorio.buscarConFiltrosUsuario(id, estado, fechaEntrada, fechaSalida, pageable)
+                .map(reservaMapper::toItemDTO);
+
+        return PageResponseDTO.fromPage(reservas);
     }
 
     @Override
-    public List<ReservaDTO> obtenerReservasAlojamiento(Long idAlojamiento, ReservaEstado estado, LocalDate fechaEntrada, LocalDate fechaSalida, int pagina) throws Exception {
+    public PageResponseDTO<ReservaDTO> obtenerReservasAlojamiento(Long idAlojamiento, ReservaEstado estado, LocalDate fechaEntrada, LocalDate fechaSalida, Pageable pageable) throws Exception {
 
         Optional<Alojamiento> alojamientoOptional = alojamientoRepositorio.findById(idAlojamiento);
 
-        if(alojamientoOptional.isEmpty()){
+        if (alojamientoOptional.isEmpty()) {
             throw new NoFoundException("Alojamiento no encontrado");
         }
 
-        Pageable pageable = PageRequest.of(pagina, 10);
-        Page<ReservaDTO> reservas = reservaRepositorio.buscarConFiltrosAlojamiento(idAlojamiento, estado, fechaEntrada, fechaSalida, pageable).map(reservaMapper::toDTO);
-        return reservas.toList();
+        Page<ReservaDTO> reservas = reservaRepositorio.buscarConFiltrosAlojamiento(idAlojamiento, estado, fechaEntrada, fechaSalida, pageable)
+                .map(reservaMapper::toDTO);
+
+        return PageResponseDTO.fromPage(reservas);
     }
     /**
      * Valida que las fechas sean coherentes

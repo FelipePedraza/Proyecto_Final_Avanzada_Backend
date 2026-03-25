@@ -1,5 +1,6 @@
 package co.edu.uniquindio.application.services.impl;
 
+import co.edu.uniquindio.application.dtos.PageResponseDTO;
 import co.edu.uniquindio.application.dtos.alojamiento.*;
 import co.edu.uniquindio.application.dtos.usuario.UsuarioDTO;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
@@ -13,7 +14,6 @@ import co.edu.uniquindio.application.services.AlojamientoServicio;
 import co.edu.uniquindio.application.services.AuthServicio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -218,7 +218,7 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
     }
 
     @Override
-    public List<ItemAlojamientoDTO> obtenerAlojamientos(AlojamientoFiltroDTO filtros, int pagina) throws Exception {
+    public PageResponseDTO<ItemAlojamientoDTO> obtenerAlojamientos(AlojamientoFiltroDTO filtros, Pageable pageable) throws Exception {
 
         // Validaciones de filtros
         if (filtros.fechaEntrada() != null && filtros.fechaSalida() != null) {
@@ -247,10 +247,7 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
                 ? (long) servicios.size()
                 : 0L;
 
-        // Crear paginación
-        Pageable pageable = PageRequest.of(pagina, 10);
-
-        // Buscar con filtros
+        // Buscar con filtros using provided pageable
         Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.buscarConFiltros(
                 filtros.ciudad(),
                 filtros.fechaEntrada(),
@@ -264,33 +261,29 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
                 pageable
         ).map(alojamientoMapper::toItemDTO);
 
-
-        return alojamientos.toList();
+        return PageResponseDTO.fromPage(alojamientos);
     }
 
     @Override
-    public List<ItemAlojamientoDTO> obtenerAlojamientosUsuario(String id, int pagina) throws Exception {
+    public PageResponseDTO<ItemAlojamientoDTO> obtenerAlojamientosUsuario(String id, Pageable pageable) throws Exception {
 
-        if(!authServicio.obtnerIdAutenticado(id)){
+        if (!authServicio.obtnerIdAutenticado(id)) {
             throw new AccessDeniedException("No tiene permisos para ver los alojamientos de este usuario.");
         }
 
-        Pageable pageable = PageRequest.of(pagina, 5);
-        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.getAlojamientos(id, Estado.ACTIVO ,pageable).map(alojamientoMapper::toItemDTO);
+        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.getAlojamientos(id, Estado.ACTIVO, pageable)
+                .map(alojamientoMapper::toItemDTO);
 
-        return alojamientos.toList();
+        return PageResponseDTO.fromPage(alojamientos);
     }
 
     @Override
-    public List<ItemAlojamientoDTO> sugerirAlojamientos(String ciudad){
-        // Crear paginación para obtener los primeros 10 resultados
-        Pageable pageable = PageRequest.of(0, 10);
+    public PageResponseDTO<ItemAlojamientoDTO> sugerirAlojamientos(String ciudad, Pageable pageable) {
+        // Buscar alojamientos ordenados por calificación using provided pageable
+        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.sugerirPorCiudad(ciudad, Estado.ACTIVO, pageable)
+                .map(alojamientoMapper::toItemDTO);
 
-        // Buscar alojamientos ordenados por calificación
-        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.sugerirPorCiudad(ciudad, Estado.ACTIVO, pageable).map(alojamientoMapper::toItemDTO);
-
-        // Convertir a DTOs
-        return alojamientos.toList();
+        return PageResponseDTO.fromPage(alojamientos);
     }
 
     public boolean existePorTitulo(String titulo){

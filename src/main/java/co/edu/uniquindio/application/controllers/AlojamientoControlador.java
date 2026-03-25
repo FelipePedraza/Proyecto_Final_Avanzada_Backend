@@ -1,5 +1,6 @@
 package co.edu.uniquindio.application.controllers;
 
+import co.edu.uniquindio.application.dtos.PageResponseDTO;
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.alojamiento.*;
 import co.edu.uniquindio.application.dtos.resena.CreacionResenaDTO;
@@ -12,12 +13,14 @@ import co.edu.uniquindio.application.services.ResenaServicio;
 import co.edu.uniquindio.application.services.ReservaServicio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/alojamientos")
@@ -27,6 +30,9 @@ public class AlojamientoControlador {
     private final AlojamientoServicio alojamientoServicio;
     private final ReservaServicio reservaServicio;
     private final ResenaServicio resenaServicio;
+
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final int DEFAULT_PAGE = 0;
 
 
     @PostMapping
@@ -53,8 +59,12 @@ public class AlojamientoControlador {
     }
 
     @GetMapping("/sugerencias")
-    public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> sugerirCiudades(@RequestParam String ciudad) {
-        List<ItemAlojamientoDTO> alojamientos = alojamientoServicio.sugerirAlojamientos(ciudad);
+    public ResponseEntity<RespuestaDTO<PageResponseDTO<ItemAlojamientoDTO>>> sugerirCiudades(
+            @RequestParam String ciudad,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("promedioCalificaciones").descending());
+        PageResponseDTO<ItemAlojamientoDTO> alojamientos = alojamientoServicio.sugerirAlojamientos(ciudad, pageable);
         return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientos));
     }
 
@@ -65,19 +75,61 @@ public class AlojamientoControlador {
     }
 
     @GetMapping
-    public ResponseEntity<RespuestaDTO<List<ItemAlojamientoDTO>>> obtenerAlojamientos(@Valid AlojamientoFiltroDTO filtros, @RequestParam(defaultValue = "0") int pagina) throws Exception {
-        return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientoServicio.obtenerAlojamientos(filtros, pagina)));
+    public ResponseEntity<RespuestaDTO<PageResponseDTO<ItemAlojamientoDTO>>> obtenerAlojamientos(
+            @Valid AlojamientoFiltroDTO filtros,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "creadoEn,desc") String[] sort) throws Exception {
+
+        // Parse sort parameter (format: field,direction)
+        Sort sorting = Sort.by("creadoEn").descending();
+        if (sort != null && sort.length > 0 && sort[0].contains(",")) {
+            String[] sortParts = sort[0].split(",");
+            String sortField = sortParts[0];
+            String sortDirection = sortParts.length > 1 ? sortParts[1] : "desc";
+            sorting = sortDirection.equalsIgnoreCase("asc")
+                    ? Sort.by(sortField).ascending()
+                    : Sort.by(sortField).descending();
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sorting);
+        PageResponseDTO<ItemAlojamientoDTO> resultado = alojamientoServicio.obtenerAlojamientos(filtros, pageable);
+        return ResponseEntity.ok(new RespuestaDTO<>(false, resultado));
     }
 
     @GetMapping("/{id}/reservas")
-    public ResponseEntity<RespuestaDTO<List<ReservaDTO>>> obtenerReservasAlojamiento(@PathVariable(value = "id")  Long id, @RequestParam(required = false) ReservaEstado estado, @RequestParam(required = false) LocalDate fechaEntrada, @RequestParam(required = false) LocalDate fechaSalida , @RequestParam(required = false, defaultValue = "0") int pagina) throws Exception {
-        List<ReservaDTO> reservas = reservaServicio.obtenerReservasAlojamiento(id, estado, fechaEntrada, fechaSalida, pagina);
+    public ResponseEntity<RespuestaDTO<PageResponseDTO<ReservaDTO>>> obtenerReservasAlojamiento(
+            @PathVariable(value = "id") Long id,
+            @RequestParam(required = false) ReservaEstado estado,
+            @RequestParam(required = false) LocalDate fechaEntrada,
+            @RequestParam(required = false) LocalDate fechaSalida,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "fechaEntrada,desc") String[] sort) throws Exception {
+
+        Sort sorting = Sort.by("fechaEntrada").descending();
+        if (sort != null && sort.length > 0 && sort[0].contains(",")) {
+            String[] sortParts = sort[0].split(",");
+            String sortField = sortParts[0];
+            String sortDirection = sortParts.length > 1 ? sortParts[1] : "desc";
+            sorting = sortDirection.equalsIgnoreCase("asc")
+                    ? Sort.by(sortField).ascending()
+                    : Sort.by(sortField).descending();
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sorting);
+        PageResponseDTO<ReservaDTO> reservas = reservaServicio.obtenerReservasAlojamiento(id, estado, fechaEntrada, fechaSalida, pageable);
         return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
 
     @GetMapping("/{id}/resenas")
-    public ResponseEntity<RespuestaDTO<List<ItemResenaDTO>>> obtenerResenasAlojamiento(@PathVariable(value = "id")  Long id, @RequestParam(defaultValue = "0") int pagina) throws Exception {
-        List<ItemResenaDTO> resenas = resenaServicio.obtenerResenasAlojamiento(id, pagina);
+    public ResponseEntity<RespuestaDTO<PageResponseDTO<ItemResenaDTO>>> obtenerResenasAlojamiento(
+            @PathVariable(value = "id") Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) throws Exception {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("creadoEn").descending());
+        PageResponseDTO<ItemResenaDTO> resenas = resenaServicio.obtenerResenasAlojamiento(id, pageable);
         return ResponseEntity.ok(new RespuestaDTO<>(false, resenas));
     }
 
