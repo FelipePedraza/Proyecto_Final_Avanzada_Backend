@@ -46,7 +46,6 @@ public interface AlojamientoRepositorio extends JpaRepository<Alojamiento, Long>
             )
         )
     )
-    ORDER BY a.creadoEn DESC
 """)
     Page<Alojamiento> buscarConFiltros(
             @Param("ciudad") String ciudad,
@@ -69,7 +68,6 @@ public interface AlojamientoRepositorio extends JpaRepository<Alojamiento, Long>
             SELECT a FROM Alojamiento a
             WHERE a.estado = :estado
             AND (:ciudad IS NULL OR LOWER(a.direccion.ciudad) LIKE LOWER(CONCAT('%', :ciudad, '%')))
-            ORDER BY a.promedioCalificaciones DESC NULLS LAST
             """)
     Page<Alojamiento> sugerirPorCiudad(
             @Param("ciudad") String ciudad,
