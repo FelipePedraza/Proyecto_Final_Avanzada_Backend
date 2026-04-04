@@ -60,7 +60,7 @@ public class ChatServicioImpl implements ChatServicio {
 
         // Obtener mensajes con paginación (ordenados por fecha de envío ascendente)
         Pageable pageable = PageRequest.of(pagina, tamano, Sort.by("fechaEnvio").ascending());
-        Page<Mensaje> mensajesPage = mensajeRepositorio.findByChat_Id(chatId, pageable);
+        Page<Mensaje> mensajesPage = mensajeRepositorio.buscarPorChatId(chatId, pageable);
         
         // Cargar mensajes en el chat para el mapper
         chat.setMensajes(mensajesPage.getContent());

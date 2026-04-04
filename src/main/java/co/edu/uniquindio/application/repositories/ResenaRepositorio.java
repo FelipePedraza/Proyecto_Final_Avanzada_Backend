@@ -30,6 +30,8 @@ public interface ResenaRepositorio  extends JpaRepository<Resena, Long> {
 
     /**
      * Lista reseñas de un alojamiento (ordenamiento via Pageable Sort)
+     * NOTA: Usa @Query explícito sin ORDER BY para evitar duplicación en SQL Server
      */
-    Page<Resena> findByAlojamiento_Id(Long alojamientoId, Pageable pageable);
+    @Query("SELECT r FROM Resena r WHERE r.alojamiento.id = :alojamientoId")
+    Page<Resena> buscarPorAlojamientoId(@Param("alojamientoId") Long alojamientoId, Pageable pageable);
 }

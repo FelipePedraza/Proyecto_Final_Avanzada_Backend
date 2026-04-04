@@ -17,8 +17,10 @@ public interface MensajeRepositorio extends JpaRepository<Mensaje, Long> {
 
     /**
      * Lista mensajes de un chat específico (ordenamiento via Pageable Sort)
+     * NOTA: Usa @Query explícito sin ORDER BY para evitar duplicación en SQL Server
      */
-    Page<Mensaje> findByChat_Id(Long chatId, Pageable pageable);
+    @Query("SELECT m FROM Mensaje m WHERE m.chat.id = :chatId")
+    Page<Mensaje> buscarPorChatId(@Param("chatId") Long chatId, Pageable pageable);
 
     /**
      * Lista mensajes de un chat específico ordenados por fecha de envío descendente
