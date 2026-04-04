@@ -26,8 +26,7 @@ public interface AlojamientoRepositorio extends JpaRepository<Alojamiento, Long>
     Page<Alojamiento> getAlojamientos(String idUsuario, Estado estado, Pageable pageable);
 
     @Query("""
-    SELECT DISTINCT a FROM Alojamiento a
-    LEFT JOIN a.reservas r
+    SELECT a FROM Alojamiento a
     WHERE a.estado = :estado
     AND (:ciudad IS NULL OR LOWER(a.direccion.ciudad) LIKE LOWER(CONCAT('%', :ciudad, '%')))
     AND (:huespedes IS NULL OR a.maxHuespedes >= :huespedes)
@@ -67,9 +66,9 @@ public interface AlojamientoRepositorio extends JpaRepository<Alojamiento, Long>
      * Para sugerencias basadas en la ciudad
      */
     @Query("""
-            SELECT a FROM Alojamiento a 
-            WHERE a.estado = :estado 
-            AND LOWER(a.direccion.ciudad) LIKE LOWER(CONCAT('%', :ciudad, '%'))
+            SELECT a FROM Alojamiento a
+            WHERE a.estado = :estado
+            AND (:ciudad IS NULL OR LOWER(a.direccion.ciudad) LIKE LOWER(CONCAT('%', :ciudad, '%')))
             ORDER BY a.promedioCalificaciones DESC NULLS LAST
             """)
     Page<Alojamiento> sugerirPorCiudad(

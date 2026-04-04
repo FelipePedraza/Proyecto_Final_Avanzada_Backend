@@ -60,11 +60,15 @@ public class AlojamientoControlador {
 
     @GetMapping("/sugerencias")
     public ResponseEntity<RespuestaDTO<PageResponseDTO<ItemAlojamientoDTO>>> sugerirCiudades(
-            @RequestParam String ciudad,
+            @RequestParam(required = false) String ciudad,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
+        // Sanitizar valor "undefined" que envia el frontend
+        String ciudadLimpia = (ciudad == null || "undefined".equalsIgnoreCase(ciudad.trim()))
+                ? null
+                : ciudad.trim();
         Pageable pageable = PageRequest.of(page, size, Sort.by("promedioCalificaciones").descending());
-        PageResponseDTO<ItemAlojamientoDTO> alojamientos = alojamientoServicio.sugerirAlojamientos(ciudad, pageable);
+        PageResponseDTO<ItemAlojamientoDTO> alojamientos = alojamientoServicio.sugerirAlojamientos(ciudadLimpia, pageable);
         return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientos));
     }
 

@@ -279,8 +279,11 @@ public class AlojamientoServicioImpl implements AlojamientoServicio {
 
     @Override
     public PageResponseDTO<ItemAlojamientoDTO> sugerirAlojamientos(String ciudad, Pageable pageable) {
+        // Sanitizar: si ciudad es vacia, tratarla como null para obtener sugerencias generales
+        String ciudadBusqueda = (ciudad == null || ciudad.isBlank()) ? null : ciudad.trim();
+
         // Buscar alojamientos ordenados por calificación using provided pageable
-        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.sugerirPorCiudad(ciudad, Estado.ACTIVO, pageable)
+        Page<ItemAlojamientoDTO> alojamientos = alojamientoRepositorio.sugerirPorCiudad(ciudadBusqueda, Estado.ACTIVO, pageable)
                 .map(alojamientoMapper::toItemDTO);
 
         return PageResponseDTO.fromPage(alojamientos);
