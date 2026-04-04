@@ -28,6 +28,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.mapstruct:mapstruct:1.6.3'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
     compileOnly 'org.projectlombok:lombok'
@@ -49,7 +50,19 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
-    
+
     // Configuración para evitar warnings de Mockito en JDK 21
     jvmArgs '-XX:+EnableDynamicAgentLoading'
+}
+
+// Configuración para el JAR de Spring Boot - nombre predecible para Azure
+bootJar {
+    archiveBaseName = 'vivigo-backend'
+    archiveVersion = ''
+    archiveFileName = 'app.jar'
+}
+
+// Configuración de codificación para todos los tasks
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }
