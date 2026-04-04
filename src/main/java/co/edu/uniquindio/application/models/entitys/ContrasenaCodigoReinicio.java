@@ -20,10 +20,15 @@ public class ContrasenaCodigoReinicio {
     @Column(nullable = false)
     private String codigo;
 
-    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(nullable = false)
     private LocalDateTime creadoEn;
 
     @OneToOne
     @JoinColumn(name = "usuario_id",  nullable = false)
     private Usuario usuario;
+
+    @PrePersist
+    protected void onCreate() {
+        creadoEn = LocalDateTime.now();
+    }
 }

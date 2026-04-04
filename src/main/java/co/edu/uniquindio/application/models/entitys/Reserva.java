@@ -26,8 +26,13 @@ public class Reserva {
     @Column(nullable = false)
     private LocalDate fechaSalida;
 
-    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(nullable = false)
     private LocalDateTime creadoEn;
+
+    @PrePersist
+    protected void onCreate() {
+        creadoEn = LocalDateTime.now();
+    }
 
     @Column(nullable = false, length = 3)
     private Integer cantidadHuespedes;

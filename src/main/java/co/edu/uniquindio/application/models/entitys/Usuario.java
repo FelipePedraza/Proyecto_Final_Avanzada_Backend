@@ -43,7 +43,7 @@ public class Usuario {
     @OneToOne(mappedBy = "usuario")
     private PerfilAnfitrion perfilAnfitrion;
 
-    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(nullable = false)
     private LocalDateTime creadoEn;
 
     @Enumerated(EnumType.STRING)
@@ -52,5 +52,9 @@ public class Usuario {
 
     private Boolean esAnfitrion;
 
+    @PrePersist
+    protected void onCreate() {
+        creadoEn = LocalDateTime.now();
+    }
 
 }

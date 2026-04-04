@@ -36,7 +36,7 @@ public class Alojamiento {
     @Column(nullable = false,  length = 3)
     private Integer maxHuespedes;
 
-    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(nullable = false)
     private LocalDateTime creadoEn;
 
     @Column(nullable = false,  length = 20)
@@ -65,5 +65,10 @@ public class Alojamiento {
     private Double promedioCalificaciones;
 
     private Integer numeroCalificaciones;
+
+    @PrePersist
+    protected void onCreate() {
+        creadoEn = LocalDateTime.now();
+    }
 
 }

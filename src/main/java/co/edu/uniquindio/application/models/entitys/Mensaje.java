@@ -20,7 +20,7 @@ public class Mensaje {
     @Column(nullable = false, length = 1000)
     private String contenido;
 
-    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(nullable = false)
     private LocalDateTime fechaEnvio;
 
     @Column(nullable = false)

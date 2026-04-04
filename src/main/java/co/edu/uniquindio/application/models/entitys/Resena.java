@@ -24,8 +24,13 @@ public class Resena {
     @Column(length = 2000)
     private String comentario;
 
-    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(nullable = false)
     private LocalDateTime creadoEn;
+
+    @PrePersist
+    protected void onCreate() {
+        creadoEn = LocalDateTime.now();
+    }
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)

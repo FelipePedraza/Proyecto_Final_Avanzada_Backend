@@ -26,7 +26,7 @@ public class Chat {
     @JoinColumn(name = "usuario2_id", nullable = false)
     private Usuario usuario2;
 
-    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(nullable = false)
     private LocalDateTime creadoEn;
 
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
