@@ -16,9 +16,9 @@ import java.util.Optional;
 public interface MensajeRepositorio extends JpaRepository<Mensaje, Long> {
 
     /**
-     * Lista mensajes de un chat específico ordenados por fecha de envío
+     * Lista mensajes de un chat específico (ordenamiento via Pageable Sort)
      */
-    Page<Mensaje> findByChat_IdOrderByFechaEnvioAsc(Long chatId, Pageable pageable);
+    Page<Mensaje> findByChat_Id(Long chatId, Pageable pageable);
 
     /**
      * Lista mensajes de un chat específico ordenados por fecha de envío descendente

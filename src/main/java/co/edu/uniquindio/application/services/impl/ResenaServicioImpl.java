@@ -133,7 +133,7 @@ public class ResenaServicioImpl implements ResenaServicio {
             throw new NoFoundException("Alojamiento no encontrado");
         }
 
-        Page<ItemResenaDTO> resenas = resenaRepositorio.findByAlojamiento_IdOrderByCreadoEnDesc(alojamientoId, pageable)
+        Page<ItemResenaDTO> resenas = resenaRepositorio.findByAlojamiento_Id(alojamientoId, pageable)
                 .map(resenaMapper::toItemDTO);
 
         return PageResponseDTO.fromPage(resenas);

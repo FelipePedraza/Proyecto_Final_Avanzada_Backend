@@ -29,7 +29,7 @@ public interface ResenaRepositorio  extends JpaRepository<Resena, Long> {
     Integer contarResenas(@Param("alojamientoId") Long alojamientoId);
 
     /**
-     * Lista reseñas de un alojamiento ordenadas por fecha descendente
+     * Lista reseñas de un alojamiento (ordenamiento via Pageable Sort)
      */
-    Page<Resena> findByAlojamiento_IdOrderByCreadoEnDesc(Long alojamientoId, Pageable pageable);
+    Page<Resena> findByAlojamiento_Id(Long alojamientoId, Pageable pageable);
 }

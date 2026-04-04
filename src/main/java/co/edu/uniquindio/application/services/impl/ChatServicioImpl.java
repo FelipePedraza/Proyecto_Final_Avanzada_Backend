@@ -21,6 +21,7 @@ import org.hibernate.validator.constraints.Length;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -57,9 +58,9 @@ public class ChatServicioImpl implements ChatServicio {
             throw new AccessDeniedException("No tienes permisos para acceder a este chat");
         }
 
-        // Obtener mensajes con paginación
-        Pageable pageable = PageRequest.of(pagina, tamano);
-        Page<Mensaje> mensajesPage = mensajeRepositorio.findByChat_IdOrderByFechaEnvioAsc(chatId, pageable);
+        // Obtener mensajes con paginación (ordenados por fecha de envío ascendente)
+        Pageable pageable = PageRequest.of(pagina, tamano, Sort.by("fechaEnvio").ascending());
+        Page<Mensaje> mensajesPage = mensajeRepositorio.findByChat_Id(chatId, pageable);
         
         // Cargar mensajes en el chat para el mapper
         chat.setMensajes(mensajesPage.getContent());

@@ -37,13 +37,12 @@ public interface ChatRepositorio extends JpaRepository<Chat, Long> {
     List<Chat> findChatsByUsuario(@Param("usuarioId") String usuarioId);
 
     /**
-     * Busca chats con paginación para un usuario específico
+     * Busca chats con paginación para un usuario específico (ordenamiento via Pageable Sort)
      */
     @Query("""
-        SELECT c FROM Chat c 
+        SELECT c FROM Chat c
         WHERE (c.usuario1.id = :usuarioId OR c.usuario2.id = :usuarioId)
         AND c.activo = true
-        ORDER BY c.creadoEn DESC
         """)
     Page<Chat> findChatsByUsuario(@Param("usuarioId") String usuarioId, Pageable pageable);
 
