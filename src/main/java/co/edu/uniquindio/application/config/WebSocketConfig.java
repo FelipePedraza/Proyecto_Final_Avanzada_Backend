@@ -24,7 +24,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .addEndpoint("/ws")
                 .setHandshakeHandler(new CustomHandshakeHandler())
                 .addInterceptors(webSocketAuthInterceptor)
-                .setAllowedOrigins("https://happy-flower-022dae010.2.azurestaticapps.net") // Punto final del WebSocket
+                .setAllowedOrigins("https://white-dune-07a7d7210.7.azurestaticapps.net") // Punto final del WebSocket
                 .withSockJS();
     }
 
