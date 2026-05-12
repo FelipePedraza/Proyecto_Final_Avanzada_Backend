@@ -1,13 +1,18 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy JAR app to Azure Web App - vivigo
+name: Build and deploy JAR app to Azure Web App - vivigo-backend
 
 on:
   push:
     branches:
       - azure
   workflow_dispatch:
+
+env:
+  JAVA_VERSION: '21'
+  JAVA_DISTRIBUTION: 'temurin'
+  GRADLE_VERSION: '8.14'
 
 jobs:
   build:
@@ -21,17 +26,36 @@ jobs:
       - name: Set up Java version
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'microsoft'
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'gradle'
 
-      - name: Build with Maven
-        run: mvn clean install
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x ./gradlew
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Build with Gradle
+        run: ./gradlew bootJar --no-daemon
+
+      - name: Verify JAR artifact
+        run: |
+          echo "Contents of build/libs:"
+          ls -la build/libs/
+          if [ ! -f "build/libs/app.jar" ]; then
+            echo "ERROR: app.jar not found!"
+            exit 1
+          fi
+          echo "JAR artifact: build/libs/app.jar"
+          echo "File size: $(du -h build/libs/app.jar | cut -f1)"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/target/*.jar'
+          path: '${{ github.workspace }}/build/libs/app.jar'
+          retention-days: 1
 
   deploy:
     runs-on: ubuntu-latest
@@ -39,13 +63,23 @@ jobs:
     permissions:
       id-token: write #This is required for requesting the JWT
       contents: read #This is required for actions/checkout
-  
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: java-app
-      
+          path: '${{ github.workspace }}/artifacts'
+
+      - name: List downloaded artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          ls -la ${{ github.workspace }}/artifacts/
+          if [ ! -f "${{ github.workspace }}/artifacts/app.jar" ]; then
+            echo "ERROR: app.jar not found in artifacts!"
+            exit 1
+          fi
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -57,7 +91,12 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'vivigo'
+          app-name: 'vivigo-backend'
           slot-name: 'Production'
-          package: '*.jar'
-          
+          package: '${{ github.workspace }}/artifacts/app.jar'
+
+      - name: Deployment Status
+        run: |
+          echo "Deployment completed successfully!"
+          echo "Web App URL: ${{ steps.deploy-to-webapp.outputs.webapp-url }}"
+         
