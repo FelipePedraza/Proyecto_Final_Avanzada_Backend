@@ -160,7 +160,8 @@ public class UsuarioServicioTest {
                 "123456789",
                 Rol.Huesped,
                 LocalDate.of(1990, 1, 1),
-                "http://photo.url"
+                "http://photo.url",
+                false
         );
 
         when(usuarioRepositorio.findById(id)).thenReturn(Optional.of(usuario));

@@ -10,6 +10,7 @@ import co.edu.uniquindio.application.models.enums.ReservaEstado;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
 import co.edu.uniquindio.application.services.ReservaServicio;
 import co.edu.uniquindio.application.services.UsuarioServicio;
+import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -30,36 +31,42 @@ public class UsuarioControlador {
     private final AlojamientoServicio alojamientoServicio;
     private final ReservaServicio reservaServicio;
 
+    @Timed(value = "vivigo.api.usuario", description = "Usuario API timing")
     @PostMapping("/anfitrion")
     public ResponseEntity<RespuestaDTO<String>> crearAnfitrion(@Valid @RequestBody CreacionAnfitrionDTO dto) throws Exception {
         usuarioServicio.crearAnfitrion(dto);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Se ha creado el anfitrion"));
     }
 
+    @Timed(value = "vivigo.api.usuario", description = "Usuario API timing")
     @PutMapping(value = "/{id}")
     public ResponseEntity<RespuestaDTO<String>> editar(@PathVariable String id, @RequestBody @Valid EdicionUsuarioDTO edicionUsuarioDTO) throws Exception {
         usuarioServicio.editar(id, edicionUsuarioDTO);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "El usuario ha sido actualizado"));
     }
 
+    @Timed(value = "vivigo.api.usuario", description = "Usuario API timing")
     @GetMapping("/{id}")
     public ResponseEntity<RespuestaDTO<UsuarioDTO>> obtener(@PathVariable String id) throws Exception {
         UsuarioDTO usuarioDTO = usuarioServicio.obtener(id);
         return ResponseEntity.ok(new RespuestaDTO<>(false, usuarioDTO));
     }
 
+    @Timed(value = "vivigo.api.usuario", description = "Usuario API timing")
     @DeleteMapping("/{id}")
     public ResponseEntity<RespuestaDTO<String>> eliminar(@PathVariable String id) throws Exception {
         usuarioServicio.eliminar(id);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "El usuario ha sido eliminado"));
     }
 
+    @Timed(value = "vivigo.api.usuario", description = "Usuario API timing")
     @PatchMapping("/{id}/contrasena")
     public ResponseEntity<RespuestaDTO<String>> cambiarContrasena(@PathVariable String id, @Valid @RequestBody CambioContrasenaDTO dto) throws Exception {
         usuarioServicio.cambiarContrasena(id, dto);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "La contraseña ha sido cambiada"));
     }
 
+    @Timed(value = "vivigo.api.usuario", description = "Usuario API timing")
     @GetMapping("/{id}/alojamientos")
     public ResponseEntity<RespuestaDTO<PageResponseDTO<ItemAlojamientoDTO>>> obtenerAlojamientosUsuario(
             @PathVariable String id,
@@ -82,6 +89,7 @@ public class UsuarioControlador {
         return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientos));
     }
 
+    @Timed(value = "vivigo.api.usuario", description = "Usuario API timing")
     @GetMapping("/{id}/reservas")
     public ResponseEntity<RespuestaDTO<PageResponseDTO<ItemReservaDTO>>> obtenerReservasUsuario(
             @PathVariable String id,
@@ -107,6 +115,7 @@ public class UsuarioControlador {
         return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
 
+    @Timed(value = "vivigo.api.usuario", description = "Usuario API timing")
     @GetMapping("/{id}/anfitrion")
     public ResponseEntity<RespuestaDTO<AnfitrionPerfilDTO>> obtenerAnfitrion(@PathVariable String id) throws Exception {
         AnfitrionPerfilDTO anfitrionPerfilDTO = usuarioServicio.obtenerAnfitrion(id);

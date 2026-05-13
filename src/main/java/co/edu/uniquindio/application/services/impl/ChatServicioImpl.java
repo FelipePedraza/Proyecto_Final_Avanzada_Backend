@@ -15,9 +15,8 @@ import co.edu.uniquindio.application.repositories.MensajeRepositorio;
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
 import co.edu.uniquindio.application.services.AuthServicio;
 import co.edu.uniquindio.application.services.ChatServicio;
-import jakarta.validation.constraints.NotBlank;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.validator.constraints.Length;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,39 +41,31 @@ public class ChatServicioImpl implements ChatServicio {
     private final ChatMapper chatMapper;
     private final MensajeMapper mensajeMapper;
     private final AuthServicio authServicio;
+    private final MeterRegistry meterRegistry;
 
     @Override
     public ChatDTO obtenerChat(Long chatId, int pagina, int tamano) throws Exception {
-        // Obtener usuario autenticado
         User usuarioAutenticado = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String idUsuarioAutenticado = usuarioAutenticado.getUsername();
 
-        // Obtener y validar chat
         Chat chat = chatRepositorio.findById(chatId)
                 .orElseThrow(() -> new NoFoundException("Chat no encontrado"));
 
-        // Verificar que el usuario sea participante del chat
         if (!chatRepositorio.esParticipanteDelChat(chatId, idUsuarioAutenticado)) {
             throw new AccessDeniedException("No tienes permisos para acceder a este chat");
         }
 
-        // Obtener mensajes con paginación (ordenados por fecha de envío ascendente)
         Pageable pageable = PageRequest.of(pagina, tamano, Sort.by("fechaEnvio").ascending());
         Page<Mensaje> mensajesPage = mensajeRepositorio.buscarPorChatId(chatId, pageable);
         
-        // Cargar mensajes en el chat para el mapper
         chat.setMensajes(mensajesPage.getContent());
-
-        // Marcar mensajes como leídos para el usuario actual
         mensajeRepositorio.marcarMensajesComoLeidos(chatId, idUsuarioAutenticado);
 
         return chatMapper.toDTO(chat);
     }
 
     @Override
-    // 1. Añadir 'String remitenteId' a la firma del método
     public MensajeDTO enviarMensaje(String remitenteId, String destinatarioId, String contenido) throws Exception {
-        // Validar contenido
         if (contenido == null || contenido.trim().isEmpty()) {
             throw new ValidationException("El contenido del mensaje no puede estar vacío");
         }
@@ -83,12 +74,10 @@ public class ChatServicioImpl implements ChatServicio {
             throw new ValidationException("El mensaje no puede exceder los 1000 caracteres");
         }
 
-        // Validar que no se envíe mensaje a sí mismo
         if (remitenteId.equals(destinatarioId)) {
             throw new ValidationException("No puedes enviarte mensajes a ti mismo");
         }
 
-        // Obtener y validar destinatario
         Usuario destinatario = usuarioRepositorio.findById(destinatarioId)
                 .orElseThrow(() -> new NoFoundException("Usuario destinatario no encontrado"));
 
@@ -96,14 +85,11 @@ public class ChatServicioImpl implements ChatServicio {
             throw new ValidationException("El usuario destinatario no está disponible");
         }
 
-        // Obtener remitente
         Usuario remitente = usuarioRepositorio.findById(remitenteId)
                 .orElseThrow(() -> new NoFoundException("Usuario remitente no encontrado"));
 
-        // Buscar o crear chat entre los usuarios
         Chat chat = buscarOCrearChatEntreUsuarios(remitenteId, destinatarioId);
 
-        // Crear mensaje
         Mensaje mensaje = Mensaje.builder()
                 .contenido(contenido.trim())
                 .remitente(remitente)
@@ -112,21 +98,19 @@ public class ChatServicioImpl implements ChatServicio {
                 .build();
 
         mensaje = mensajeRepositorio.save(mensaje);
+        meterRegistry.counter("chat.mensajes.enviados").increment();
 
         return mensajeMapper.toDTO(mensaje);
     }
 
     @Override
     public List<ChatDTO> listarConversaciones(String usuarioId) throws Exception {
-        // Verificar permisos
         if (!authServicio.obtnerIdAutenticado(usuarioId)) {
             throw new AccessDeniedException("No tienes permisos para ver las conversaciones de este usuario");
         }
 
-        // Obtener chats del usuario
         List<Chat> chats = chatRepositorio.findChatsByUsuario(usuarioId);
 
-        // Convertir a DTOs
         return chats.stream()
                 .map(chatMapper::toDTO)
                 .toList();
@@ -135,12 +119,10 @@ public class ChatServicioImpl implements ChatServicio {
     @Override
     public ChatDTO iniciarChatConUsuario(String remitenteId, String destinatarioId) throws Exception {
 
-        // Validar que no se inicie chat consigo mismo
         if (remitenteId.equals(destinatarioId)) {
             throw new ValidationException("No puedes iniciar un chat contigo mismo");
         }
 
-        // Validar destinatario
         Usuario destinatario = usuarioRepositorio.findById(destinatarioId)
                 .orElseThrow(() -> new NoFoundException("Usuario destinatario no encontrado"));
 
@@ -148,15 +130,11 @@ public class ChatServicioImpl implements ChatServicio {
             throw new ValidationException("El usuario destinatario no está disponible");
         }
 
-        // Buscar o crear chat
         Chat chat = buscarOCrearChatEntreUsuarios(remitenteId, destinatarioId);
 
         return chatMapper.toDTO(chat);
     }
 
-    /**
-     * Busca un chat existente o crea uno nuevo entre dos usuarios
-     */
     private Chat buscarOCrearChatEntreUsuarios(String usuario1Id, String usuario2Id) {
         Optional<Chat> chatExistente = chatRepositorio.findChatEntreUsuarios(usuario1Id, usuario2Id);
         
@@ -164,13 +142,11 @@ public class ChatServicioImpl implements ChatServicio {
             return chatExistente.get();
         }
 
-        // Obtener usuarios
         Usuario usuario1 = usuarioRepositorio.findById(usuario1Id)
                 .orElseThrow(() -> new NoFoundException("Usuario 1 no encontrado"));
         Usuario usuario2 = usuarioRepositorio.findById(usuario2Id)
                 .orElseThrow(() -> new NoFoundException("Usuario 2 no encontrado"));
 
-        // Crear nuevo chat
         Chat nuevoChat = Chat.builder()
                 .usuario1(usuario1)
                 .usuario2(usuario2)
@@ -180,9 +156,6 @@ public class ChatServicioImpl implements ChatServicio {
         return chatRepositorio.save(nuevoChat);
     }
 
-    /**
-     * Obtiene el número de mensajes no leídos para un usuario
-     */
     @Override
     public Long obtenerMensajesNoLeidos(String usuarioId) throws Exception {
         if (!authServicio.obtnerIdAutenticado(usuarioId)) {
@@ -193,16 +166,12 @@ public class ChatServicioImpl implements ChatServicio {
         return (long) mensajesNoLeidos.size();
     }
 
-    /**
-     * Marca todos los mensajes de un chat como leídos para un usuario
-     */
     @Override
     public void marcarChatComoLeido(Long chatId, String usuarioId) throws Exception {
         if (!authServicio.obtnerIdAutenticado(usuarioId)) {
             throw new AccessDeniedException("No tienes permisos para marcar mensajes de este usuario");
         }
 
-        // Verificar que el usuario sea participante del chat
         if (!chatRepositorio.esParticipanteDelChat(chatId, usuarioId)) {
             throw new AccessDeniedException("No tienes permisos para acceder a este chat");
         }

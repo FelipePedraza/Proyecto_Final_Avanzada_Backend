@@ -3,6 +3,7 @@ package co.edu.uniquindio.application.controllers;
 import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.chat.ChatDTO;
 import co.edu.uniquindio.application.services.ChatServicio;
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ public class ChatControlador {
 
     private final ChatServicio chatServicio;
 
+    @Timed(value = "vivigo.api.chat", description = "Chat API timing")
     @GetMapping("/{chatId}")
     public ResponseEntity<RespuestaDTO<ChatDTO>> obtenerChat(
             @PathVariable Long chatId,
@@ -24,19 +26,22 @@ public class ChatControlador {
         ChatDTO chat = chatServicio.obtenerChat(chatId, pagina, tamano);
         return ResponseEntity.ok(new RespuestaDTO<>(false, chat));
     }
-    
+
+    @Timed(value = "vivigo.api.chat", description = "Chat API timing")
     @GetMapping("/usuario/{id}/conversaciones")
     public ResponseEntity<RespuestaDTO<List<ChatDTO>>> listarConversaciones(@PathVariable String id) throws Exception {
         List<ChatDTO> conversaciones = chatServicio.listarConversaciones(id);
         return ResponseEntity.ok(new RespuestaDTO<>(false, conversaciones));
     }
 
+    @Timed(value = "vivigo.api.chat", description = "Chat API timing")
     @GetMapping("/usuario/{id}/mensajes-no-leidos")
     public ResponseEntity<RespuestaDTO<Long>> obtenerMensajesNoLeidos(@PathVariable String id) throws Exception {
         Long cantidad = chatServicio.obtenerMensajesNoLeidos(id);
         return ResponseEntity.ok(new RespuestaDTO<>(false, cantidad));
     }
 
+    @Timed(value = "vivigo.api.chat", description = "Chat API timing")
     @PutMapping("/{chatId}/marcar-leido")
     public ResponseEntity<RespuestaDTO<String>> marcarChatComoLeido(
             @PathVariable Long chatId,

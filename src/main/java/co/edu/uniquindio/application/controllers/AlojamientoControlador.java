@@ -11,6 +11,7 @@ import co.edu.uniquindio.application.models.enums.ReservaEstado;
 import co.edu.uniquindio.application.services.AlojamientoServicio;
 import co.edu.uniquindio.application.services.ResenaServicio;
 import co.edu.uniquindio.application.services.ReservaServicio;
+import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -34,36 +35,39 @@ public class AlojamientoControlador {
     private static final int DEFAULT_PAGE_SIZE = 10;
     private static final int DEFAULT_PAGE = 0;
 
-
+    @Timed(value = "vivigo.api.alojamiento", description = "Alojamiento API timing")
     @PostMapping
     public ResponseEntity<RespuestaDTO<String>> crearAlojamiento(@RequestBody @Valid CreacionAlojamientoDTO dto) throws Exception {
         alojamientoServicio.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, "Alojamiento creado con exito"));
     }
 
+    @Timed(value = "vivigo.api.alojamiento", description = "Alojamiento API timing")
     @GetMapping("/{id}")
     public ResponseEntity<RespuestaDTO<AlojamientoDTO>> obtenerAlojamiento(@PathVariable Long id) throws Exception {
         return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientoServicio.obtenerPorId(id)));
     }
 
+    @Timed(value = "vivigo.api.alojamiento", description = "Alojamiento API timing")
     @PutMapping(value = "/{id}")
     public ResponseEntity<RespuestaDTO<String>> editarAlojamiento(@PathVariable Long id, @RequestBody @Valid EdicionAlojamientoDTO dto) throws Exception {
         alojamientoServicio.editar(id, dto);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Se actualizo correctamente el alojamiento"));
     }
 
+    @Timed(value = "vivigo.api.alojamiento", description = "Alojamiento API timing")
     @DeleteMapping("/{id}")
     public ResponseEntity<RespuestaDTO<String>> eliminarAlojamiento(@PathVariable Long id) throws Exception {
         alojamientoServicio.eliminar(id);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Se elimino con exito el alojamiento"));
     }
 
+    @Timed(value = "vivigo.api.alojamiento", description = "Alojamiento API timing")
     @GetMapping("/sugerencias")
     public ResponseEntity<RespuestaDTO<PageResponseDTO<ItemAlojamientoDTO>>> sugerirCiudades(
             @RequestParam(required = false) String ciudad,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        // Sanitizar valor "undefined" que envia el frontend
         String ciudadLimpia = (ciudad == null || "undefined".equalsIgnoreCase(ciudad.trim()))
                 ? null
                 : ciudad.trim();
@@ -72,12 +76,14 @@ public class AlojamientoControlador {
         return ResponseEntity.ok(new RespuestaDTO<>(false, alojamientos));
     }
 
+    @Timed(value = "vivigo.api.alojamiento", description = "Alojamiento API timing")
     @GetMapping("/{id}/metricas")
     public ResponseEntity<RespuestaDTO<MetricasDTO>> obtenerMetricas(@PathVariable Long id) throws Exception {
         MetricasDTO metricas = alojamientoServicio.obtenerMetricas(id);
         return ResponseEntity.ok(new RespuestaDTO<>(false, metricas));
     }
 
+    @Timed(value = "vivigo.api.alojamiento", description = "Alojamiento API timing")
     @GetMapping
     public ResponseEntity<RespuestaDTO<PageResponseDTO<ItemAlojamientoDTO>>> obtenerAlojamientos(
             @Valid AlojamientoFiltroDTO filtros,
@@ -85,7 +91,6 @@ public class AlojamientoControlador {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "creadoEn,desc") String[] sort) throws Exception {
 
-        // Parse sort parameter (format: field,direction)
         Sort sorting = Sort.by("creadoEn").descending();
         if (sort != null && sort.length > 0 && sort[0].contains(",")) {
             String[] sortParts = sort[0].split(",");
@@ -101,6 +106,7 @@ public class AlojamientoControlador {
         return ResponseEntity.ok(new RespuestaDTO<>(false, resultado));
     }
 
+    @Timed(value = "vivigo.api.alojamiento", description = "Alojamiento API timing")
     @GetMapping("/{id}/reservas")
     public ResponseEntity<RespuestaDTO<PageResponseDTO<ReservaDTO>>> obtenerReservasAlojamiento(
             @PathVariable(value = "id") Long id,
@@ -126,6 +132,7 @@ public class AlojamientoControlador {
         return ResponseEntity.ok(new RespuestaDTO<>(false, reservas));
     }
 
+    @Timed(value = "vivigo.api.alojamiento", description = "Alojamiento API timing")
     @GetMapping("/{id}/resenas")
     public ResponseEntity<RespuestaDTO<PageResponseDTO<ItemResenaDTO>>> obtenerResenasAlojamiento(
             @PathVariable(value = "id") Long id,
@@ -137,17 +144,17 @@ public class AlojamientoControlador {
         return ResponseEntity.ok(new RespuestaDTO<>(false, resenas));
     }
 
+    @Timed(value = "vivigo.api.alojamiento", description = "Alojamiento API timing")
     @PostMapping("/{id}/resenas")
     public ResponseEntity<RespuestaDTO<String>> crearResena(@PathVariable(value = "id")  Long id, @RequestBody @Valid CreacionResenaDTO dto) throws Exception {
         resenaServicio.crear(id, dto);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Se creo correctamente el resena al alojamiento"));
     }
 
+    @Timed(value = "vivigo.api.alojamiento", description = "Alojamiento API timing")
     @PostMapping("/{id}/resenas/{idResena}/respuesta")
     public ResponseEntity<RespuestaDTO<String>> crearRespuesta(@PathVariable(value = "idResena")  Long id, @RequestBody @Valid CreacionRespuestaDTO dto) throws Exception {
         resenaServicio.responder(id, dto);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Se creo correctamente la respuesta a la reseña"));
     }
-
-
 }

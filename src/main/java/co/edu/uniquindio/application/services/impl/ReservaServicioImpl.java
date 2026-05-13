@@ -20,6 +20,7 @@ import co.edu.uniquindio.application.repositories.AlojamientoRepositorio;
 import co.edu.uniquindio.application.repositories.ReservaRepositorio;
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
 import co.edu.uniquindio.application.services.*;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,10 +48,8 @@ public class ReservaServicioImpl implements ReservaServicio {
     private final EmailServicio emailServicio;
     private final AuthServicio authServicio;
     private final PagoServicio pagoServicio;
+    private final MeterRegistry meterRegistry;
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // CREAR RESERVA - Ahora retorna el client_secret de Stripe
-    // ═══════════════════════════════════════════════════════════════════════════
     @Override
     public CreacionReservaRespuestaDTO crear(CreacionReservaDTO dto) throws Exception {
 
@@ -92,26 +91,18 @@ public class ReservaServicioImpl implements ReservaServicio {
             throw new ValidationException("El alojamiento no está disponible en las fechas seleccionadas");
         }
 
-        // 1. Calcular precio total
         long numeroNoches = ChronoUnit.DAYS.between(dto.fechaEntrada(), dto.fechaSalida());
         double precioTotal = numeroNoches * alojamiento.getPrecioPorNoche();
-
-        // 2. Convertir a centavos para Stripe
-        // Si la moneda es USD: multiplicar por 100
-        // Si la moneda es COP: Stripe acepta pesos colombianos en centavos (x100)
         long precioEnCentavos = Math.round(precioTotal * 100);
 
-        // 3. Crear la reserva en BD con estado PENDIENTE_PAGO
         Reserva reserva = reservaMapper.toEntity(dto);
         reserva.setPrecio(precioTotal);
         reserva.setAlojamiento(alojamiento);
         reserva.setHuesped(huesped);
-        // Estado inicial: el usuario no ha pagado aún
         reserva.setEstado(ReservaEstado.PENDIENTE);
         reserva.setPagoEstado(PagoEstado.PENDIENTE);
         reserva = reservaRepositorio.save(reserva);
 
-        // 4. Crear el PaymentIntent en Stripe con captura manual
         PagoIntentDTO pagoIntent;
         try {
             pagoIntent = pagoServicio.crearIntentPago(
@@ -120,21 +111,17 @@ public class ReservaServicioImpl implements ReservaServicio {
                     huesped.getEmail()
             );
         } catch (Exception e) {
-            // Si Stripe falla, eliminar la reserva para no dejar datos huérfanos
             reservaRepositorio.delete(reserva);
             throw new Exception("No se pudo inicializar el pago. Intenta de nuevo.", e);
         }
 
-        // 5. Guardar el paymentIntentId en la reserva
         reserva.setStripePaymentIntentId(pagoIntent.paymentIntentId());
         reserva.setStripePrecioEnCentavos(precioEnCentavos);
         reservaRepositorio.save(reserva);
 
-        // 6. Notificar al anfitrión (se notifica cuando el pago se confirme via webhook,
-        //    pero enviamos el email de solicitud ahora para que el anfitrión esté al tanto)
         enviarEmailsSolicitudReserva(reserva, alojamiento, huesped);
+        meterRegistry.counter("reservas.creadas").increment();
 
-        // 7. Retornar el client_secret para que el frontend complete el pago
         return new CreacionReservaRespuestaDTO(
                 reserva.getId(),
                 precioTotal,
@@ -142,9 +129,6 @@ public class ReservaServicioImpl implements ReservaServicio {
         );
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ACEPTAR RESERVA - Captura el pago cuando el anfitrión acepta
-    // ═══════════════════════════════════════════════════════════════════════════
     @Override
     public void aceptarReserva(Long id) throws Exception {
 
@@ -162,7 +146,6 @@ public class ReservaServicioImpl implements ReservaServicio {
             throw new ValidationException("Solo se pueden aceptar reservas pendientes. Estado actual: " + reserva.getEstado());
         }
 
-        // IMPORTANTE: Solo aceptar si el pago fue autorizado por el usuario
         if (reserva.getPagoEstado() != PagoEstado.AUTORIZADO) {
             throw new ValidationException(
                     "No se puede aceptar la reserva porque el huésped aún no ha completado el pago. " +
@@ -175,20 +158,16 @@ public class ReservaServicioImpl implements ReservaServicio {
             throw new ValidationException("El alojamiento ya no está disponible en estas fechas");
         }
 
-        // 1. Capturar el pago (cobra la tarjeta del usuario)
         pagoServicio.capturarPago(reserva.getStripePaymentIntentId());
 
-        // 2. Actualizar estados
         reserva.setEstado(ReservaEstado.CONFIRMADA);
         reserva.setPagoEstado(PagoEstado.CAPTURADO);
         reservaRepositorio.save(reserva);
 
         enviarEmailsConfirmacionReserva(reserva);
+        meterRegistry.counter("reservas.aceptadas").increment();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // RECHAZAR RESERVA - Cancela el pago (no se cobra nada)
-    // ═══════════════════════════════════════════════════════════════════════════
     @Override
     public void rechazarReserva(Long id) throws Exception {
 
@@ -206,7 +185,6 @@ public class ReservaServicioImpl implements ReservaServicio {
             throw new ValidationException("Solo se pueden rechazar reservas pendientes");
         }
 
-        // Cancelar el PaymentIntent (no se cobra nada al usuario)
         if (reserva.getStripePaymentIntentId() != null) {
             pagoServicio.cancelarPago(reserva.getStripePaymentIntentId());
         }
@@ -216,11 +194,9 @@ public class ReservaServicioImpl implements ReservaServicio {
         reservaRepositorio.save(reserva);
 
         enviarEmailsRechazoReserva(reserva);
+        meterRegistry.counter("reservas.rechazadas").increment();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // CANCELAR RESERVA - Reembolso si ya fue cobrado, cancelación si no
-    // ═══════════════════════════════════════════════════════════════════════════
     @Override
     public void cancelarReserva(Long id) throws Exception {
 
@@ -246,24 +222,21 @@ public class ReservaServicioImpl implements ReservaServicio {
             );
         }
 
-        // Decidir qué hacer con el pago según su estado actual
         if (reserva.getStripePaymentIntentId() != null) {
             if (reserva.getPagoEstado() == PagoEstado.CAPTURADO) {
-                // Ya fue cobrado → reembolsar
                 pagoServicio.reembolsarPago(reserva.getStripePaymentIntentId());
                 reserva.setPagoEstado(PagoEstado.REEMBOLSADO);
             } else if (reserva.getPagoEstado() == PagoEstado.AUTORIZADO) {
-                // Autorizado pero no cobrado → solo cancelar (no se cobra nada)
                 pagoServicio.cancelarPago(reserva.getStripePaymentIntentId());
                 reserva.setPagoEstado(PagoEstado.CANCELADO);
             }
-            // Si aún está PENDIENTE (no autorizó), no hay nada que hacer con Stripe
         }
 
         reserva.setEstado(ReservaEstado.CANCELADA);
         reservaRepositorio.save(reserva);
 
         enviarEmailsCancelacion(reserva);
+        meterRegistry.counter("reservas.canceladas").increment();
     }
 
     @Override
@@ -293,32 +266,24 @@ public class ReservaServicioImpl implements ReservaServicio {
 
         return PageResponseDTO.fromPage(reservas);
     }
-    /**
-     * Valida que las fechas sean coherentes
-     */
+
     private void validarFechas(LocalDate fechaEntrada, LocalDate fechaSalida) throws ValidationException {
         LocalDate hoy = LocalDate.now();
 
-        // No se pueden reservar fechas pasadas
         if (fechaEntrada.isBefore(hoy)) {
             throw new ValidationException("No se pueden reservar fechas pasadas");
         }
 
-        // La fecha de salida debe ser posterior a la de entrada
         if (fechaSalida.isBefore(fechaEntrada) || fechaSalida.isEqual(fechaEntrada)) {
             throw new ValidationException("La fecha de salida debe ser posterior a la fecha de entrada");
         }
 
-        // Mínimo 1 noche
         long noches = ChronoUnit.DAYS.between(fechaEntrada, fechaSalida);
         if (noches < 1) {
             throw new ValidationException("La reserva debe ser de al menos 1 noche");
         }
     }
 
-    /**
-     * Verifica si hay solapamiento con otras reservas confirmadas o pendientes
-     */
     private boolean existeSolapamiento(Long alojamientoId, LocalDate fechaEntrada,
                                        LocalDate fechaSalida, Long reservaIdExcluir) {
 
@@ -329,12 +294,10 @@ public class ReservaServicioImpl implements ReservaServicio {
                 );
 
         for (Reserva reserva : reservasExistentes) {
-            // Excluir la reserva actual si se está editando
             if (reservaIdExcluir != null && reserva.getId().equals(reservaIdExcluir)) {
                 continue;
             }
 
-            // Verificar solapamiento
             boolean haySolapamiento = !(fechaSalida.isBefore(reserva.getFechaEntrada()) ||
                     fechaEntrada.isAfter(reserva.getFechaSalida()));
 
@@ -346,11 +309,7 @@ public class ReservaServicioImpl implements ReservaServicio {
         return false;
     }
 
-    /**
-     * Envía emails de solicitud de reserva al huésped y al anfitrión
-     */
     private void enviarEmailsSolicitudReserva(Reserva reserva, Alojamiento alojamiento, Usuario huesped) {
-        // Email al huésped
         String asuntoHuesped = "Solicitud de reserva enviada - " + alojamiento.getTitulo();
         String cuerpoHuesped = String.format(
                 "¡Hola %s!\n\n" +
@@ -377,7 +336,6 @@ public class ReservaServicioImpl implements ReservaServicio {
             System.err.println("Error enviando email al huésped: " + e.getMessage());
         }
 
-        // Email al anfitrión
         String asuntoAnfitrion = "Nueva solicitud de reserva - " + alojamiento.getTitulo();
         String cuerpoAnfitrion = String.format(
                 "¡Hola %s!\n\n" +
@@ -407,11 +365,7 @@ public class ReservaServicioImpl implements ReservaServicio {
         }
     }
 
-    /**
-     * Envía emails de confirmación cuando el anfitrión acepta la reserva
-     */
     private void enviarEmailsConfirmacionReserva(Reserva reserva) {
-        // Email al huésped
         String asuntoHuesped = "¡Reserva confirmada! - " + reserva.getAlojamiento().getTitulo();
         String cuerpoHuesped = String.format(
                 "¡Hola %s!\n\n" +
@@ -439,7 +393,6 @@ public class ReservaServicioImpl implements ReservaServicio {
             System.err.println("Error enviando email de confirmación al huésped: " + e.getMessage());
         }
 
-        // Email al anfitrión
         String asuntoAnfitrion = "Reserva confirmada - " + reserva.getAlojamiento().getTitulo();
         String cuerpoAnfitrion = String.format(
                 "Hola %s,\n\n" +
@@ -466,11 +419,7 @@ public class ReservaServicioImpl implements ReservaServicio {
         }
     }
 
-    /**
-     * Envía emails de rechazo cuando el anfitrión rechaza la reserva
-     */
     private void enviarEmailsRechazoReserva(Reserva reserva) {
-        // Email al huésped
         String asuntoHuesped = "Solicitud de reserva rechazada - " + reserva.getAlojamiento().getTitulo();
         String cuerpoHuesped = String.format(
                 "Hola %s,\n\n" +
@@ -492,11 +441,7 @@ public class ReservaServicioImpl implements ReservaServicio {
         }
     }
 
-    /**
-     * Envía emails de cancelación al huésped y al anfitrión
-     */
     private void enviarEmailsCancelacion(Reserva reserva) {
-        // Email al huésped
         String asuntoHuesped = "Reserva cancelada - " + reserva.getAlojamiento().getTitulo();
         String cuerpoHuesped = String.format(
                 "Hola %s,\n\n" +
@@ -518,7 +463,6 @@ public class ReservaServicioImpl implements ReservaServicio {
             System.err.println("Error enviando email al huésped: " + e.getMessage());
         }
 
-        // Email al anfitrión
         String asuntoAnfitrion = "Reserva cancelada - " + reserva.getAlojamiento().getTitulo();
         String cuerpoAnfitrion = String.format(
                 "Hola %s,\n\n" +

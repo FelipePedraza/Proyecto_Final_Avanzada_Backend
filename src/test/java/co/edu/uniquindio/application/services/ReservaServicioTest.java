@@ -1,6 +1,7 @@
 package co.edu.uniquindio.application.services;
 
 import co.edu.uniquindio.application.dtos.EmailDTO;
+import co.edu.uniquindio.application.dtos.pago.PagoIntentDTO;
 import co.edu.uniquindio.application.dtos.reserva.CreacionReservaDTO;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.exceptions.ValidationException;
@@ -14,10 +15,10 @@ import co.edu.uniquindio.application.repositories.AlojamientoRepositorio;
 import co.edu.uniquindio.application.repositories.ReservaRepositorio;
 import co.edu.uniquindio.application.repositories.UsuarioRepositorio;
 import co.edu.uniquindio.application.services.impl.ReservaServicioImpl;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
@@ -56,25 +57,31 @@ public class ReservaServicioTest {
     private EmailServicio emailServicio;
 
     @Mock
+    private AuthServicio authServicio;
+
+    @Mock
+    private PagoServicio pagoServicio;
+
+    @Mock
     private SecurityContext securityContext;
 
     @Mock
     private Authentication authentication;
 
-    @InjectMocks
+    private SimpleMeterRegistry meterRegistry;
     private ReservaServicioImpl reservaServicio;
 
     @BeforeEach
     void setUp() {
         SecurityContextHolder.setContext(securityContext);
+        meterRegistry = new SimpleMeterRegistry();
+        reservaServicio = new ReservaServicioImpl(
+                reservaRepositorio, alojamientoRepositorio, usuarioRepositorio,
+                reservaMapper, emailServicio, authServicio, pagoServicio, meterRegistry);
     }
 
-    /**
-     * Prueba crear reserva exitosamente
-     */
     @Test
     void testCrearReservaExitoso() throws Exception {
-        // Sección de Arrange: Se definen los datos de la reserva
         String usuarioId = "123";
         Long alojamientoId = 1L;
         LocalDate fechaEntrada = LocalDate.now().plusDays(5);
@@ -122,25 +129,22 @@ public class ReservaServicioTest {
         when(reservaMapper.toEntity(creacionReservaDTO)).thenReturn(reserva);
         when(reservaRepositorio.findByAlojamiento_IdAndEstadoIn(anyLong(), any())).thenReturn(new ArrayList<>());
         when(reservaRepositorio.save(any(Reserva.class))).thenReturn(reserva);
+        when(pagoServicio.crearIntentPago(anyLong(), anyLong(), anyString())).thenReturn(
+                new PagoIntentDTO("secret", "pi_123", 50000L, "cop"));
         doNothing().when(emailServicio).enviarEmail(any(EmailDTO.class));
 
-        // Sección de Act: Ejecutar la acción de crear reserva
         reservaServicio.crear(creacionReservaDTO);
 
-        // Sección de Assert: Verificar que se creó la reserva
         verify(usuarioRepositorio, times(1)).findById(usuarioId);
         verify(alojamientoRepositorio, times(1)).findById(alojamientoId);
         verify(reservaMapper, times(1)).toEntity(creacionReservaDTO);
-        verify(reservaRepositorio, times(1)).save(any(Reserva.class));
+        verify(reservaRepositorio, times(2)).save(any(Reserva.class));
         verify(emailServicio, times(2)).enviarEmail(any(EmailDTO.class));
+        assertEquals(1, meterRegistry.counter("reservas.creadas").count());
     }
 
-    /**
-     * Prueba crear reserva cuando el usuario no existe
-     */
     @Test
     void testCrearReservaUsuarioNoExiste() {
-        // Sección de Arrange: Se definen los datos con usuario inexistente
         String usuarioId = "999";
         var creacionReservaDTO = new CreacionReservaDTO(
                 1L,
@@ -156,7 +160,6 @@ public class ReservaServicioTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(usuarioRepositorio.findById(usuarioId)).thenReturn(Optional.empty());
 
-        // Sección de Act & Assert: Verificar que se lanza la excepción
         NoFoundException exception = assertThrows(
                 NoFoundException.class,
                 () -> reservaServicio.crear(creacionReservaDTO)
@@ -167,12 +170,8 @@ public class ReservaServicioTest {
         verify(reservaRepositorio, never()).save(any(Reserva.class));
     }
 
-    /**
-     * Prueba crear reserva cuando el alojamiento no existe
-     */
     @Test
     void testCrearReservaAlojamientoNoExiste() {
-        // Sección de Arrange: Se definen los datos con alojamiento inexistente
         String usuarioId = "123";
         Long alojamientoId = 999L;
 
@@ -195,7 +194,6 @@ public class ReservaServicioTest {
         when(usuarioRepositorio.findById(usuarioId)).thenReturn(Optional.of(huesped));
         when(alojamientoRepositorio.findById(alojamientoId)).thenReturn(Optional.empty());
 
-        // Sección de Act & Assert: Verificar que se lanza la excepción
         NoFoundException exception = assertThrows(
                 NoFoundException.class,
                 () -> reservaServicio.crear(creacionReservaDTO)
@@ -206,12 +204,8 @@ public class ReservaServicioTest {
         verify(reservaRepositorio, never()).save(any(Reserva.class));
     }
 
-    /**
-     * Prueba crear reserva con fechas pasadas
-     */
     @Test
     void testCrearReservaFechasPasadas() {
-        // Sección de Arrange: Se definen los datos con fechas pasadas
         String usuarioId = "123";
         Long alojamientoId = 1L;
 
@@ -242,7 +236,6 @@ public class ReservaServicioTest {
         when(usuarioRepositorio.findById(usuarioId)).thenReturn(Optional.of(huesped));
         when(alojamientoRepositorio.findById(alojamientoId)).thenReturn(Optional.of(alojamiento));
 
-        // Sección de Act & Assert: Verificar que se lanza la excepción
         ValidationException exception = assertThrows(
                 ValidationException.class,
                 () -> reservaServicio.crear(creacionReservaDTO)
@@ -252,12 +245,8 @@ public class ReservaServicioTest {
         verify(reservaRepositorio, never()).save(any(Reserva.class));
     }
 
-    /**
-     * Prueba crear reserva cuando se excede la capacidad
-     */
     @Test
     void testCrearReservaExcedeCapacidad() {
-        // Sección de Arrange: Se definen los datos excediendo la capacidad
         String usuarioId = "123";
         Long alojamientoId = 1L;
 
@@ -289,7 +278,6 @@ public class ReservaServicioTest {
         when(usuarioRepositorio.findById(usuarioId)).thenReturn(Optional.of(huesped));
         when(alojamientoRepositorio.findById(alojamientoId)).thenReturn(Optional.of(alojamiento));
 
-        // Sección de Act & Assert: Verificar que se lanza la excepción
         ValidationException exception = assertThrows(
                 ValidationException.class,
                 () -> reservaServicio.crear(creacionReservaDTO)
@@ -299,12 +287,8 @@ public class ReservaServicioTest {
         verify(reservaRepositorio, never()).save(any(Reserva.class));
     }
 
-    /**
-     * Prueba crear reserva cuando el usuario intenta reservar su propio alojamiento
-     */
     @Test
     void testCrearReservaPropioAlojamiento() {
-        // Sección de Arrange: Se definen los datos donde el usuario es el anfitrión
         String usuarioId = "123";
         Long alojamientoId = 1L;
 
@@ -323,7 +307,7 @@ public class ReservaServicioTest {
         var alojamiento = new Alojamiento();
         alojamiento.setId(alojamientoId);
         alojamiento.setEstado(Estado.ACTIVO);
-        alojamiento.setAnfitrion(huesped); // El mismo usuario es el anfitrión
+        alojamiento.setAnfitrion(huesped);
 
         User userDetails = new User(usuarioId, "password", Collections.emptyList());
 
@@ -332,7 +316,6 @@ public class ReservaServicioTest {
         when(usuarioRepositorio.findById(usuarioId)).thenReturn(Optional.of(huesped));
         when(alojamientoRepositorio.findById(alojamientoId)).thenReturn(Optional.of(alojamiento));
 
-        // Sección de Act & Assert: Verificar que se lanza la excepción
         ValidationException exception = assertThrows(
                 ValidationException.class,
                 () -> reservaServicio.crear(creacionReservaDTO)
@@ -342,12 +325,8 @@ public class ReservaServicioTest {
         verify(reservaRepositorio, never()).save(any(Reserva.class));
     }
 
-    /**
-     * Prueba aceptar reserva exitosamente
-     */
     @Test
     void testAceptarReservaExitoso() throws Exception {
-        // Sección de Arrange: Se definen los datos de la reserva a aceptar
         Long reservaId = 1L;
         String anfitrionId = "456";
 
@@ -369,12 +348,14 @@ public class ReservaServicioTest {
         var reserva = new Reserva();
         reserva.setId(reservaId);
         reserva.setEstado(ReservaEstado.PENDIENTE);
+        reserva.setPagoEstado(co.edu.uniquindio.application.models.enums.PagoEstado.AUTORIZADO);
         reserva.setAlojamiento(alojamiento);
         reserva.setHuesped(huesped);
         reserva.setFechaEntrada(LocalDate.now().plusDays(5));
         reserva.setFechaSalida(LocalDate.now().plusDays(10));
         reserva.setCantidadHuespedes(2);
         reserva.setPrecio(500.0);
+        reserva.setStripePaymentIntentId("pi_123");
 
         User userDetails = new User(anfitrionId, "password", Collections.emptyList());
 
@@ -383,24 +364,20 @@ public class ReservaServicioTest {
         when(reservaRepositorio.findById(reservaId)).thenReturn(Optional.of(reserva));
         when(reservaRepositorio.findByAlojamiento_IdAndEstadoIn(anyLong(), any())).thenReturn(new ArrayList<>());
         when(reservaRepositorio.save(any(Reserva.class))).thenReturn(reserva);
+        doNothing().when(pagoServicio).capturarPago(anyString());
         doNothing().when(emailServicio).enviarEmail(any(EmailDTO.class));
 
-        // Sección de Act: Ejecutar la acción de aceptar reserva
         reservaServicio.aceptarReserva(reservaId);
 
-        // Sección de Assert: Verificar que se aceptó la reserva
         verify(reservaRepositorio, times(1)).findById(reservaId);
         verify(reservaRepositorio, times(1)).save(reserva);
         assertEquals(ReservaEstado.CONFIRMADA, reserva.getEstado());
         verify(emailServicio, times(2)).enviarEmail(any(EmailDTO.class));
+        assertEquals(1, meterRegistry.counter("reservas.aceptadas").count());
     }
 
-    /**
-     * Prueba aceptar reserva cuando no se tiene permiso
-     */
     @Test
     void testAceptarReservaSinPermiso() {
-        // Sección de Arrange: Se definen los datos sin permiso
         Long reservaId = 1L;
         String usuarioId = "123";
 
@@ -422,7 +399,6 @@ public class ReservaServicioTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(reservaRepositorio.findById(reservaId)).thenReturn(Optional.of(reserva));
 
-        // Sección de Act & Assert: Verificar que se lanza la excepción
         AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
                 () -> reservaServicio.aceptarReserva(reservaId)
@@ -432,12 +408,8 @@ public class ReservaServicioTest {
         verify(reservaRepositorio, never()).save(any(Reserva.class));
     }
 
-    /**
-     * Prueba aceptar reserva que no está pendiente
-     */
     @Test
     void testAceptarReservaNoPendiente() {
-        // Sección de Arrange: Se definen los datos con reserva ya confirmada
         Long reservaId = 1L;
         String anfitrionId = "456";
 
@@ -459,7 +431,6 @@ public class ReservaServicioTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(reservaRepositorio.findById(reservaId)).thenReturn(Optional.of(reserva));
 
-        // Sección de Act & Assert: Verificar que se lanza la excepción
         ValidationException exception = assertThrows(
                 ValidationException.class,
                 () -> reservaServicio.aceptarReserva(reservaId)
@@ -469,12 +440,8 @@ public class ReservaServicioTest {
         verify(reservaRepositorio, never()).save(any(Reserva.class));
     }
 
-    /**
-     * Prueba rechazar reserva exitosamente
-     */
     @Test
     void testRechazarReservaExitoso() throws Exception {
-        // Sección de Arrange: Se definen los datos de la reserva a rechazar
         Long reservaId = 1L;
         String anfitrionId = "456";
 
@@ -498,6 +465,7 @@ public class ReservaServicioTest {
         reserva.setHuesped(huesped);
         reserva.setFechaEntrada(LocalDate.now().plusDays(5));
         reserva.setFechaSalida(LocalDate.now().plusDays(10));
+        reserva.setStripePaymentIntentId("pi_123");
 
         User userDetails = new User(anfitrionId, "password", Collections.emptyList());
 
@@ -505,24 +473,20 @@ public class ReservaServicioTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(reservaRepositorio.findById(reservaId)).thenReturn(Optional.of(reserva));
         when(reservaRepositorio.save(any(Reserva.class))).thenReturn(reserva);
+        doNothing().when(pagoServicio).cancelarPago(anyString());
         doNothing().when(emailServicio).enviarEmail(any(EmailDTO.class));
 
-        // Sección de Act: Ejecutar la acción de rechazar reserva
         reservaServicio.rechazarReserva(reservaId);
 
-        // Sección de Assert: Verificar que se rechazó la reserva
         verify(reservaRepositorio, times(1)).findById(reservaId);
         verify(reservaRepositorio, times(1)).save(reserva);
         assertEquals(ReservaEstado.CANCELADA, reserva.getEstado());
         verify(emailServicio, times(1)).enviarEmail(any(EmailDTO.class));
+        assertEquals(1, meterRegistry.counter("reservas.rechazadas").count());
     }
 
-    /**
-     * Prueba cancelar reserva exitosamente
-     */
     @Test
     void testCancelarReservaExitoso() throws Exception {
-        // Sección de Arrange: Se definen los datos de la reserva a cancelar
         Long reservaId = 1L;
         String huespedId = "123";
 
@@ -548,6 +512,8 @@ public class ReservaServicioTest {
         reserva.setHuesped(huesped);
         reserva.setFechaEntrada(LocalDate.now().plusDays(10));
         reserva.setFechaSalida(LocalDate.now().plusDays(15));
+        reserva.setPagoEstado(co.edu.uniquindio.application.models.enums.PagoEstado.CAPTURADO);
+        reserva.setStripePaymentIntentId("pi_123");
 
         User userDetails = new User(huespedId, "password", Collections.emptyList());
 
@@ -555,24 +521,20 @@ public class ReservaServicioTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(reservaRepositorio.findById(reservaId)).thenReturn(Optional.of(reserva));
         when(reservaRepositorio.save(any(Reserva.class))).thenReturn(reserva);
+        doNothing().when(pagoServicio).reembolsarPago(anyString());
         doNothing().when(emailServicio).enviarEmail(any(EmailDTO.class));
 
-        // Sección de Act: Ejecutar la acción de cancelar reserva
         reservaServicio.cancelarReserva(reservaId);
 
-        // Sección de Assert: Verificar que se canceló la reserva
         verify(reservaRepositorio, times(1)).findById(reservaId);
         verify(reservaRepositorio, times(1)).save(reserva);
         assertEquals(ReservaEstado.CANCELADA, reserva.getEstado());
         verify(emailServicio, times(2)).enviarEmail(any(EmailDTO.class));
+        assertEquals(1, meterRegistry.counter("reservas.canceladas").count());
     }
 
-    /**
-     * Prueba cancelar reserva sin permiso
-     */
     @Test
     void testCancelarReservaSinPermiso() {
-        // Sección de Arrange: Se definen los datos sin permiso
         Long reservaId = 1L;
         String usuarioId = "456";
 
@@ -589,7 +551,6 @@ public class ReservaServicioTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(reservaRepositorio.findById(reservaId)).thenReturn(Optional.of(reserva));
 
-        // Sección de Act & Assert: Verificar que se lanza la excepción
         AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
                 () -> reservaServicio.cancelarReserva(reservaId)
@@ -599,4 +560,3 @@ public class ReservaServicioTest {
         verify(reservaRepositorio, never()).save(any(Reserva.class));
     }
 }
-

@@ -14,6 +14,7 @@ import co.edu.uniquindio.application.services.AuthServicio;
 import co.edu.uniquindio.application.services.EmailServicio;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,30 +37,33 @@ public class AuthServicioImpl implements AuthServicio {
     private final PasswordEncoder passwordEncoder;
     private final ContrasenaCodigoReinicioRepositorio contrasenaCodigoReinicioRepositorio;
     private final EmailServicio emailServicio;
+    private final MeterRegistry meterRegistry;
 
     @Override
     public TokenDTO login(LoginDTO loginDTO) throws Exception {
         Optional<Usuario> optionalUsuario = usuarioRepositorio.findByEmail(loginDTO.email());
 
         if(optionalUsuario.isEmpty()){
-            // Lanzar BadCredentialsException para que Spring Security lo traduzca a 401 cuando corresponda
+            meterRegistry.counter("auth.login.fallido").increment();
             throw new BadCredentialsException("Credenciales inválidas");
         }
 
         Usuario usuario = optionalUsuario.get();
 
         if(usuario.getEstado().equals(Estado.ELIMINADO)){
+            meterRegistry.counter("auth.login.fallido").increment();
             throw new NoFoundException("Usuario no encontrado");
         }
 
-        // Verificar si la contraseña es correcta usando el PasswordEncoder
         if(!passwordEncoder.matches(loginDTO.contrasena(), usuario.getContrasena())){
+            meterRegistry.counter("auth.login.fallido").increment();
             throw new BadCredentialsException("Credenciales inválidas");
         }
 
         Map<String, String> claims = crearReclamos(usuario);
         String token = jwtUtils.generarToken(usuario.getId(), claims);
         String refreshToken = jwtUtils.generarRefreshToken(usuario.getId(), claims);
+        meterRegistry.counter("auth.login.exitoso").increment();
         return new TokenDTO(token, refreshToken);
     }
 
@@ -99,7 +103,6 @@ public class AuthServicioImpl implements AuthServicio {
     @Override
     public void solicitarRecuperacion(OlvidoContrasenaDTO olvidoContrasenaDTO) throws Exception {
 
-        // Buscar usuario por email
         Optional<Usuario> optionalUsuario = usuarioRepositorio.findByEmail(olvidoContrasenaDTO.email());
 
         if (optionalUsuario.isEmpty()) {
@@ -108,27 +111,22 @@ public class AuthServicioImpl implements AuthServicio {
 
         Usuario usuario = optionalUsuario.get();
 
-        // Validar que el usuario esté activo
         if (usuario.getEstado() == Estado.ELIMINADO) {
             throw new ValidationException("El usuario no está activo");
         }
 
-        // Generar código de 6 dígitos aleatorio
         String codigo = generarCodigoRecuperacion();
 
-        // Buscar si ya existe un código para este usuario
         Optional<ContrasenaCodigoReinicio> codigoExistente =
                 contrasenaCodigoReinicioRepositorio.findByUsuario_Email(olvidoContrasenaDTO.email());
 
         ContrasenaCodigoReinicio contrasenaCodigoReinicio;
 
         if (codigoExistente.isPresent()) {
-            // Actualizar código existente
             contrasenaCodigoReinicio = codigoExistente.get();
             contrasenaCodigoReinicio.setCodigo(codigo);
             contrasenaCodigoReinicio.setCreadoEn(LocalDateTime.now());
         } else {
-            // Crear nuevo registro
             contrasenaCodigoReinicio = ContrasenaCodigoReinicio.builder()
                     .codigo(codigo)
                     .creadoEn(LocalDateTime.now())
@@ -136,13 +134,9 @@ public class AuthServicioImpl implements AuthServicio {
                     .build();
         }
 
-        // Guardar código en la base de datos
         contrasenaCodigoReinicioRepositorio.save(contrasenaCodigoReinicio);
-
-        // Enviar codigo al correo
         enviarEmailCodigo(codigo, usuario);
-
-
+        meterRegistry.counter("auth.recuperacion.solicitada").increment();
     }
 
     @Override
@@ -178,17 +172,11 @@ public class AuthServicioImpl implements AuthServicio {
         );
     }
 
-    /**
-     * Genera un código aleatorio de 6 dígitos para recuperación de contraseña
-     */
     private String generarCodigoRecuperacion() {
         int codigo = (int) (Math.random() * 900000) + 100000;
         return String.valueOf(codigo);
     }
 
-    /**
-     * Enviar correo con el codigo
-     */
     private void enviarEmailCodigo(String codigo, Usuario usuario) {
 
         String asunto = "Código de recuperación de contraseña - ViviGo";

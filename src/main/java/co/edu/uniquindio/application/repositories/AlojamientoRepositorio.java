@@ -22,6 +22,8 @@ public interface AlojamientoRepositorio extends JpaRepository<Alojamiento, Long>
 
     Optional<Alojamiento> findByTitulo(String titulo);
 
+    long countByEstado(Estado estado);
+
     @Query("select a from Alojamiento a where a.anfitrion.id = :idUsuario and a.estado = :estado")
     Page<Alojamiento> getAlojamientos(String idUsuario, Estado estado, Pageable pageable);
 

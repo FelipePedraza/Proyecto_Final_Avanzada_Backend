@@ -4,6 +4,7 @@ import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.reserva.CreacionReservaDTO;
 import co.edu.uniquindio.application.dtos.reserva.CreacionReservaRespuestaDTO;
 import co.edu.uniquindio.application.services.ReservaServicio;
+import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,10 +18,7 @@ public class ReservaControlador {
 
     private final ReservaServicio reservaServicio;
 
-    /**
-     * CAMBIO: Ahora retorna CreacionReservaRespuestaDTO que incluye
-     * el client_secret de Stripe para que el frontend complete el pago.
-     */
+    @Timed(value = "vivigo.api.reserva", description = "Reserva API timing")
     @PostMapping
     public ResponseEntity<RespuestaDTO<CreacionReservaRespuestaDTO>> crearReserva(
             @Valid @RequestBody CreacionReservaDTO dto) throws Exception {
@@ -29,19 +27,21 @@ public class ReservaControlador {
                 .body(new RespuestaDTO<>(false, respuesta));
     }
 
-    // Los demás endpoints se mantienen igual
+    @Timed(value = "vivigo.api.reserva", description = "Reserva API timing")
     @PatchMapping("/{id}/cancelar")
     public ResponseEntity<RespuestaDTO<String>> cancelarReserva(@PathVariable Long id) throws Exception {
         reservaServicio.cancelarReserva(id);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Reserva cancelada correctamente."));
     }
 
+    @Timed(value = "vivigo.api.reserva", description = "Reserva API timing")
     @PatchMapping("/{id}/aceptar")
     public ResponseEntity<RespuestaDTO<String>> aceptarReserva(@PathVariable Long id) throws Exception {
         reservaServicio.aceptarReserva(id);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Reserva aceptada y pago capturado"));
     }
 
+    @Timed(value = "vivigo.api.reserva", description = "Reserva API timing")
     @PatchMapping("/{id}/rechazar")
     public ResponseEntity<RespuestaDTO<String>> rechazarReserva(@PathVariable Long id) throws Exception {
         reservaServicio.rechazarReserva(id);

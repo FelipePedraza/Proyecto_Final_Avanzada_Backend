@@ -4,6 +4,8 @@ import co.edu.uniquindio.application.dtos.RespuestaDTO;
 import co.edu.uniquindio.application.dtos.usuario.*;
 import co.edu.uniquindio.application.services.AuthServicio;
 import co.edu.uniquindio.application.services.UsuarioServicio;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,31 +19,38 @@ public class AuthControlador {
 
     private final AuthServicio authServicio;
     private final UsuarioServicio usuarioServicio;
+    private final MeterRegistry meterRegistry;
 
+    @Timed(value = "vivigo.api.auth", description = "Auth API timing")
     @PostMapping("/registro")
     public ResponseEntity<RespuestaDTO<String>> crear(@Valid @RequestBody CreacionUsuarioDTO usuarioDTO) throws Exception {
         usuarioServicio.crear(usuarioDTO);
+        meterRegistry.counter("auth.registro.exitoso").increment();
         return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaDTO<>(false, "El registro ha sido exitoso"));
     }
 
+    @Timed(value = "vivigo.api.auth", description = "Auth API timing")
     @PostMapping("/login")
     public ResponseEntity<RespuestaDTO<TokenDTO>> login(@Valid @RequestBody LoginDTO loginDTO) throws Exception {
         TokenDTO token = authServicio.login(loginDTO);
         return ResponseEntity.ok(new RespuestaDTO<>(false, token));
     }
 
+    @Timed(value = "vivigo.api.auth", description = "Auth API timing")
     @PostMapping("/forgot-password")
     public ResponseEntity<RespuestaDTO<String>> solicitarRecuperacion(@Valid @RequestBody OlvidoContrasenaDTO olvidoContrasenaDTO) throws Exception {
         authServicio.solicitarRecuperacion(olvidoContrasenaDTO);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Código de recuperación enviado al correo."));
     }
 
+    @Timed(value = "vivigo.api.auth", description = "Auth API timing")
     @PatchMapping("/reset-password")
     public ResponseEntity<RespuestaDTO<String>> restablecerContrasena(@Valid @RequestBody ReinicioContrasenaDTO reinicioContrasenaDTO) throws Exception {
         authServicio.reiniciarContrasena(reinicioContrasenaDTO);
         return ResponseEntity.ok(new RespuestaDTO<>(false, "Contraseña restablecida correctamente."));
     }
 
+    @Timed(value = "vivigo.api.auth", description = "Auth API timing")
     @PostMapping("/refresh")
     public ResponseEntity<RespuestaDTO<TokenDTO>> refresh(@Valid @RequestBody RefreshTokenDTO refreshTokenDTO) throws Exception {
         TokenDTO token = authServicio.refrescarToken(refreshTokenDTO);
