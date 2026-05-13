@@ -38,6 +38,7 @@ public class SeguridadConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> req
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/auth/**","/swagger-ui/**", "/v3/api-docs/**", "/api/imagenes/**", "/api/stripe/webhook").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/**", "/api/alojamientos/**", "/api/servicios", "/api/ciudades").permitAll()
                         .requestMatchers("/ws/**").permitAll()
