@@ -52,6 +52,13 @@ public class Usuario {
 
     private Boolean esAnfitrion;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private int intentosFallidos = 0;
+
+    @Column
+    private LocalDateTime bloqueadoHasta;
+
     @PrePersist
     protected void onCreate() {
         creadoEn = LocalDateTime.now();

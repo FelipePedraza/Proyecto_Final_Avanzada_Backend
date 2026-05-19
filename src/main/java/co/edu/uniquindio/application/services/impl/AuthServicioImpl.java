@@ -2,6 +2,7 @@ package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dtos.EmailDTO;
 import co.edu.uniquindio.application.dtos.usuario.*;
+import co.edu.uniquindio.application.exceptions.CuentaBloqueadaException;
 import co.edu.uniquindio.application.exceptions.NoFoundException;
 import co.edu.uniquindio.application.exceptions.ValidationException;
 import co.edu.uniquindio.application.models.entitys.ContrasenaCodigoReinicio;
@@ -16,6 +17,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +41,12 @@ public class AuthServicioImpl implements AuthServicio {
     private final EmailServicio emailServicio;
     private final MeterRegistry meterRegistry;
 
+    @Value("${auth.login.max-intentos}")
+    private int maxIntentos;
+
+    @Value("${auth.login.tiempo-bloqueo-minutos}")
+    private int tiempoBloqueoMinutos;
+
     @Override
     public TokenDTO login(LoginDTO loginDTO) throws Exception {
         Optional<Usuario> optionalUsuario = usuarioRepositorio.findByEmail(loginDTO.email());
@@ -52,13 +60,32 @@ public class AuthServicioImpl implements AuthServicio {
 
         if(usuario.getEstado().equals(Estado.ELIMINADO)){
             meterRegistry.counter("auth.login.fallido").increment();
-            throw new NoFoundException("Usuario no encontrado");
+            throw new BadCredentialsException("Credenciales inválidas");
+        }
+
+        if (usuario.getBloqueadoHasta() != null) {
+            if (LocalDateTime.now().isBefore(usuario.getBloqueadoHasta())) {
+                meterRegistry.counter("auth.login.bloqueado").increment();
+                throw new CuentaBloqueadaException("Demasiados intentos fallidos. Intente de nuevo más tarde.");
+            }
+            usuario.setBloqueadoHasta(null);
+            usuario.setIntentosFallidos(0);
+            usuarioRepositorio.save(usuario);
         }
 
         if(!passwordEncoder.matches(loginDTO.contrasena(), usuario.getContrasena())){
             meterRegistry.counter("auth.login.fallido").increment();
+            usuario.setIntentosFallidos(usuario.getIntentosFallidos() + 1);
+            if (usuario.getIntentosFallidos() >= maxIntentos) {
+                usuario.setBloqueadoHasta(LocalDateTime.now().plusMinutes(tiempoBloqueoMinutos));
+            }
+            usuarioRepositorio.save(usuario);
             throw new BadCredentialsException("Credenciales inválidas");
         }
+
+        usuario.setIntentosFallidos(0);
+        usuario.setBloqueadoHasta(null);
+        usuarioRepositorio.save(usuario);
 
         Map<String, String> claims = crearReclamos(usuario);
         String token = jwtUtils.generarToken(usuario.getId(), claims);
@@ -160,6 +187,8 @@ public class AuthServicioImpl implements AuthServicio {
 
         Usuario usuario = contrasenaCodigoReinicioActualizado.getUsuario();
         usuario.setContrasena(passwordEncoder.encode(reinicioContrasenaDTO.nuevaContrasena()));
+        usuario.setIntentosFallidos(0);
+        usuario.setBloqueadoHasta(null);
         usuarioRepositorio.save(usuario);
 
     }
