@@ -70,7 +70,6 @@ public class AuthServicioImpl implements AuthServicio {
             }
             usuario.setBloqueadoHasta(null);
             usuario.setIntentosFallidos(0);
-            usuarioRepositorio.save(usuario);
         }
 
         if(!passwordEncoder.matches(loginDTO.contrasena(), usuario.getContrasena())){

@@ -35,7 +35,7 @@ public class JWTUtils {
                 .claims(claims)
                 .subject(id)
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plus(7L, ChronoUnit.DAYS))) // 7 Días
+                .expiration(Date.from(now.plus(2L, ChronoUnit.HOURS))) // 2 Horas
                 .signWith(obtenerKey())
                 .compact();
     }
